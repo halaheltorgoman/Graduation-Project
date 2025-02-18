@@ -16,5 +16,8 @@
     "url": "https://github.com/halaheltorgoman/Graduation-Project/issues"
   },
   "homepage": "https://github.com/halaheltorgoman/Graduation-Project#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "graduation-project": "file:"
+  }
 }
