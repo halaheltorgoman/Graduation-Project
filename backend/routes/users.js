@@ -4,7 +4,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 // Public routes
-router.post("/register", userController.register);
+router.post("/signup", userController.register);
 router.post("/login", userController.login);
 
 // Protected routes (require authentication)

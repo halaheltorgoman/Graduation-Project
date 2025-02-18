@@ -1,10 +1,11 @@
+const { MongoClient } = require("mongodb");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 require("dotenv").config()
 //const { JWT_SECRET } = require("../config");
 
-const createToken=(id)=>{
-return jwt.sign({_id:id},process.env.JWT_SECRET,{expiresIn:"30d"})
+const createToken=(userId)=>{
+return jwt.sign({userId:userId},process.env.JWT_SECRET,{expiresIn:"30d"})
 };
 // register a new user
 exports.register = async (req, res) => {
@@ -22,7 +23,7 @@ exports.register = async (req, res) => {
     await user.save();
 
     // generate JWT token
-    const token = createToken(user._id)
+    const token = createToken(user._id) //_id is for mongodb and userId is for jwt
 
     res.status(201).json({ token,email });
   } catch (err) {
