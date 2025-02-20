@@ -1,6 +1,6 @@
 const Build = require("../models/Build");
 const User = require("../models/User");
-const Community = require("../models/Community");
+//const Community = require("../models/Community");
 
 // get all shared builds
 exports.getSharedBuilds = async (req, res) => {
@@ -28,7 +28,9 @@ exports.saveBuild = async (req, res) => {
     if (!build.isShared) {
       return res.status(400).json({ message: "This build is not shared" });
     }
-
+    if (build.userId.toString() === req.userId) {
+      return res.status(400).json({ message: "You cannot save your own build" });
+    }
     // add the build to saved builds
     const user = await User.findById(req.userId);
     if (user.savedBuilds.includes(buildId)) {
@@ -59,6 +61,10 @@ exports.rateBuild = async (req, res) => {
       return res.status(400).json({ message: "This build is not shared" });
     }
 
+    if (build.userId.toString() === req.userId) {
+      return res.status(400).json({ message: "You cannot rate your own build" });
+    }
+    
     // check if the user has already rated the build
     const existingRating = build.ratings.find((r) => r.userId.toString() === req.userId);
     if (existingRating) {
