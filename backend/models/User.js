@@ -6,6 +6,7 @@ const validator = require("validator");
 
 const userSchema = new mongoose.Schema(
   {
+   
     username: {
       type: String,
       required: true,
@@ -34,11 +35,19 @@ const userSchema = new mongoose.Schema(
       },
    
     favorites: [
-      {
+      { item: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Component",
+        refPath: 'onModel',
       },
-    ],
+
+      onModel: {
+        type: String,
+        required: true,
+        enum: ['Cooling', 'GPU', 'CPU','Memory','MotherBoard','Case','PSU','Storage'] 
+      }}
+     ]
+      
+    ,
     savedBuilds: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -75,4 +84,4 @@ userSchema.methods.comparePassword = async function (userpassword) { // custom i
   return await bcrypt.compare(userpassword, this.password); 
 };
 
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model("User", userSchema);  
