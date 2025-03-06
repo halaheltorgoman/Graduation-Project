@@ -1,0 +1,155 @@
+.footer {
+  width: 100%;
+  background: linear-gradient(180deg, #4c145a1f 20%, #000000 80%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 100;
+  padding: 2em;
+  font-size: 12px; /* Increased for better readability */
+  gap: 2rem;
+}
+
+.footer_primary {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.footer_logo {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.footer_mainlinks {
+  display: flex;
+  justify-content: center;
+  gap: 2em;
+  flex: 2;
+  flex-wrap: wrap; /* Allows it to wrap on smaller screens */
+}
+
+.footer_btn {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer_btn_signup {
+  background-color: #621c74;
+  padding: 10px 16px;
+  border-radius: 1em;
+  font-weight: 400;
+  font-size: small;
+  white-space: nowrap;
+  display: inline-flex;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.footer_section {
+  display: flex;
+  gap: 0.3em;
+  flex-direction: column;
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.footer_title {
+  color: #7d7e80;
+}
+
+.footer_column li {
+  padding: 0.3em 0em;
+}
+
+.footer_secondary {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+
+  align-items: center;
+  text-align: center;
+  gap: 1em;
+}
+
+.footer_socialmediaLinks ul {
+  display: flex;
+  gap: 1.5em;
+  justify-content: center;
+  padding: 0;
+  list-style: none;
+}
+.footer_btn_signup {
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s, filter 0.3s; /* Smooth effects */
+
+  /* Always present shadow and slight light effect */
+  box-shadow: 0px 4px 12px rgba(145, 101, 158, 0.6); /* Soft purple glow */
+  filter: brightness(1.1);
+}
+.footer_btn_signup:hover {
+  transform: scale(1.05); /* Slight scale effect */
+  filter: brightness(1.2);
+  box-shadow: 0px 6px 15px rgba(145, 101, 158, 0.8); /* Makes it slightly brighter */
+  /* Enhances glow */
+}
+/* Responsive Styles */
+@media (max-width: 1024px) {
+  .footer_primary {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer_logo {
+    margin-bottom: 1em;
+    width: 100%;
+    display: flex;
+  }
+
+  .footer_mainlinks {
+    flex-direction: column;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .footer_btn {
+    margin-top: 1em;
+  }
+
+  .footer_secondary {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer_socialmediaLinks ul {
+    gap: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 1.5em;
+    font-size: 10px;
+  }
+
+  .footer_btn_signup {
+    padding: 8px 12px;
+  }
+
+  .footer_mainlinks {
+    gap: 0.5em;
+  }
+
+  .footer_secondary p {
+    font-size: 9px;
+  }
+}
