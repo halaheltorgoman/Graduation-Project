@@ -1,0 +1,247 @@
+@import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Red+Rose:wght@300..700&display=swap");
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Red Rose", serif;
+}
+
+.navbar_container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: calc(
+    100% - 20px
+  ); /* Reduces width slightly to prevent touching scrollbar */
+  margin: 0 auto; /* Centers the navbar */
+  padding: 10px 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  z-index: 1000;
+}
+.navbar_container header {
+  margin-top: 1em;
+  border-radius: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5em 2em;
+  width: 95%;
+  max-width: 1200px;
+  background-color: #e1deded2;
+}
+.navbar_logoContainer {
+  flex: 0.2;
+}
+.navbar_navigationMain .navbar_headerList {
+  display: flex;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.navbar_navigationMain .navbar_headerList.navbar_hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.search-bar-container {
+  display: flex;
+  flex: 2;
+}
+.search-input {
+  width: 100%;
+  padding: 8px;
+}
+
+.search-bar.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.navbar_components {
+  display: flex;
+  flex: 2;
+
+  /* background-color: red; */
+}
+.navbar_navigationMain {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 3;
+}
+
+.navbar_iconsContainer {
+  display: flex;
+  flex: 1.5;
+  justify-content: flex-end;
+  gap: 1.5em;
+}
+.navbar_icons {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1em;
+}
+
+.navbar_actual-btn {
+  display: flex;
+  flex: 1;
+  gap: 0.5em;
+}
+
+.navbar_headerList {
+  display: flex;
+  gap: 3em;
+  justify-content: center;
+  color: #ffffff4a;
+  font-weight: bold;
+}
+
+.navbar_ai-button {
+  background-color: #621c74;
+  padding: 10px 16px;
+  border-radius: 1em;
+  white-space: nowrap; /* Prevents text from wrapping */
+  display: inline-flex; /* Ensures button does not stretch */
+  align-items: center;
+  justify-content: center;
+  min-width: 80px; /* Prevents excessive shrinking */
+  max-width: 120px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s, filter 0.3s; /* Smooth effects */
+
+  /* Always present shadow and slight light effect */
+  box-shadow: 0px 4px 12px rgba(145, 101, 158, 0.6); /* Soft purple glow */
+  filter: brightness(1.1);
+}
+
+.navbar_ai-button:hover {
+  transform: scale(1.05); /* Slight scale effect */
+  filter: brightness(1.2);
+  box-shadow: 0px 6px 15px rgba(145, 101, 158, 0.8); /* Makes it slightly brighter */
+  /* Enhances glow */
+}
+
+.navbar_log-button {
+  white-space: nowrap; /* Prevents text from wrapping */
+  display: inline-flex; /* Ensures button does not stretch */
+  align-items: center;
+  justify-content: center;
+  min-width: 80px; /* Prevents excessive shrinking */
+  max-width: 120px; /* Prevents excessive stretching */
+}
+.navbar_nav-btn {
+  display: none; /* Hide by default on larger screens */
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--textColor);
+  font-size: 1.8rem;
+}
+.navbar_nav-icon:hover {
+  font-weight: bold;
+  transform: scale(1.3); /* Slight zoom effect */
+  /* Change to your preferred active color */
+}
+
+@media only screen and (max-width: 1024px) {
+  .navbar_nav-btn {
+    display: block;
+  }
+  .navbar_container {
+    max-width: 1024px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .navbar_components {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100%;
+    background-color: #e1dede;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    pointer-events: none; /* Prevent interactions when hidden */
+  }
+  .navbar_headerList {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+    justify-content: flex-end;
+    align-items: center;
+    height: 70vh;
+    font-size: larger;
+    font-weight: bold;
+  }
+  .navbar_navigationMain {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .navbar_iconsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    justify-content: center;
+  }
+
+  .navbar_actual-btn {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .navbar_log-button {
+    padding: 10px 16px;
+    border-radius: 15px;
+    white-space: nowrap; /* Prevents text from wrapping */
+    /* Ensures it only takes necessary space */
+    max-width: fit-content; /* Prevents stretching */
+  }
+
+  .navbar_ai-button {
+    background-color: #621c74;
+    padding: 10px 16px;
+    border-radius: 15px;
+    white-space: nowrap; /* Prevents text from wrapping */
+    /* Ensures it only takes necessary space */
+    max-width: fit-content; /* Prevents stretching */
+  }
+
+  /* Show Navigation when active */
+  .navbar_responsive_nav {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all; /* Allow interactions when shown */
+    /* Show when toggled */
+  }
+
+  /* Close Button Inside the Nav */
+  .navbar_nav-close-btn {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    font-size: 2rem;
+    color: var(--textColor);
+    cursor: pointer;
+    background: none;
+    border: none;
+  }
+
+  /* Hide menu button (bars) when nav is open */
+  .navbar_hide {
+    display: none;
+  }
+}
