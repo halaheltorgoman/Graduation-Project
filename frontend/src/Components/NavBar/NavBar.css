@@ -32,7 +32,7 @@
   padding: 0.5em 2em;
   width: 95%;
   max-width: 1200px;
-  background-color: #e1deded2;
+  background-color: #e6e6e61a;
 }
 .navbar_logoContainer {
   flex: 0.2;
@@ -100,6 +100,9 @@
   justify-content: center;
   color: #ffffff4a;
   font-weight: bold;
+}
+.navbar_headerList li {
+  color: #ffffff4a;
 }
 
 .navbar_ai-button {
