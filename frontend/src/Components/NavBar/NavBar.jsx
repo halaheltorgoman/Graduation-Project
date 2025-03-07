@@ -54,7 +54,7 @@ export default function NavBar() {
                 <li className="hover:text-white" onClick={closeNavbar}>
                   <NavLink to="builder">Builder</NavLink>
                 </li>
-                <li className="hover:text-white" onClick={closeNavbar}>
+                <li className=" hover:text-white " onClick={closeNavbar}>
                   <NavLink to="guides">Guides</NavLink>
                 </li>
                 <li className="hover:text-white" onClick={closeNavbar}>

@@ -78,6 +78,7 @@ button:focus-visible {
   margin: 0;
   box-sizing: border-box;
   font-family: "Red Rose", serif;
+  color: #ffffff;
 }
 
 body {
