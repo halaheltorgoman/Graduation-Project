@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import Logo from "../../assets/images/logo.svg";
 import ProfileIcon from "../../assets/icons/profile_icon.svg";
@@ -16,9 +16,22 @@ export default function NavBar() {
   const navRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const toggleNavbar = () => {
     if (navRef.current) {
-      navRef.current.classList.toggle("navbar_responsive_nav");
+      if (menuOpen) {
+        navRef.current.classList.remove("navbar_responsive_nav");
+      } else {
+        navRef.current.classList.add("navbar_responsive_nav");
+      }
       setMenuOpen(!menuOpen);
     }
   };
@@ -54,7 +67,7 @@ export default function NavBar() {
                 <li className="hover:text-white" onClick={closeNavbar}>
                   <NavLink to="builder">Builder</NavLink>
                 </li>
-                <li className=" hover:text-white " onClick={closeNavbar}>
+                <li className="hover:text-white" onClick={closeNavbar}>
                   <NavLink to="guides">Guides</NavLink>
                 </li>
                 <li className="hover:text-white" onClick={closeNavbar}>
@@ -74,12 +87,12 @@ export default function NavBar() {
                 >
                   <CiSearch size={25} />
                 </button>
-                <button className="navbar_nav-icon">
+                <button className="navbar_nav-icon" onClick={closeNavbar}>
                   <NavLink to="profile">
                     <CiUser size={25} />
                   </NavLink>
                 </button>
-                <button className="navbar_nav-icon">
+                <button className="navbar_nav-icon" onClick={closeNavbar}>
                   <NavLink to="notifications">
                     <PiBellLight size={25} />
                   </NavLink>
@@ -92,7 +105,9 @@ export default function NavBar() {
                   </button>
                 </NavLink>
                 <NavLink to="ai_assistant">
-                  <button className="navbar_ai-button">Try AI</button>
+                  <button className="navbar_ai-button" onClick={closeNavbar}>
+                    Try AI
+                  </button>
                 </NavLink>
               </div>
             </div>

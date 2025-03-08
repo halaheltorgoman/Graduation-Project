@@ -26,7 +26,7 @@ const Footer = () => {
                 <NavLink to="articles">Articles</NavLink>
               </li>
               <li>
-                <NavLink to="browse">Browse</NavLink>
+                <NavLink to="browsecomponents">Browse</NavLink>
               </li>
             </ul>
           </div>
