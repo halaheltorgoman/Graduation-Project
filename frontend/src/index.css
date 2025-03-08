@@ -1,5 +1,4 @@
 @import url("https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Red+Rose:wght@300..700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -78,16 +77,10 @@ button:focus-visible {
   margin: 0;
   box-sizing: border-box;
   font-family: "Red Rose", serif;
-  color: #ffffff;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background-image: url("./assets/images/background.png"); /* Adjust path */
   background-size: cover;
   background-position: center;
@@ -115,6 +108,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  color: #ffffff;
 }
 
 .main-content {
