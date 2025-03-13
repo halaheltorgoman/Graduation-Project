@@ -93,7 +93,7 @@ exports.updateProfile = async (req, res) => {
 
 // add a component to favorites
 exports.addFavorite = async (req, res) => {
-  const { componentId } = req.body;
+  const { componentId, modelName} = req.body;
 
   try {
     const user = await User.findById(req.userId);
@@ -101,9 +101,13 @@ exports.addFavorite = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const alreadyFavorited = user.favorites.some(fav =>
+      fav.item.equals(componentId) && fav.onModel === modelName
+    );
+
     // add component to favorites if not already added
-    if (!user.favorites.includes(componentId)) {
-      user.favorites.push(componentId);
+    if (!alreadyFavorited) {
+      user.favorites.push({item: componentId, onModel: modelName});
       await user.save();
     }
 
@@ -115,7 +119,7 @@ exports.addFavorite = async (req, res) => {
 
 // remove a component from favorites
 exports.removeFavorite = async (req, res) => {
-  const { componentId } = req.body;
+  const { componentId, modelName } = req.body;
 
   try {
     const user = await User.findById(req.userId);
@@ -123,8 +127,10 @@ exports.removeFavorite = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // remove component from favorites
-    user.favorites = user.favorites.filter((id) => id.toString() !== componentId);
+    // Remove the favorite that matches both the componentId and modelName
+    user.favorites = user.favorites.filter(
+      fav => !(fav.item.equals(componentId) && fav.onModel === modelName)
+    );
     await user.save();
 
     res.json({ message: "Component removed from favorites", user });
