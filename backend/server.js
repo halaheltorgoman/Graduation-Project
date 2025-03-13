@@ -19,7 +19,7 @@ app.use("/api/users", require("./routes/users"));
 //app.use("/api/ai", require("./routes/aiAssistant"));
 
 
-//app.use(errorHandler);
+//app.use(errorHandler); 
 
 
 connectDB().then(() => {

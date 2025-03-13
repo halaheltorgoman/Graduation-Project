@@ -1,14 +1,37 @@
+const Build = require("../models/Build");
+const buildService = require("../services/buildService");
+
+
+exports.getComponents = async (req, res) => {
+  try {
+    const components = await buildService.getCompatibleComponents(
+      req.body.selectedComponents,
+      req.params.type
+    );
+    res.json(components);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+exports.checkCompatibility = async (req, res) => {
+  try {
+    const compatibility = await buildService.checkCompatibility(req.body.components);
+    res.json(compatibility);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
 exports.createBuild = async (req, res) => {
     const { name, description, components, isShared } = req.body;
   
     try {
-      // 1. Check component compatibility (use your existing logic)
       const isCompatible = await buildService.checkCompatibility(components);
       if (!isCompatible) {
         return res.status(400).json({ message: "Components are incompatible" });
       }
   
-      // 2. Create the build
       const build = new Build({
         userId: req.userId,
         name,
@@ -16,10 +39,9 @@ exports.createBuild = async (req, res) => {
         components,
         isShared: isShared || false, 
       });
-  
+   
       await build.save();
   
-      // 3. Add the build to the user's saved builds
       const user = await User.findById(req.userId);
       user.savedBuilds.push(build._id);
       await user.save();
@@ -27,7 +49,7 @@ exports.createBuild = async (req, res) => {
       res.status(201).json({ 
         message: "Build saved successfully", 
         build,
-        isShared: build.isShared // Return sharing status
+        isShared: build.isShared 
       });
   
     } catch (err) {
@@ -37,7 +59,7 @@ exports.createBuild = async (req, res) => {
 
   exports.shareBuild = async (req, res) => {
     const { id: buildId } = req.params;
-    const { isShared } = req.body; // true/false
+    const { isShared } = req.body; 
   
     try {
       const build = await Build.findById(buildId);
@@ -45,7 +67,6 @@ exports.createBuild = async (req, res) => {
         return res.status(404).json({ message: "Build not found" });
       }
   
-      // Update sharing status
       build.isShared = isShared;
       await build.save();
   
