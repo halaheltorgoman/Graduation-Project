@@ -6,7 +6,7 @@ const caseSchema = new mongoose.Schema({
     },
     product_name: String,
     rating: Number ,
-  price: { type: String, required: true ,
+  price: { type: Number, required: true ,
     },
    image_source: {
     type: String,
@@ -31,5 +31,7 @@ const caseSchema = new mongoose.Schema({
   dimensions_in_cm: String,
 
 }, { timestamps: true });
+
+caseSchema.index({ title: "text"});
 
 module.exports = mongoose.model('Case', caseSchema);

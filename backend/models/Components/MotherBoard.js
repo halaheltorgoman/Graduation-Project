@@ -6,7 +6,7 @@ const mbSchema = new mongoose.Schema({
     },
     product_name: String,
     rating: Number ,
-  price: { type: String, required: true ,
+  price: { type: Number, required: true ,
     },
    image_source: {
     type: String,
@@ -33,5 +33,7 @@ const mbSchema = new mongoose.Schema({
    storage_interface: String 
 
 }, { timestamps: true });
+
+mbSchema.index({ title: "text", manufacturer: "text" });
 
 module.exports = mongoose.model('Motherboard', mbSchema);

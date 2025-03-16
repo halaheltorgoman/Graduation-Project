@@ -6,7 +6,7 @@ const memorySchema = new mongoose.Schema({
     },
     product_name: String,
     rating: Number ,
-  price: { type: String, required: true ,
+  price: { type: Number, required: true ,
     },
    image_source: {
     type: String,
@@ -35,5 +35,7 @@ ram_size:String,
    
 
 }, { timestamps: true });
+
+memorySchema.index({ title: "text", ram_size: "text" });
 
 module.exports = mongoose.model('Memory', memorySchema);

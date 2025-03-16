@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use("/api/users", require("./routes/users"));
 //app.use("/api/users", require("./routes/community"));
-//app.use("/api/components", require("./routes/components"));
+app.use("/api/components", require("./routes/components"));
 //app.use("/api/builds", require("./routes/build"));
 //app.use("/api/guides", require("./routes/guides"));
 //app.use("/api/ai", require("./routes/aiAssistant"));

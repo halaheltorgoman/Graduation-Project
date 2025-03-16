@@ -6,7 +6,7 @@ const cpuSchema = new mongoose.Schema({
     },
     product_name: String,
     rating: Number ,
-  price: { type: String, required: true ,
+  price: { type: Number, required: true ,
     },
    image_source: {
     type: String,
@@ -35,4 +35,5 @@ const cpuSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
+cpuSchema.index({ title: "text", manufacturer: "text" });
 module.exports = mongoose.model('CPU', cpuSchema);
