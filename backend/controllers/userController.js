@@ -90,3 +90,31 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
+// add a component to favorites
+/* exports.addFavorite = async (req, res) => {
+  const { componentId, modelName} = req.body;
+
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const alreadyFavorited = user.favorites.some(fav =>
+      fav.item.equals(componentId) && fav.onModel === modelName
+    );
+
+    // add component to favorites if not already added
+    if (!alreadyFavorited) {
+      user.favorites.push({item: componentId, onModel: modelName});
+      await user.save();
+    }
+
+    res.json({ message: "Component added to favorites", user });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+}; */
+
+
