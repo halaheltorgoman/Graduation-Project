@@ -5,9 +5,9 @@ const GPU = require('../models/Components/GPU');
 const Motherboard = require('../models/Components/MotherBoard');
 const Case = require('../models/Components/Case');
 const Memory = require('../models/Components/Memory');
-//const Storage = require('../models/Components/Storage');
+const Storage = require('../models/Components/Storage');
 //const PSU = require('../models/Components/PSU');
-//const Cooler = require('../models/Components/Cooler');
+const Cooler = require('../models/Components/Cooler');
 
 
 const componentModels = {
@@ -16,9 +16,9 @@ const componentModels = {
   motherboard: Motherboard,
   memory: Memory,
   case:Case,
-  //storage: Storage,
+  storage: Storage,
   //psu: PSU,
-  //cooler: Cooler,
+  cooler: Cooler,
 
 };
 function getComponentModel(type) {

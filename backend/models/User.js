@@ -43,29 +43,6 @@ const userSchema = new mongoose.Schema(
     resetOtp: { type: String, default: "" },
     resetOtpExpiredAt: { type: String, default: 0 },
 
-    favorites: [
-      {
-        item: {
-          type: mongoose.Schema.Types.ObjectId,
-          refPath: "onModel",
-        },
-
-        onModel: {
-          type: String,
-          required: true,
-          enum: [
-            "Cooling",
-            "GPU",
-            "CPU",
-            "Memory",
-            "MotherBoard",
-            "Case",
-            "PSU",
-            "Storage",
-          ],
-        },
-      },
-    ],
 
     savedBuilds: [
       {

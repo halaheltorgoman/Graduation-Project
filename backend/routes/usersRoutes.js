@@ -11,11 +11,6 @@ usersRouter.get("/data", userAuth, userController.getUserData);
 
 usersRouter.get("/profile", authMiddleware, userController.getProfile);
 usersRouter.put("/profile", authMiddleware, userController.updateProfile);
-usersRouter.post("/favorites/add", authMiddleware, userController.addFavorite);
-usersRouter.post(
-  "/favorites/remove",
-  authMiddleware,
-  userController.removeFavorite
-);
+
 
 module.exports = usersRouter;
