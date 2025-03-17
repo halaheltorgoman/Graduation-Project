@@ -9,8 +9,8 @@ const userAuth = require("../middleware/userAuth");
 
 usersRouter.get("/data", userAuth, userController.getUserData);
 
-usersRouter.get("/profile", authMiddleware, userController.getProfile);
-usersRouter.put("/profile", authMiddleware, userController.updateProfile);
+usersRouter.get("/profile", userAuth, userController.getProfile);
+usersRouter.put("/profile", userAuth, userController.updateProfile);
 
 
 module.exports = usersRouter;

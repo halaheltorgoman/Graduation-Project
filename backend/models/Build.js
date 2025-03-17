@@ -1,25 +1,30 @@
-
 const mongoose = require('mongoose');
-const Case = require('../models/Components/Case');
-const buildSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name: { type: String, required: true },
-  description: String,
-  components: {
-    cpu: { type: mongoose.Schema.Types.ObjectId, ref: 'CPU' },
-    gpu: { type: mongoose.Schema.Types.ObjectId, ref: 'GPU' },
-    motherboard: { type: mongoose.Schema.Types.ObjectId, ref: 'Motherboard' },
-    memory: { type: mongoose.Schema.Types.ObjectId, ref: 'Memory' },
-    storage: { type: mongoose.Schema.Types.ObjectId, ref: 'Storage' },
-    psu: { type: mongoose.Schema.Types.ObjectId, ref: 'PSU' },
-    pcCase: { type: mongoose.Schema.Types.ObjectId, ref: 'Case' },
-    cooler: { type: mongoose.Schema.Types.ObjectId, ref: 'Cooler' },
-    fans: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Fan' }]
-  },
-  isShared: { type: Boolean, default: false },
-  createdAt: { type: Date, default: Date.now },
-  totalWattage: Number,
-  compatibilityIssues: [String]
+
+const commentSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  text: { type: String, required: true, maxlength: 500 },
+  createdAt: { type: Date, default: Date.now }
 });
+
+const buildSchema = new mongoose.Schema({
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true, maxlength: 100 },
+  description: { type: String, maxlength: 500 },
+  components: [{
+    type: { type: String, required: true },
+    componentId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    _id: false
+  }],
+  ratings: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    value: { type: Number, min: 1, max: 5 }
+  }],
+  comments: [commentSchema],
+  isShared: { type: Boolean, default: false },
+  shareCount: { type: Number, default: 0 },
+  saves: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  averageRating: Number,
+  createdAt: { type: Date, default: Date.now }
+}, { timestamps: true });
 
 module.exports = mongoose.model('Build', buildSchema);

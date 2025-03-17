@@ -11,13 +11,13 @@ const app = express();
 // middlewares
 app.use(cors());
 app.use(express.json());
-//app.use(cookieParser());
+app.use(cookieParser());
 
-//app.use("/api/auth", authRouter);
+app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
-//app.use("/api/users", require("./routes/community"));
+app.use("/api/community", require("./routes/community"));
 app.use("/api/components", require("./routes/components"));
-//app.use("/api/builds", require("./routes/build"));
+app.use("/api/builds", require("./routes/buildexample"));
 //app.use("/api/guides", require("./routes/guides"));
 //app.use("/api/ai", require("./routes/aiAssistant"));
 

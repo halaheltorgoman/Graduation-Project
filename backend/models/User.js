@@ -37,19 +37,15 @@ const userSchema = new mongoose.Schema(
         _id: false
       }],
 
+      savedBuilds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Build' }],
+      sharedBuilds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Build' }],
+
     verifyOtp: { type: String, default: "" },
     verifyOtpExpireAt: { type: Number, default: 0 },
     isAccountVerified: { type: Boolean, default: false },
     resetOtp: { type: String, default: "" },
     resetOtpExpiredAt: { type: String, default: 0 },
 
-
-    savedBuilds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Build",
-      },
-    ],
     createdAt: {
       type: Date,
       default: Date.now,
@@ -59,14 +55,14 @@ const userSchema = new mongoose.Schema(
 );
 
 // if username is not set
-userSchema.pre("validate", function (next) { //middleware
+/*userSchema.pre("validate", function (next) { //middleware
   if (!this.username) {
     this.username = this.email.split("@")[0]; 
   }
   next();
 });
 
-userSchema.pre("save", async function (next) { 
+ /* userSchema.pre("save", async function (next) { 
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -74,7 +70,7 @@ userSchema.pre("save", async function (next) {
 });
 
 
-userSchema.methods.comparePassword = async function (userpassword) { // custom instance method
+/* userSchema.methods.comparePassword = async function (userpassword) { // custom instance method
   return await bcrypt.compare(userpassword, this.password); 
 };
 
@@ -99,5 +95,5 @@ module.exports = mongoose.model("User", userSchema);
 // userSchema.methods.comparePassword = async function (userpassword) {
 //  // // custom instance method
 //   return await bcrypt.compare(userpassword, this.password);
-// };
+// }; */
 module.exports = mongoose.model("User", userSchema);

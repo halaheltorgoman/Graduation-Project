@@ -1,14 +1,19 @@
-const express = require("express");
-const communityController = require("../controllers/communityController");
-const authMiddleware = require("../middleware/authMiddleware");
+const express = require('express');
 const router = express.Router();
+const communityController = require('../controllers/communityController');
+//const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../middleware/userAuth');
 
-// public route (no authentication required)
-router.get("/shared", communityController.getSharedBuilds);
+// Public routes
+router.get('/', communityController.getSharedBuilds);
+router.get('/:id', communityController.getBuildDetails);
 
-// protected routes (require authentication)
-router.post("/save", authMiddleware, communityController.saveBuild);
-router.post("/:id/rate", authMiddleware, communityController.rateBuild);
-router.post("/:id/comment", authMiddleware, communityController.addComment);
+
+// Protected routes
+
+router.post('/:id/share', authMiddleware, communityController.shareBuild);
+router.post('/:id/comments', authMiddleware, communityController.addComment);
+router.post('/:id/ratings', authMiddleware, communityController.addRating);
+router.post('/:id/save', authMiddleware, communityController.saveBuild);
 
 module.exports = router;

@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const userAuth = async (req, res, next) => {
   const { token } = req.cookies;
   if (!token) {
-    return res.json({
+    return res.status(401).json({
       success: false,
       message: "Not Authorized. Please Login Again",
     });
@@ -11,9 +11,9 @@ const userAuth = async (req, res, next) => {
   try {
     const tokenDecode = jwt.verify(token, process.env.JWT_SECRET);
     if (tokenDecode.id) {
-      req.body.userId = tokenDecode.id;
+      req.userId = tokenDecode.id; // ✅ Set req.userId directly
     } else {
-      return res.json({
+      return res.status(401).json({
         success: false,
         message: "Not Authorized. Please Login Again",
       });
@@ -21,8 +21,9 @@ const userAuth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(401).json({ success: false, message: "Invalid Token" });
   }
 };
 
 module.exports = userAuth;
+
