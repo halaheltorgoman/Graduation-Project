@@ -1,30 +1,35 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const commentSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  text: { type: String, required: true, maxlength: 500 },
-  createdAt: { type: Date, default: Date.now }
+const buildSchema = new Schema({
+  user: { 
+    type: Schema.Types.ObjectId, 
+    ref: 'User', 
+    required: true 
+  },
+  components: {
+    cpu: { type: Schema.Types.ObjectId, ref: 'CPU' },
+    gpu: { type: Schema.Types.ObjectId, ref: 'GPU' },
+    motherboard: { type: Schema.Types.ObjectId, ref: 'Motherboard' },
+    ram: { type: Schema.Types.ObjectId, ref: 'RAM' },
+    storage: { type: Schema.Types.ObjectId, ref: 'Storage' },
+    psu: { type: Schema.Types.ObjectId, ref: 'PSU' },
+    case: { type: Schema.Types.ObjectId, ref: 'Case' },
+    cooler: { type: Schema.Types.ObjectId, ref: 'Cooler' },
+  },
+  title: {
+    type: String,
+    default: 'Unnamed Build'
+  },
+  description: String,
+  isShared: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
-
-const buildSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  title: { type: String, required: true, maxlength: 100 },
-  description: { type: String, maxlength: 500 },
-  components: [{
-    type: { type: String, required: true },
-    componentId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    _id: false
-  }],
-  ratings: [{
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    value: { type: Number, min: 1, max: 5 }
-  }],
-  comments: [commentSchema],
-  isShared: { type: Boolean, default: false },
-  shareCount: { type: Number, default: 0 },
-  saves: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  averageRating: Number,
-  createdAt: { type: Date, default: Date.now }
-}, { timestamps: true });
 
 module.exports = mongoose.model('Build', buildSchema);

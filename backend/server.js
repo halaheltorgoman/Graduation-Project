@@ -17,7 +17,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/community", require("./routes/community"));
 app.use("/api/components", require("./routes/components"));
-app.use("/api/builds", require("./routes/buildexample"));
+app.use("/api/builds", require("./routes/build"));
 //app.use("/api/guides", require("./routes/guides"));
 //app.use("/api/ai", require("./routes/aiAssistant"));
 

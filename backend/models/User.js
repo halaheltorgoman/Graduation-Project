@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const validator = require("validator");
+const {Schema} = mongoose;
 
-const userSchema = new mongoose.Schema(
+const userSchema = new Schema(
   {
     username: {
       type: String,
@@ -31,14 +32,20 @@ const userSchema = new mongoose.Schema(
         default: "user",
       },
    
-      favorites: [{
+      favorites: [{ //fav components
         componentType: { type: String },
         componentId: { type: mongoose.Schema.Types.ObjectId },
         _id: false
       }],
 
-      savedBuilds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Build' }],
-      sharedBuilds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Build' }],
+      savedBuilds: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Build' }], //saved builds from community/guides
+
+      builds: [{ //saved own builds
+        type: Schema.Types.ObjectId,
+        ref: 'Build'
+      }],
 
     verifyOtp: { type: String, default: "" },
     verifyOtpExpireAt: { type: Number, default: 0 },
@@ -53,6 +60,7 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+module.exports = mongoose.model("User", userSchema);
 
 // if username is not set
 /*userSchema.pre("validate", function (next) { //middleware
@@ -96,4 +104,3 @@ module.exports = mongoose.model("User", userSchema);
 //  // // custom instance method
 //   return await bcrypt.compare(userpassword, this.password);
 // }; */
-module.exports = mongoose.model("User", userSchema);
