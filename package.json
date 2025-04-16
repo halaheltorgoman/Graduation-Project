@@ -19,9 +19,13 @@
   "homepage": "https://github.com/halaheltorgoman/Graduation-Project#readme",
   "description": "",
   "dependencies": {
+<<<<<<< HEAD
     "@langchain/community": "^0.3.42",
     "axios": "^1.8.3",
     "chromadb": "^2.3.0",
+=======
+    "axios": "^1.8.3",
+>>>>>>> 4c6a5a1c (RAG personalized recommentations)
     "graduation-project": "file:"
   }
 }
