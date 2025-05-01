@@ -9,13 +9,25 @@ const COMPONENT_FILTERS = {
   cpu: {
     Manufacturer: ["Intel", "AMD"],
     "Socket Type": ["LGA1700", "AM5", "LGA1200", "AM4"],
-    "Number of Cores": ["4", "6", "8", "10", "12", "16"],
-    "Number of Threads": ["8", "12", "16", "24", "32"],
+    "Number of Cores": [
+      "4",
+      "6",
+      "8",
+      "10",
+      "12",
+      "14",
+      "16",
+      "18",
+      "20",
+      "22",
+      "24",
+    ],
+    "Number of Threads": ["8", "12", "16", "20", "24", "28", "32"],
   },
   gpu: {
     Manufacturer: ["NVIDIA", "AMD", "Intel"],
-    "Memory Size": ["4", "6", "8", "12", "16", "24"],
-    "Memory Type": ["GDDR5", "GDDR6", "GDDR6X", "GDDR3"],
+
+    // "Memory Type": ["GDDR5", "GDDR6", "GDDR6X"],
     Brand: [
       "MSI",
       "SAPPHIRE",
@@ -26,6 +38,109 @@ const COMPONENT_FILTERS = {
       "Palit",
       "Sparkle Computer",
       "PNY",
+    ],
+  },
+
+  motherboard: {
+    Brand: ["MSI", "ASUS", "Gigabyte"],
+    "Supported Socket": ["LGA 1700", "AM5", "LGA 1200", "AM4"],
+    "Supported Memory": ["DDR4", "DDR5"],
+    "Form Factor": ["ATX", "Micro-ATX", "Extended-ATX"],
+  },
+
+  case: {
+    Brand: [
+      "NZXT",
+      "Gigabyte",
+      "Cooler Master",
+      "HOOD",
+      "ARKTEK",
+      "Techno Zone",
+      "Redragon",
+      "ASUS",
+      "XANDER",
+      "Fractal Design",
+      "SilverStone",
+      "Antec",
+      "Xigmatek",
+      "Lian Li",
+      "be quiet!",
+    ],
+    "Case Size": ["Full Tower", "Mid Tower"],
+    Color: ["Black", "White", "Grey", "Green", "Orange"],
+  },
+  cooling: {
+    Brand: [
+      "Cooler Master",
+      "Redragon",
+      "ASUS",
+      "MSI",
+      "Fractal Design",
+      "Gigabyte",
+    ],
+    Type: ["Air", "Liquid"],
+  },
+  memory: {
+    Brand: [
+      "Crucial",
+      "Kingston",
+      "TeamGroup",
+      "TwinMOS",
+      "CORSAIR",
+      "Rasalas",
+      "G.Skill",
+      "SK Hynix",
+      "Hynix",
+      "XPG",
+      "A-Tech",
+      "Hikvision",
+      "Micron",
+      "Patriot",
+    ],
+    "Memory Size": [
+      "4GB",
+      "8GB",
+      "16GB",
+      "32GB",
+      "64GB",
+      "96GB",
+      "128GB",
+      "256GB",
+    ],
+    "Memory Type": ["DDR4", "DDR5", "DDR3"],
+  },
+  storage: {
+    Brand: [
+      "ADATA",
+      "Crucial",
+      "Fikwot",
+      "Hikvision",
+      "Kingston",
+      "Lexar",
+      "MSI",
+      "ORICO",
+      "Seagate",
+      "Samsung",
+      "SanDisk",
+      "TeamGroup",
+      "Toshiba",
+      "TwinMOS",
+      "Western Digital",
+    ],
+    Capacity: [
+      "128GB",
+      "240GB",
+      "250GB",
+      "256GB",
+      "480GB",
+      "500GB",
+      "512GB",
+      "960GB",
+      "1TB",
+      "2TB",
+      "4TB",
+      "16TB",
+      "18TB",
     ],
   },
 };
@@ -77,6 +192,7 @@ function Filters({
     (filtersList, priceRangeVal) => {
       const apiParams = {};
 
+      // Handle standard filters
       const filtersByCategory = filtersList.reduce((acc, filter) => {
         if (!acc[filter.category]) acc[filter.category] = [];
         acc[filter.category].push(filter.value);
@@ -86,22 +202,51 @@ function Filters({
       Object.entries(filtersByCategory).forEach(([category, values]) => {
         switch (category) {
           case "Manufacturer":
-            apiParams.manufacturer = values.map((v) => v.toLowerCase());
-            break;
-          case "Socket Type":
-            apiParams.socketType = values;
-            break;
-          case "Memory Type":
-            apiParams.memoryType = values;
+            apiParams.manufacturer = values;
             break;
           case "Brand":
             apiParams.brand = values;
             break;
-          default:
-            apiParams[category.toLowerCase().replace(/\s+/g, "")] = values;
+          case "Socket Type":
+            apiParams.socket = values;
+            break;
+          case "Number of Cores":
+            apiParams.cores = values;
+            break;
+          case "Number of Threads":
+            apiParams.threads = values;
+            break;
+          case "Supported Socket":
+            apiParams.MB_socket = values;
+            break;
+
+          case "Supported Memory":
+            apiParams.supported_memory = values;
+            break;
+          case "Form Factor":
+            apiParams.MB_form = values;
+            break;
+          case "Case Size":
+            apiParams.case_type = values;
+            break;
+          case "Color":
+            apiParams.color = values;
+            break;
+          case "Type":
+            apiParams.cooling_method = values;
+            break;
+          case "Memory Type":
+            apiParams.DDR_generation = values;
+            break;
+          case "Memory Size":
+            apiParams.memory_size = values;
+            break;
+          case "Capacity":
+            apiParams.size = values;
         }
       });
 
+      // Handle price range
       if (priceRangeVal && Array.isArray(priceRangeVal)) {
         apiParams.minPrice = priceRangeVal[0];
         apiParams.maxPrice = priceRangeVal[1];
@@ -269,7 +414,6 @@ function Filters({
                     {priceRange[1].toLocaleString()}
                   </Tag>
                 )}
-
                 {selectedSort && (
                   <Tag
                     closable
