@@ -29,16 +29,16 @@ app.get('/api/test', (req, res) => {
 });
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     
     // Start server
-    const PORT = process.env.PORT || 5000;
+    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Test the server at http://localhost:${PORT}/api/test`);
-      console.log(`Test the AI assistant at http://localhost:${PORT}/api/ai/ask`);
+      console.log(`Test the AI assistant at http://localhost:${PORT}/api/ai/chat`);
       console.log(`Test the build generator at http://localhost:${PORT}/api/ai/generate-build`);
     });
   })

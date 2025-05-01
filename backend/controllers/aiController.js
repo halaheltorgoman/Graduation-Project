@@ -1,5 +1,6 @@
 const axios = require("axios");
 const ragService = require("../services/ragService");
+const chatService = require('../services/chatService');
 require("dotenv").config();
 
 /**
@@ -90,6 +91,64 @@ exports.generateBuild = async (req, res) => {
     console.error("Error generating build:", error);
     res.status(500).json({ error: "Failed to generate build" });
   }
+};
+
+// Handle chat messages
+exports.chat = async (req, res) => {
+    try {
+        const { message, userId } = req.body;
+
+        if (!message || !userId) {
+            return res.status(400).json({
+                error: 'Message and userId are required'
+            });
+        }
+
+        console.log('Processing chat message:', { message, userId });
+        
+        const result = await chatService.processMessage(userId, message);
+        console.log('Chat processing result:', result);
+
+        res.json({
+            response: result.response,
+            requirements: result.requirements,
+            intent: result.intent
+        });
+    } catch (error) {
+        console.error('Error in chat controller:', {
+            error: error.message,
+            stack: error.stack,
+            requestBody: req.body
+        });
+        res.status(500).json({
+            error: 'Failed to process message',
+            details: error.message
+        });
+    }
+};
+
+// Get conversation history
+exports.getHistory = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                error: 'UserId is required'
+            });
+        }
+
+        const history = chatService.getHistory(userId);
+
+        res.json({
+            history
+        });
+    } catch (error) {
+        console.error('Error getting history:', error);
+        res.status(500).json({
+            error: 'Failed to get conversation history'
+        });
+    }
 };
 
 
