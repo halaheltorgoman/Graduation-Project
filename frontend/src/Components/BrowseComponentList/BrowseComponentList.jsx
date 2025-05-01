@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
 import { MdArrowOutward } from "react-icons/md";
 import ComponentShimmer from "../ComponentShimmer/ComponentShimmer";
@@ -11,6 +11,7 @@ const BrowseComponentList = ({
   isLoading,
   onComponentClick,
 }) => {
+  const [favorites, setfavorites] = useState("false");
   const handleCardClick = (component) => {
     onComponentClick(component);
   };
