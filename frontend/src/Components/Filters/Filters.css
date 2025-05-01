@@ -198,14 +198,14 @@
   border-color: white !important; /* Change the checkmark color */
 }
 /* .sort-option {
-          padding: 10px;
-          cursor: pointer;
-          border-radius: 8px;
-          display: flex;
-        
-          text-align: center;
-          transition: background-color 0.3s;
-        } */
+        padding: 10px;
+        cursor: pointer;
+        border-radius: 8px;
+        display: flex;
+      
+        text-align: center;
+        transition: background-color 0.3s;
+      } */
 
 .sort-option {
   padding: 10px;
@@ -358,4 +358,43 @@
 .custom-slider .ant-slider:focus .ant-slider-rail,
 .custom-slider .ant-slider:active .ant-slider-rail {
   background-color: #ffffff !important;
+}
+/* Update the menu item styles to allow wrapping */
+.filter_secondary .ant-menu-item {
+  white-space: normal !important; /* Allow text to wrap */
+  word-break: break-word; /* Break long words if needed */
+  height: auto !important; /* Remove fixed height */
+  min-height: 40px; /* Set a minimum height */
+  padding: 8px 16px !important; /* Adjust padding */
+  line-height: 1.4 !important; /* Increase line height */
+  display: flex;
+  align-items: center;
+}
+
+/* Update submenu titles for wrapping */
+.filter_secondary .ant-menu-submenu-title {
+  white-space: normal !important;
+  word-break: break-word;
+  height: auto !important;
+  min-height: 40px;
+  padding: 8px 16px !important;
+  line-height: 1.4 !important;
+  display: flex;
+  align-items: center;
+}
+
+/* Ensure the menu container can expand */
+.filter_secondary .ant-menu {
+  overflow: visible !important;
+}
+
+/* Adjust the checkbox alignment with wrapped text */
+.ant-checkbox-wrapper {
+  align-items: flex-start !important; /* Align to top with wrapped text */
+  padding: 4px 0;
+}
+
+/* Optional: Add some margin between stacked items */
+.filter_secondary .ant-menu-item:not(:last-child) {
+  margin-bottom: 4px;
 }

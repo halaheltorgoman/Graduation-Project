@@ -120,7 +120,6 @@ export default function NavBar() {
             </button>
           </nav>
         )}
-
         <button
           className={`navbar_nav-btn ${menuOpen ? "navbar_hide" : ""}`}
           onClick={toggleNavbar}

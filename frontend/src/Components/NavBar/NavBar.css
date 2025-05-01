@@ -1,3 +1,10 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: "Red Rose", serif;
+}
+
 .navbar_container {
   position: fixed;
   top: 0;
@@ -24,6 +31,7 @@
   width: 95%;
   max-width: 1200px;
   background-color: #2b2b39d8;
+  height: 60px;
 }
 .navbar_logoContainer {
   flex: 0.2;
@@ -238,4 +246,226 @@
   .navbar_hide {
     display: none;
   }
+}
+
+.search-container {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+
+.search-container.open {
+  width: 300px;
+}
+
+.navbar_nav-icon {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.navbar_nav-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar_hide {
+  display: none;
+}
+
+.search-container {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  height: 40px;
+}
+
+.search-container.active {
+  width: 300px;
+}
+.search-bar-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+
+  background: #1a1a1a;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #555;
+  background-color: #2a2a2a;
+  color: white;
+  font-size: 16px;
+}
+
+.search-icon-button img {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.close-search-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: white;
+  cursor: pointer;
+}
+
+.search-results {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 8px;
+  z-index: 10;
+  padding: 0.5rem;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.5rem;
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  background-color: #3a3a3a;
+}
+
+.search-result-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.search-result-item .info h4 {
+  color: white;
+  margin: 0;
+  font-size: 16px;
+}
+
+.search-result-item .info p {
+  color: #ccc;
+  margin: 0;
+  font-size: 14px;
+}
+/* Search.css */
+.search-bar-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #2a2a2a;
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-icon-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-search-btn {
+  background: none;
+  border: none;
+  color: white;
+  margin-left: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 8px;
+  z-index: 100;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+  background-color: #2a2a2a;
+}
+
+.search-result-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-right: 1rem;
+}
+
+.search-result-item .info h4 {
+  margin: 0;
+  color: white;
+  font-size: 14px;
+}
+
+.search-result-item .info p {
+  margin: 0;
+  color: #ccc;
+  font-size: 12px;
 }
