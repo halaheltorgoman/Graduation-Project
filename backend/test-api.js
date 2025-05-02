@@ -11,27 +11,29 @@ const axios = require('axios');
 require('dotenv').config();
 
 // Base URL for the API
-const baseUrl = 'http://localhost:4000/api';
+const baseUrl = 'http://localhost:5000/api';
 
 // Mock user ID for testing
-const mockUserId = '67b4b87322cc907db1be4c3a';
+const mockUserId = '65f8a1b2c3d4e5f6a7b8c9d0';
 
-// Test function to test the chat endpoint
-async function testChatEndpoint() {
-  console.log('Testing chat endpoint...');
+// Test function to test the askAI endpoint
+async function testAskAIEndpoint() {
+  console.log('Testing askAI endpoint...');
   
   try {
-    const response = await axios.post(`${baseUrl}/ai/chat`, {
-      message: 'I need a gaming PC under $1000',
-      userId: mockUserId
+    const response = await axios.post(`${baseUrl}/ai/ask`, {
+      prompt: 'What CPU should I get for gaming?',
+      userId: mockUserId,
+      componentType: 'cpu',
+      filters: { price: { $lte: 300 } }
     });
     
     console.log('Response status:', response.status);
     console.log('Response data:', response.data);
     
-    console.log('Chat endpoint test completed successfully!');
+    console.log('AskAI endpoint test completed successfully!');
   } catch (error) {
-    console.error('Error testing chat endpoint:', error.response ? error.response.data : error.message);
+    console.error('Error testing askAI endpoint:', error.response ? error.response.data : error.message);
   }
 }
 
@@ -63,8 +65,8 @@ async function testGenerateBuildEndpoint() {
 async function runTests() {
   console.log('Starting API tests...\n');
   
-  // Test chat endpoint
-  await testChatEndpoint();
+  // Test askAI endpoint
+  await testAskAIEndpoint();
   
   // Test generateBuild endpoint
   await testGenerateBuildEndpoint();
