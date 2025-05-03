@@ -3,10 +3,11 @@ const router = express.Router();
 const buildController = require('../controllers/buildController');
 const authMiddleware = require('../middleware/userAuth');
 
-// Builder workflow endpoints
 router.post('/next-components', authMiddleware, buildController.getNextComponents);
 router.post('/validate', authMiddleware, buildController.validateBuild);
-router.post('/save', authMiddleware, buildController.saveBuild);
-// router.put('/:buildId/share', builderController.shareBuild);
+router.put('/createbuild/:buildId/finalize', authMiddleware, buildController.finalizeBuild);
+router.post('/createbuild', authMiddleware, buildController.createBuild);
+
+
 
 module.exports = router;

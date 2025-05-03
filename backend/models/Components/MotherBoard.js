@@ -15,7 +15,7 @@ const mbSchema = new mongoose.Schema({
   product_link:String,
   brand: String,
   chipset: String,
-  form: String,
+  MB_form: String,
   GPU_interface:String,
   
 
@@ -24,7 +24,7 @@ const mbSchema = new mongoose.Schema({
     required: true,
   },
 
-  memory :String,
+  supported_memory :String,
   MB_socket: String, 
   dimensions: String,
   
