@@ -12,6 +12,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@langchain/community": "^0.3.42",
+    "@langchain/openai": "^0.5.10",
     "backend": "file:",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.1",
@@ -20,8 +22,10 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.3.24",
     "mongoose": "^8.10.0",
     "nodemailer": "^6.10.0",
+    "uuid": "^11.1.0",
     "validator": "^13.12.0"
   }
 }

@@ -6,10 +6,14 @@ const cookieParser = require("cookie-parser");
 const errorHandler = require("./middleware/errorHandler");
 const authRouter = require("./routes/authRoutes");
 const usersRouter = require("./routes/usersRoutes");
+const chatRoutes = require('./routes/chatRoutes');
 
 const app = express();
 // middlewares
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allow all origins for testing
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -20,6 +24,7 @@ app.use("/api/components", require("./routes/components"));
 app.use("/api/builds", require("./routes/build"));
 //app.use("/api/guides", require("./routes/guides"));
 app.use("/api/ai", require("./routes/aiAssistant"));
+app.use('/api/chat', chatRoutes);
 
 //app.use(errorHandler);
 
