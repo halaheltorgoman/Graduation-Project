@@ -11,7 +11,7 @@ const buildSchema = new Schema({
     cpu: { type: Schema.Types.ObjectId, ref: 'CPU' },
     gpu: { type: Schema.Types.ObjectId, ref: 'GPU' },
     motherboard: { type: Schema.Types.ObjectId, ref: 'Motherboard' },
-    ram: { type: Schema.Types.ObjectId, ref: 'RAM' },
+    memory: { type: Schema.Types.ObjectId, ref: 'Memory' },
     storage: { type: Schema.Types.ObjectId, ref: 'Storage' },
     psu: { type: Schema.Types.ObjectId, ref: 'PSU' },
     case: { type: Schema.Types.ObjectId, ref: 'Case' },

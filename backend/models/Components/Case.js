@@ -20,10 +20,7 @@ const caseSchema = new mongoose.Schema({
     type: String,
     default: "ATX"
   },
-  supported_motherboards: {
-    type: String,
-    default: "ATX"
-  },
+  supported_motherboards:Array,
   expansion_slots: Number,
 
   fan_placement:String,

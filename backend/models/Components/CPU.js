@@ -29,7 +29,7 @@ const cpuSchema = new mongoose.Schema({
    turbo_clock: String,
    base_clock: String,
    processor_speed: String,
-   MB_chipsets: String,
+   MB_chipsets: Array,
    series: String,
    wattage: String,
 

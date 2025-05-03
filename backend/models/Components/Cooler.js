@@ -21,7 +21,7 @@ const coolerSchema = new mongoose.Schema({
   brand_name: String,
   air_flow_capacity: String,
   maximum_rotational_speed: String,
-  compatible_cpu_sockets: String,
+  compatible_cpu_sockets: Array,
    noise_level: String,
    voltage: String,
    compatible_lighting_type: String,
