@@ -1,108 +1,157 @@
-const Build = require("../models/Build");
-const User = require("../models/User");
-//const Community = require("../models/Community");
 
-// get all shared builds
+const User = require('../models/User');
+const Build = require('../models/Build');
+const CPU = require('../models/Components/CPU');
+const GPU = require('../models/Components/GPU');
+const Motherboard = require('../models/Components/MotherBoard');
+const Case = require('../models/Components/Case');
+const Memory = require('../models/Components/Memory');
+const Storage = require('../models/Components/Storage');
+//const PSU = require('../models/Components/PSU');
+const Cooler = require('../models/Components/Cooler');
+
+
+const componentModels = {
+  cpu: CPU,
+  gpu: GPU,
+  motherboard: Motherboard,
+  memory: Memory,
+  case:Case,
+  storage: Storage,
+  //psu: PSU,
+  cooler: Cooler,
+
+};
+function getComponentModel(type) {
+  const model = componentModels[type.toLowerCase()];
+  if (!model) throw new Error('Invalid component type');
+  return model;
+}
+
+
 exports.getSharedBuilds = async (req, res) => {
   try {
-    const sharedBuilds = await Build.find({ isShared: true })
-      .populate("userId", "username")
-      .populate("components");
-    res.json(sharedBuilds);
+    const builds = await Build.find({ isShared: true })
+      .populate('user', 'username')
+      .sort({ createdAt: -1 });
+
+    const populatedBuilds = await Promise.all(builds.map(async (build) => {
+      const components = await Promise.all(build.components.map(async (comp) => {
+        const Model = getComponentModel(comp.type);
+        const component = await Model.findById(comp.componentId, 'title price imageUrl');
+        return { ...comp.toObject(), details: component };
+      }));
+      return { ...build.toObject(), components };
+    }));
+
+    res.json(populatedBuilds);
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: 'Failed to fetch builds', error: err.message });
   }
 };
 
-// save a shared buildto profile
-exports.saveBuild = async (req, res) => {
-  const { buildId } = req.body;
 
+exports.shareBuild = async (req, res) => {
   try {
-    const build = await Build.findById(buildId);
-    if (!build) {
-      return res.status(404).json({ message: "Build not found" });
-    }
-
-    // check if the build is shared
-    if (!build.isShared) {
-      return res.status(400).json({ message: "This build is not shared" });
-    }
-    if (build.userId.toString() === req.userId) {
-      return res.status(400).json({ message: "You cannot save your own build" });
-    }
-    // add the build to saved builds
-    const user = await User.findById(req.userId);
-    if (user.savedBuilds.includes(buildId)) {
-      return res.status(400).json({ message: "Build already saved" });
-    }
-    user.savedBuilds.push(buildId);
-    await user.save();
-
-    res.json({ message: "Build saved successfully", user });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
-
-// rate 
-exports.rateBuild = async (req, res) => {
-  const { buildId } = req.params;
-  const { rating } = req.body;
-
-  try {
-    const build = await Build.findById(buildId);
-    if (!build) {
-      return res.status(404).json({ message: "Build not found" });
-    }
-
-    // check if the build is shared
-    if (!build.isShared) {
-      return res.status(400).json({ message: "This build is not shared" });
-    }
-
-    if (build.userId.toString() === req.userId) {
-      return res.status(400).json({ message: "You cannot rate your own build" });
-    }
+    const build = await Build.findById(req.params.id);
     
-    // check if the user has already rated the build
-    const existingRating = build.ratings.find((r) => r.userId.toString() === req.userId);
-    if (existingRating) {
-      return res.status(400).json({ message: "You have already rated this build" });
+    if (!build) return res.status(404).json({ message: 'Build not found' });
+    if (build.user.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to share this build' });
     }
 
-    // add the rating
-    build.ratings.push({ userId: req.userId, rating });
+    build.isShared = !build.isShared;
     await build.save();
-
-    res.json({ message: "Build rated successfully", build });
+    
+    res.json({ message: `Build ${build.isShared ? 'shared' : 'unshared'}` });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: 'Sharing failed', error: err.message });
   }
 };
 
-// add a comment to a shared build
-exports.addComment = async (req, res) => {
-  const { buildId } = req.params;
-  const { text } = req.body;
-
+exports.getBuildDetails = async (req, res) => {
   try {
-    const build = await Build.findById(buildId);
-    if (!build) {
-      return res.status(404).json({ message: "Build not found" });
+    const build = await Build.findById(req.params.id)
+      .populate('user', 'username')
+      .populate('comments.user', 'username');
+
+    if (!build || !build.isShared) {
+      return res.status(404).json({ message: 'Build not found or not shared' });
     }
 
-    // check if the build is shared
-    if (!build.isShared) {
-      return res.status(400).json({ message: "This build is not shared" });
-    }
+    // Populate components dynamically
+    const components = await Promise.all(build.components.map(async (comp) => {
+      const Model = getComponentModel(comp.type);
+      const component = await Model.findById(comp.componentId, 'name price imageUrl');
+      return { ...comp.toObject(), details: component };
+    }));
 
-    // add the comment
-    build.comments.push({ userId: req.userId, text });
-    await build.save();
-
-    res.json({ message: "Comment added successfully", build });
+    res.json({ ...build.toObject(), components });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: 'Failed to fetch build details', error: err.message });
   }
 };
+
+exports.addComment = async (req, res) => {
+  try {
+    const build = await Build.findById(req.params.id);
+    if (!build || !build.isShared) {
+      return res.status(404).json({ message: 'Build not found or not shared' });
+    }
+
+    build.comments.push({
+      user: req.userId,
+      text: req.body.text
+    });
+
+    await build.save();
+    res.json(build.comments);
+  } catch (err) {
+    res.status(500).json({ message: 'Comment failed', error: err.message });
+  }
+};
+exports.addRating = async (req, res) => {
+  try {
+    const build = await Build.findById(req.params.id);
+    if (!build || !build.isShared) {
+      return res.status(404).json({ message: 'Build not found or not shared' });
+    }
+
+    const existingRating = build.ratings.find(r => r.user.toString() === req.userId);
+    if (existingRating) {
+      existingRating.value = req.body.rating;
+    } else {
+      build.ratings.push({ user: req.userId, value: req.body.rating });
+    }
+
+    build.averageRating = build.ratings.reduce((sum, r) => sum + r.value, 0) / build.ratings.length;
+
+    await build.save();
+    res.json(build.ratings);
+  } catch (err) {
+    res.status(500).json({ message: 'Rating failed', error: err.message });
+  }
+};
+
+exports.saveBuild = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    const build = await Build.findById(req.params.id);
+    
+    if (!build || !build.isShared) {
+      return res.status(404).json({ message: 'Build not found or not shared' });
+    }
+
+    if (user.savedBuilds.includes(build._id)) {
+      return res.status(400).json({ message: 'Build already saved' });
+    }
+
+    user.savedBuilds.push(build._id);
+    await user.save();
+    
+    res.json({ message: 'Build saved', savedBuilds: user.savedBuilds });
+  } catch (err) {
+    res.status(500).json({ message: 'Save failed', error: err.message });
+  }
+};
+

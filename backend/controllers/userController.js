@@ -1,59 +1,34 @@
 const { MongoClient } = require("mongodb");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-require("dotenv").config()
+
+require("dotenv").config();
+
 //const { JWT_SECRET } = require("../config");
 
-const createToken=(userId)=>{
-return jwt.sign({userId:userId},process.env.JWT_SECRET,{expiresIn:"30d"})
-};
-// register a new user
-exports.register = async (req, res) => {
-  const { username, email, password } = req.body;
-
-  try {
-    // check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "email already exists" });
-    }
-
-    // create new user
-    const user = new User({ username, email, password });
-    await user.save();
-
-    // generate JWT token
-    const token = createToken(user._id) //_id is for mongodb and userId is for jwt
-
-    res.status(201).json({ token,email });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
+const createToken = (userId) => {
+  return jwt.sign({ userId: userId }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 };
 
-// login user
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
+exports.getUserData = async (req, res) => {
   try {
-    // find existing user by email
-    const user = await User.findOne({ email });
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+
     if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.json({ success: false, message: "User Not Found" });
     }
-
-    // compare passwords
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    // generate JWT token
-    const token = createToken(user._id)
-
-    res.json({ token, email });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.json({
+      success: true,
+      useData: {
+        username: user.username,
+        isAccountVerified: user.isAccountVerified,
+      },
+    });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 };
 
@@ -93,7 +68,7 @@ exports.updateProfile = async (req, res) => {
 
 // add a component to favorites
 exports.addFavorite = async (req, res) => {
-  const { componentId, modelName} = req.body;
+  const { componentId, modelName } = req.body;
 
   try {
     const user = await User.findById(req.userId);
@@ -101,13 +76,13 @@ exports.addFavorite = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const alreadyFavorited = user.favorites.some(fav =>
-      fav.item.equals(componentId) && fav.onModel === modelName
+    const alreadyFavorited = user.favorites.some(
+      (fav) => fav.item.equals(componentId) && fav.onModel === modelName
     );
 
     // add component to favorites if not already added
     if (!alreadyFavorited) {
-      user.favorites.push({item: componentId, onModel: modelName});
+      user.favorites.push({ item: componentId, onModel: modelName });
       await user.save();
     }
 
@@ -129,7 +104,7 @@ exports.removeFavorite = async (req, res) => {
 
     // Remove the favorite that matches both the componentId and modelName
     user.favorites = user.favorites.filter(
-      fav => !(fav.item.equals(componentId) && fav.onModel === modelName)
+      (fav) => !(fav.item.equals(componentId) && fav.onModel === modelName)
     );
     await user.save();
 
@@ -138,3 +113,4 @@ exports.removeFavorite = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+

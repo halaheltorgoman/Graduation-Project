@@ -1,12 +1,13 @@
-const express = require("express");
-const buildController = require("../controllers/buildController");
-const authMiddleware = require("../middleware/authMiddleware");
+const express = require('express');
 const router = express.Router();
+const buildController = require('../controllers/buildController');
+const authMiddleware = require('../middleware/userAuth');
 
-// Save build to profile (with optional sharing)
-router.post("/", authMiddleware, buildController.createBuild);
+router.post('/next-components', authMiddleware, buildController.getNextComponents);
+router.post('/validate', authMiddleware, buildController.validateBuild);
+router.put('/createbuild/:buildId/finalize', authMiddleware, buildController.finalizeBuild);
+router.post('/createbuild', authMiddleware, buildController.createBuild);
 
-// Share/unshare a build (before or after saving)
-router.put("/:id/share", authMiddleware, buildController.shareBuild);
+
 
 module.exports = router;
