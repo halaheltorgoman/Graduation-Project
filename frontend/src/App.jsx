@@ -1,5 +1,10 @@
+// App.jsx
 import "./App.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import {
+  createBrowserRouter,
+  RouterProvider,
+  Navigate,
+} from "react-router-dom";
 import Home from "./Components/Home/Home";
 import Builder from "./Components/Builder/Builder";
 import GPU from "./Components/Builder/GPU";
@@ -19,9 +24,10 @@ import Profile from "./Components/Profile/Profile";
 import Login from "./Components/Login/login";
 import Signup from "./Components/Signup/Signup";
 import AIAssistant from "./Components/AIAssistant/AIAssistant";
+import ComponentDetails from "./Components/ComponentDetails/ComponentDetails";
 import BuilderLayout from "./Components/Builder/BuilderLayout";
 
-let x = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "",
     element: <Layout />,
@@ -44,7 +50,20 @@ let x = createBrowserRouter([
       },
       { path: "guides", element: <Guides /> },
       { path: "community", element: <Community /> },
-      { path: "browsecomponents", element: <BrowseComponents /> },
+      {
+        path: "browsecomponents",
+        children: [
+          { index: true, element: <Navigate to="all" replace /> },
+          {
+            path: ":type",
+            element: <BrowseComponents />,
+          },
+          {
+            path: ":type/:componentId",
+            element: <ComponentDetails />,
+          },
+        ],
+      },
       { path: "profile", element: <Profile /> },
       { path: "ai_assistant", element: <AIAssistant /> },
       { path: "*", element: <NotFound /> },
@@ -53,13 +72,12 @@ let x = createBrowserRouter([
   { path: "login", element: <Login /> },
   { path: "signup", element: <Signup /> },
 ]);
+
 function App() {
   return (
-    <>
-      <div className="overflow-x-hidden ">
-        <RouterProvider router={x}></RouterProvider>
-      </div>
-    </>
+    <div>
+      <RouterProvider router={router} />
+    </div>
   );
 }
 

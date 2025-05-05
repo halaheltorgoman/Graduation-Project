@@ -1,0 +1,391 @@
+/* Layout Styling */
+.browsecomponents_container {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+  justify-content: space-around;
+}
+
+.browsecomponents_filter {
+  width: 25%;
+  flex-shrink: 0;
+}
+
+.browsecomponents_main {
+  width: 75%;
+}
+
+.browsecomponents_products {
+  display: flex;
+  justify-content: center; /* Centers the row */
+  width: 100%;
+
+  gap: 3em; /* Adds spacing between cards */
+}
+
+/* Component Card Styling */
+
+/* Component Card */
+.component_card {
+  background-color: rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1em;
+  border-radius: 1em;
+
+  width: 200px;
+  height: 400px;
+  margin: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.component_card:hover {
+  transform: scale(1.05);
+}
+
+/* Image Styling */
+.browsecomponent_Component img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover; /* Ensures uniform sizing without distortion */
+  border-radius: 8px;
+}
+
+.componentCard_firstSec {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.favorite-icon {
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease-in-out, background-color 0.2s ease;
+}
+
+/* Favorite Icon */
+.unfavorited {
+  color: #bf30d9; /* Black outline for unselected heart */
+  font-size: 20px;
+}
+
+.favorited {
+  color: red; /* Red heart when selected */
+  font-size: 20px;
+}
+.componentCard_secondSec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8em;
+  justify-content: center;
+}
+
+/* Image */
+.component_image {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Title & Price */
+.component_title {
+  font-size: 12px;
+
+  margin-top: 10px;
+  text-align: center;
+}
+.component_price span {
+  color: rgb(127, 108, 108);
+  font-size: 12px;
+  padding: 0.5em;
+}
+.component_price {
+  font-size: 12px;
+  color: white;
+  text-align: center;
+}
+
+/* Rating */
+.rating_container {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rating_value {
+  font-size: 12px;
+  color: white;
+}
+
+.rating_star {
+  color: gold;
+  font-size: 20px;
+}
+
+/* Compare Icon */
+.compare-icon svg {
+  font-size: 15px;
+  color: white;
+  align-self: center;
+}
+.compare-icon.compared svg,
+.compare-icon.compared {
+  color: #bf30d9; /* Blue when selected */
+}
+
+.compare-icon {
+  display: flex;
+  font-size: 15px;
+  align-items: center;
+  margin-top: 0.5em;
+  align-self: center;
+}
+.compare-icon button {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  gap: 0.2em;
+}
+
+.browsecomponents_pagination {
+  display: flex;
+  justify-content: flex-end; /* Align pagination to the end (right) */
+  padding: 10px;
+}
+
+.pagination_wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* Remove background from page numbers */
+.ant-pagination-item {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Remove background on active page */
+.ant-pagination-item-active {
+  background: transparent !important;
+  border: 1px solid white !important; /* Add white border if needed */
+}
+
+/* Make text color white */
+.ant-pagination-item a {
+  color: white !important;
+}
+
+/* Change hover effect */
+.ant-pagination-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Remove default background from arrows */
+.ant-pagination-prev,
+.ant-pagination-next {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Make arrow icons white */
+.ant-pagination-prev button,
+.ant-pagination-next button {
+  color: white !important;
+}
+
+/* Change hover color for arrows */
+.ant-pagination-prev:hover button,
+.ant-pagination-next:hover button {
+  color: lightgray !important;
+}
+/* Change jump arrows (skip 5 pages) to white */
+.ant-pagination-jump-prev .ant-pagination-item-container .anticon,
+.ant-pagination-jump-next .ant-pagination-item-container .anticon {
+  color: lightgray !important;
+}
+
+/* Change hover color for jump arrows */
+.ant-pagination-jump-prev:hover .ant-pagination-item-container .anticon,
+.ant-pagination-jump-next:hover .ant-pagination-item-container .anticon {
+  color: lightgray !important;
+}
+/* Change jump arrows (skip 5 pages) to white */
+.ant-pagination-jump-prev
+  .ant-pagination-item-container
+  .ant-pagination-item-ellipsis,
+.ant-pagination-jump-next
+  .ant-pagination-item-container
+  .ant-pagination-item-ellipsis {
+  color: white !important;
+}
+/* Responsive CSS - Add this to BrowseComponents.css */
+
+@media screen and (max-width: 1024px) {
+  .browsecomponents_container {
+    flex-direction: column;
+    padding: 1em;
+  }
+
+  .browsecomponents_filter,
+  .browsecomponents_main {
+    width: 100%;
+  }
+
+  .browsecomponents_products .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .browsecomponents_products .grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+
+  .component_card {
+    width: 90%;
+    height: auto;
+  }
+
+  .component_image {
+    width: 100%;
+    height: auto;
+  }
+
+  .component_title,
+  .component_price {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .component_card {
+    padding: 0.5em;
+  }
+
+  .component_image {
+    width: 100%;
+    height: 150px;
+  }
+
+  .component_title,
+  .component_price {
+    font-size: 12px;
+  }
+
+  .compare-icon button {
+    font-size: 12px;
+    padding: 0.3em 0.6em;
+  }
+}
+/* Comparison Modal Styles */
+.comparison-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.comparison-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 80%;
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 800px;
+  position: relative;
+}
+
+.comparison-modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.comparison-table {
+  margin-top: 20px;
+}
+
+.comparison-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.comparison-table th {
+  background-color: #f2f2f2;
+}
+
+.comparison-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+/* Optional: add custom styling if you want to show a persistent compare alert */
+.ant-message {
+  z-index: 2000; /* Ensure it's above modals and overlays */
+}
+/* Add these styles */
+.alert-bottom {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: auto;
+  max-width: 80%;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.alert-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background-color: #1890ff;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+    opacity: 0;
+  }
+}
