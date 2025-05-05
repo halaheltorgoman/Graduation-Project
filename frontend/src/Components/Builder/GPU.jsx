@@ -2,13 +2,13 @@ import React from "react";
 import ItemCard from "./ItemCard";
 import NavigationLayout from "./NavigationLayout";
 
-import { processors } from "../../lib/constants";
+import { gpus } from "../../lib/constants";
 
-function Builder() {
+function GPU() {
   return (
     <NavigationLayout>
       <>
-        {processors.map((processor) => (
+        {gpus.map((processor) => (
           <ItemCard key={processor.id} item={processor} />
         ))}
       </>
@@ -16,4 +16,4 @@ function Builder() {
   );
 }
 
-export default Builder;
+export default GPU;

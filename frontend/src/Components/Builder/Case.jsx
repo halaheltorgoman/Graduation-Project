@@ -2,13 +2,13 @@ import React from "react";
 import ItemCard from "./ItemCard";
 import NavigationLayout from "./NavigationLayout";
 
-import { processors } from "../../lib/constants";
+import { cases } from "../../lib/constants";
 
-function Builder() {
+function Case() {
   return (
     <NavigationLayout>
       <>
-        {processors.map((processor) => (
+        {cases.map((processor) => (
           <ItemCard key={processor.id} item={processor} />
         ))}
       </>
@@ -16,4 +16,4 @@ function Builder() {
   );
 }
 
-export default Builder;
+export default Case;

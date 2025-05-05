@@ -72,6 +72,11 @@ button:focus-visible {
   }
 } */
 
+html,
+body {
+  @apply min-h-screen h-fit;
+}
+
 * {
   padding: 0;
   margin: 0;

@@ -2,13 +2,13 @@ import React from "react";
 import ItemCard from "./ItemCard";
 import NavigationLayout from "./NavigationLayout";
 
-import { processors } from "../../lib/constants";
+import { memories } from "../../lib/constants";
 
-function Builder() {
+function Memory() {
   return (
     <NavigationLayout>
       <>
-        {processors.map((processor) => (
+        {memories.map((processor) => (
           <ItemCard key={processor.id} item={processor} />
         ))}
       </>
@@ -16,4 +16,4 @@ function Builder() {
   );
 }
 
-export default Builder;
+export default Memory;
