@@ -1,18 +1,16 @@
+import { Pagination } from "antd";
 import { Button } from "../../Components/ui/button";
-// import { FaArrowLeft } from "react-icons/fa6";
 import ArrowLeft from "../../assets/icons/arrow_left_icon.svg";
 import ArrowRight from "../../assets/icons/arrow_right_icon.svg";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "../../Components/ui/pagination";
 
-const NavigationLayout = ({ children }) => {
+const NavigationLayout = ({
+  children,
+  currentPage,
+  pageSize,
+  components,
+  handlePageChange,
+  isLoading,
+}) => {
   return (
     <section>
       <div className="flex">
@@ -37,31 +35,15 @@ const NavigationLayout = ({ children }) => {
         </div>
       </div>
       <div className="flex justify-end items-center mt-16">
-        <Pagination className="w-fit m-0">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious href="#" />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">1</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">2</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">3</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href="#">99</PaginationLink>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext href="#" />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <Pagination
+          align="end"
+          current={currentPage}
+          pageSize={pageSize}
+          total={components.length}
+          onChange={handlePageChange}
+          showSizeChanger={false}
+          disabled={isLoading}
+        />
       </div>
     </section>
   );

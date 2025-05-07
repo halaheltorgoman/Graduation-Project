@@ -3,9 +3,9 @@ import { Heart } from "lucide-react";
 import { Button } from "../ui/button";
 import compareIcon from "../../assets/icons/compare_icon.svg";
 import shareIcon from "../../assets/icons/share_icon.svg";
-import { Rating, ThinRoundedStar } from "@smastrom/react-rating";
+import { FaStar } from "react-icons/fa";
 
-const ItemCard = ({ item }) => {
+const ItemCard = ({ item, type }) => {
   const [activeImage, setActiveImage] = useState(0);
 
   return (
@@ -56,11 +56,11 @@ const ItemCard = ({ item }) => {
         <div className="mb-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-semibold mb-2">{item.name}</h2>
-            <div className="flex">
+            <div className="flex gap-2 items-center">
               <span className="text-sm text-gray-400">
-                {item.rating.value} ({item.rating.count})
+                {item.rating.value} ({item.rating.count}){" "}
               </span>
-              <Rating />
+              <FaStar className="rating_star" />
             </div>
           </div>
           <p className="text-xl text-gray-300">

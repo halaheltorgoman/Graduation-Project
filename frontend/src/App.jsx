@@ -7,14 +7,6 @@ import {
 } from "react-router-dom";
 import Home from "./Components/Home/Home";
 import Builder from "./Components/Builder/Builder";
-import GPU from "./Components/Builder/GPU";
-import MotherBoard from "./Components/Builder/MotherBoard";
-import Case from "./Components/Builder/Case";
-import Cooling from "./Components/Builder/Cooling";
-import Memory from "./Components/Builder/Memory";
-import Storage from "./Components/Builder/Storage";
-import PSU from "./Components/Builder/PSU";
-import FullBuild from "./Components/Builder/FullBuild";
 import Guides from "./Components/Guides/Guides";
 import Community from "./Components/Community/Community";
 import BrowseComponents from "./Components/BrowseComponents/BrowseComponents";
@@ -25,7 +17,6 @@ import Login from "./Components/Login/login";
 import Signup from "./Components/Signup/Signup";
 import AIAssistant from "./Components/AIAssistant/AIAssistant";
 import ComponentDetails from "./Components/ComponentDetails/ComponentDetails";
-import BuilderLayout from "./Components/Builder/BuilderLayout";
 
 const router = createBrowserRouter([
   {
@@ -35,17 +26,9 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       {
         path: "builder",
-        element: <BuilderLayout />,
         children: [
-          { path: "", element: <Builder /> },
-          { path: "gpu", element: <GPU /> },
-          { path: "motherboard", element: <MotherBoard /> },
-          { path: "case", element: <Case /> },
-          { path: "cooling", element: <Cooling /> },
-          { path: "memory", element: <Memory /> },
-          { path: "storage", element: <Storage /> },
-          { path: "psu", element: <PSU /> },
-          { path: "full-build", element: <FullBuild /> },
+          { index: true, element: <Navigate to="cpu" replace /> },
+          { path: ":type", element: <Builder /> },
         ],
       },
       { path: "guides", element: <Guides /> },

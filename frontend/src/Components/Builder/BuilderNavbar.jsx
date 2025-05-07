@@ -1,44 +1,57 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const BuilderNavbar = () => {
-  const location = useLocation();
-
   return (
-    <nav className="mb-36 mx-auto w-fit">
-      <ul className="flex relative gap-6 *:text-white/65">
+    <nav className="my-8 mx-auto w-fit">
+      <ul
+        className="flex relative gap-6 *:text-white/65 hover:*:text-white
+      *:transition-colors *:duration-300 *:ease-in-out"
+      >
         <li>
-          <NavLink
-            className={() => location.pathname === "/builder" && "active"}
-            to="/builder"
-          >
+          <NavLink className="nav-item" to="/builder/cpu">
             CPU
           </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/gpu">GPU</NavLink>
+          <NavLink className="nav-item" to="/builder/gpu">
+            GPU
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/motherboard">Motherboard</NavLink>
+          <NavLink className="nav-item" to="/builder/motherboard">
+            Motherboard
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/case">Case</NavLink>
+          <NavLink className="nav-item" to="/builder/case">
+            Case
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/cooling">Cooling</NavLink>
+          <NavLink className="nav-item" to="/builder/cooling">
+            Cooling
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/memory">Memory</NavLink>
+          <NavLink className="nav-item" to="/builder/memory">
+            Memory
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/storage">Storage</NavLink>
+          <NavLink className="nav-item" to="/builder/storage">
+            Storage
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/psu">PSU</NavLink>
+          <NavLink className="nav-item" to="/builder/psu">
+            PSU
+          </NavLink>
         </li>
         <li>
-          <NavLink to="/builder/full-build">Full Build</NavLink>
+          <NavLink className="nav-item" to="/builder/full-build">
+            Full Build
+          </NavLink>
         </li>
-        {/* <div className="indicator" /> */}
       </ul>
     </nav>
   );
