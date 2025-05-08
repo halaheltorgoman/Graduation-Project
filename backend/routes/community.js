@@ -4,11 +4,11 @@ const communityController = require('../controllers/communityController');
 const authMiddleware = require('../middleware/userAuth');
 
 
-router.get('/', utcommunityController.getSharedBuilds);
-router.get('/:buildId', communityController.getSharedBuildDetails);
+router.get('/', communityController.getSharedBuilds);
+router.get('/:postId', communityController.getSharedBuildDetails);
 
-router.post('/:buildId/comment', authMiddleware, communityController.addComment);
-router.post('/:buildId/rate', authMiddleware, communityController.rateBuild);
-router.post('/:buildId/save', authMiddleware, communityController.saveBuild);
+router.post('/:postId/comment', authMiddleware, communityController.addComment);
+router.post('/:postId/rate', authMiddleware, communityController.rateBuild);
+router.post('/:postId/save', authMiddleware, communityController.saveBuild);
 
 module.exports = router;

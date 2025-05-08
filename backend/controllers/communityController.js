@@ -1,3 +1,4 @@
+const CommunityPost = require('../models/CommunityPost');
 const Build = require('../models/Build');
 const User = require('../models/User');
 
@@ -7,59 +8,63 @@ exports.getSharedBuilds = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const builds = await Build.find({ isShared: true })
+    const posts = await CommunityPost.find()
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .populate('user', 'username')
-      .populate('components.cpu components.gpu components.motherboard')
+      .populate({
+        path: 'build',
+        populate: {
+          path: 'components.cpu components.gpu components.motherboard'
+        }
+      })
       .populate('ratings.user', 'username')
       .populate('comments.user', 'username');
 
-    const total = await Build.countDocuments({ isShared: true });
+    const total = await CommunityPost.countDocuments();
 
     res.json({
       success: true,
-      builds,
+      posts,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
-      totalBuilds: total
+      totalPosts: total
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch community builds',
+      message: 'Failed to fetch community posts',
       error: err.message
     });
   }
 };
 
-
 exports.addComment = async (req, res) => {
   try {
-    const { buildId } = req.params;
+    const { postId } = req.params;
     const { text } = req.body;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const build = await Build.findById(buildId);
-    if (!build || !build.isShared) {
-      return res.status(404).json({ success: false, message: 'Build not found or not shared' });
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    build.comments.push({
+    post.comments.push({
       user: req.userId,
       text
     });
 
-    await build.save();
+    await post.save();
 
     res.json({
       success: true,
       message: 'Comment added successfully',
-      comment: build.comments[build.comments.length - 1]
+      comment: post.comments[post.comments.length - 1]
     });
   } catch (err) {
     res.status(500).json({
@@ -70,10 +75,9 @@ exports.addComment = async (req, res) => {
   }
 };
 
-
 exports.rateBuild = async (req, res) => {
   try {
-    const { buildId } = req.params;
+    const { postId } = req.params;
     const { value } = req.body;
 
     if (!req.userId) {
@@ -84,67 +88,73 @@ exports.rateBuild = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
     }
 
-    const build = await Build.findById(buildId);
-    if (!build || !build.isShared) {
-      return res.status(404).json({ success: false, message: 'Build not found or not shared' });
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
     }
-    const existingRating = build.ratings.find(r => r.user.equals(req.userId));
+
+    const existingRating = post.ratings.find(r => r.user.equals(req.userId));
     if (existingRating) {
       existingRating.value = value;
     } else {
-      build.ratings.push({
+      post.ratings.push({
         user: req.userId,
         value
       });
     }
 
-    const sum = build.ratings.reduce((acc, curr) => acc + curr.value, 0);
-    build.averageRating = sum / build.ratings.length;
+    const sum = post.ratings.reduce((acc, curr) => acc + curr.value, 0);
+    post.averageRating = sum / post.ratings.length;
 
-    await build.save();
+    await post.save();
 
     res.json({
       success: true,
-      message: 'Build rated successfully',
-      averageRating: build.averageRating,
+      message: 'Post rated successfully',
+      averageRating: post.averageRating,
       userRating: value
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to rate build',
+      message: 'Failed to rate post',
       error: err.message
     });
   }
 };
 
-
 exports.saveBuild = async (req, res) => {
   try {
-    const { buildId } = req.params;
+    const { postId } = req.params;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const build = await Build.findById(buildId);
-    if (!build || !build.isShared) {
-      return res.status(404).json({ success: false, message: 'Build not found or not shared' });
+    // Find the community post
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    //add the build to my saved builds
-    await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
       req.userId,
-      { $addToSet: { savedBuilds: buildId } }
+      { 
+        $addToSet: { 
+          savedBuilds: post.build 
+        } 
+      },
+      { new: true } 
     );
 
-    
-    build.savesCount += 1;
-    await build.save();
+  
+    post.savesCount += 1;
+    await post.save();
 
     res.json({
       success: true,
-      message: 'Build saved to your profile'
+      message: 'Build saved to your profile',
+      savedBuilds: user.savedBuilds 
     });
   } catch (err) {
     res.status(500).json({
@@ -155,35 +165,71 @@ exports.saveBuild = async (req, res) => {
   }
 };
 
-
-exports.getSharedBuildDetails = async (req, res) => {
+exports.removeSavedBuild = async (req, res) => {
   try {
     const { buildId } = req.params;
 
-    const build = await Build.findById(buildId)
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { 
+        $pull: { 
+          savedBuilds: buildId 
+        } 
+      },
+      { new: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Build removed from saved builds',
+      savedBuilds: user.savedBuilds
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove saved build',
+      error: err.message
+    });
+  }
+};
+exports.getSharedBuildDetails = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await CommunityPost.findById(postId)
       .populate('user', 'username')
-      .populate('components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler')
+      .populate({
+        path: 'build',
+        populate: {
+          path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler'
+        }
+      })
       .populate('ratings.user', 'username')
       .populate('comments.user', 'username');
 
-    if (!build || !build.isShared) {
-      return res.status(404).json({ success: false, message: 'Build not found or not shared' });
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
     }
+
     let userRating = null;
     if (req.userId) {
-      const rating = build.ratings.find(r => r.user._id.equals(req.userId));
+      const rating = post.ratings.find(r => r.user._id.equals(req.userId));
       if (rating) userRating = rating.value;
     }
 
     res.json({
       success: true,
-      build,
+      post,
       userRating
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to get build details',
+      message: 'Failed to get post details',
       error: err.message
     });
   }
