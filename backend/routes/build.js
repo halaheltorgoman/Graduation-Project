@@ -7,6 +7,7 @@ router.post('/next-components', authMiddleware, buildController.getNextComponent
 router.post('/validate', authMiddleware, buildController.validateBuild);
 router.put('/createbuild/:buildId/finalize', authMiddleware, buildController.finalizeBuild);
 router.post('/createbuild', authMiddleware, buildController.createBuild);
+router.get('/:buildId/price', authMiddleware, buildController.getBuildTotalPrice);
 
 
 
