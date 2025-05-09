@@ -26,6 +26,7 @@ const buildSchema = new Schema({
     type: Boolean,
     default: false
   },
+  images: String,
   createdAt: {
     type: Date,
     default: Date.now
