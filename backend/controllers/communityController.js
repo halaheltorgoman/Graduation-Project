@@ -218,31 +218,40 @@ exports.saveBuild = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    // Find the community post
     const post = await CommunityPost.findById(postId);
     if (!post) {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { 
-        $addToSet: { 
-          savedBuilds: post.build 
-        } 
-      },
-      { new: true } 
-    );
+  
+    const user = await User.findById(req.userId);
+    if (user.savedBuilds.includes(post.build)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'You already saved this build' 
+      });
+    }
 
   
-    post.savesCount += 1;
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      { $addToSet: { savedBuilds: post.build } },
+      { new: true }
+    );
+
+    
+    post.savesCount = await User.countDocuments({ 
+      savedBuilds: post.build 
+    });
     await post.save();
 
     res.json({
       success: true,
       message: 'Build saved to your profile',
-      savedBuilds: user.savedBuilds 
+      totalSaves: post.savesCount, 
+      savedBuilds: updatedUser.savedBuilds
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -254,27 +263,46 @@ exports.saveBuild = async (req, res) => {
 
 exports.removeSavedBuild = async (req, res) => {
   try {
-    const { buildId } = req.params;
+    const { postId } = req.params;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.userId,
-      { 
-        $pull: { 
-          savedBuilds: buildId 
-        } 
-      },
-      { new: true }
-    );
+  
+    const [post, user] = await Promise.all([
+      CommunityPost.findById(postId),
+      User.findById(req.userId)
+    ]);
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+ 
+    const buildIndex = user.savedBuilds.indexOf(post.build);
+    if (buildIndex === -1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Build not found in your saved items' 
+      });
+    }
+
+   
+    user.savedBuilds.splice(buildIndex, 1);
+    await user.save();
+
+  
+    post.savesCount = await User.countDocuments({ savedBuilds: post.build });
+    await post.save();
 
     res.json({
       success: true,
-      message: 'Build removed from saved builds',
-      savedBuilds: user.savedBuilds
+      message: 'Build removed from saved items',
+      totalSaves: post.savesCount,
+      savedBuilds: user.savedBuilds 
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -283,6 +311,84 @@ exports.removeSavedBuild = async (req, res) => {
     });
   }
 };
+
+exports.getSavedBuilds = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const user = await User.findById(req.userId)
+      .select('savedBuilds')
+      .populate({
+        path: 'savedBuilds',
+        populate: [
+          { path: 'user', select: 'username profilepic' },
+          { path: 'components.cpu', select: 'name image_source' },
+          { path: 'components.gpu', select: 'name image_source' },
+          { path: 'components.cooler', select: 'name image_source' },
+          { path: 'components.memory', select: 'name image_source' },
+          { path: 'components.motherboard', select: 'name image_source' },
+          { path: 'components.psu', select: 'name image_source' },
+          { path: 'components.storage', select: 'name image_source' },
+          { path: 'components.case', select: 'name image_source' },
+        ],
+        options: {
+          skip: parseInt(skip),
+          limit: parseInt(limit),
+          sort: { createdAt: -1 }
+        }
+      });
+    const totalCount = await User.findById(req.userId)
+      .then(user => user.savedBuilds.length);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.json({
+      success: true,
+      totalSaved: totalCount,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(totalCount / limit),
+      savedBuilds: user.savedBuilds.map(build => ({
+        _id: build._id,
+        title: build.title,
+        description: build.description,
+        createdAt: build.createdAt,
+        user: {
+          _id: build.user._id,
+          username: build.user.username,
+          profilepic: build.user.profilepic
+        },
+        components: {
+          cpu: build.components.cpu?.name,
+          gpu: build.components.gpu?.name,
+          gpu: build.components.cooler?.name,
+          gpu: build.components.memory?.name,
+          gpu: build.components.motherboard?.name,
+          gpu: build.components.psu?.name,
+          gpu: build.components.storage?.name,
+          gpu: build.components.case?.name
+          
+        },
+        images: build.images,
+        savesCount: build.savesCount
+      }))
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch saved builds',
+      error: err.message
+    });
+  }
+};
+
 exports.getSharedBuildDetails = async (req, res) => {
   try {
     const { postId } = req.params;
