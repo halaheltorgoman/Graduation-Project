@@ -13,6 +13,7 @@ const userSchema = new Schema(
       minlength: 3,
       maxlength: 30,
     },
+    profilepic: String ,
     email: {
       type: String,
       required: true,

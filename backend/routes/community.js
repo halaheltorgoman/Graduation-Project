@@ -10,5 +10,6 @@ router.get('/:postId', communityController.getSharedBuildDetails);
 router.post('/:postId/comment', authMiddleware, communityController.addComment);
 router.post('/:postId/rate', authMiddleware, communityController.rateBuild);
 router.post('/:postId/save', authMiddleware, communityController.saveBuild);
+router.get('/:postId/getcomments', getComments);
 
 module.exports = router;

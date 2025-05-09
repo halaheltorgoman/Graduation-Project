@@ -60,16 +60,101 @@ exports.addComment = async (req, res) => {
     });
 
     await post.save();
+    const updatedPost = await CommunityPost.findById(postId)
+      .populate({
+        path: 'comments.user',
+        select: 'username profilepic' // Include any other user fields you want
+      });
+      const newComment = updatedPost.comments.find(comment => 
+        comment._id.toString() === post.comments[post.comments.length - 1]._id.toString()
+      );
+  
 
     res.json({
       success: true,
       message: 'Comment added successfully',
-      comment: post.comments[post.comments.length - 1]
+      comment: {
+        _id: newComment._id,
+        text: newComment.text,
+        createdAt: newComment.createdAt,
+        user: {
+          _id: newComment.user._id,
+          username: newComment.user.username,
+          profilepic: newComment.user.profilepic
+        }
+      }
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: 'Failed to add comment',
+      error: err.message
+    });
+  }
+};
+
+exports.getComments = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { 
+      page = 1,    
+      limit = 10,    
+      sort = '-createdAt' 
+    } = req.query;
+
+    const postExists = await CommunityPost.exists({ _id: postId });
+    if (!postExists) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Post not found' 
+      });
+    }
+
+    const post = await CommunityPost.findById(postId)
+      .populate({
+        path: 'comments.user',
+        select: 'username profile avatar'
+      })
+      .select('comments')
+      .slice('comments', [ 
+        (page - 1) * limit, 
+        parseInt(limit)
+      ]);
+
+
+    const formattedComments = post.comments
+      .sort((a, b) => {
+        if (sort === '-createdAt') return b.createdAt - a.createdAt;
+        return a.createdAt - b.createdAt;
+      })
+      .map(comment => ({
+        _id: comment._id,
+        text: comment.text,
+        createdAt: comment.createdAt,
+        user: {
+          _id: comment.user._id,
+          username: comment.user.username,
+          profilepic: comment.user.profilepic,
+         
+        }
+      }));
+
+    const commentCount = (await CommunityPost.findById(postId)).comments.length;
+
+    res.json({
+      success: true,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(commentCount / limit),
+        totalComments: commentCount
+      },
+      comments: formattedComments
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch comments',
       error: err.message
     });
   }
@@ -112,8 +197,10 @@ exports.rateBuild = async (req, res) => {
       success: true,
       message: 'Post rated successfully',
       averageRating: post.averageRating,
-      userRating: value
+      userRating: value,
+      totalRatings: post.ratings.length 
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
