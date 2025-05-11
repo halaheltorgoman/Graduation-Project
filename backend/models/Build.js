@@ -36,5 +36,9 @@ const buildSchema = new Schema({
     default: 0
   }
 });
+buildSchema.index({
+  title: 'text',
+  description: 'text',
+});
 
 module.exports = mongoose.model('Build', buildSchema);

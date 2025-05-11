@@ -22,6 +22,6 @@ const psuSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-psuSchema.index({ title: "text"});
+psuSchema.index({ title: "text", product_name:"text"});
 
 module.exports = mongoose.model('PSU', psuSchema);
