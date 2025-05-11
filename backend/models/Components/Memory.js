@@ -36,6 +36,6 @@ ram_size:String,
 
 }, { timestamps: true });
 
-memorySchema.index({ title: "text", ram_size: "text" });
+memorySchema.index({ title: "text", ram_size: "text", product_name:"text"});
 
 module.exports = mongoose.model('Memory', memorySchema);

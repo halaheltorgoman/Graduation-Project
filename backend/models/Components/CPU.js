@@ -35,5 +35,5 @@ const cpuSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-cpuSchema.index({ title: "text", manufacturer: "text" });
+cpuSchema.index({ title: "text", manufacturer: "text",product_name:"text"  });
 module.exports = mongoose.model('CPU', cpuSchema);

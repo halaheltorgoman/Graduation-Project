@@ -63,7 +63,7 @@ exports.addComment = async (req, res) => {
     const updatedPost = await CommunityPost.findById(postId)
       .populate({
         path: 'comments.user',
-        select: 'username profilepic' // Include any other user fields you want
+        select: 'username avatar' // Include any other user fields you want
       });
       const newComment = updatedPost.comments.find(comment => 
         comment._id.toString() === post.comments[post.comments.length - 1]._id.toString()
@@ -80,7 +80,7 @@ exports.addComment = async (req, res) => {
         user: {
           _id: newComment.user._id,
           username: newComment.user.username,
-          profilepic: newComment.user.profilepic
+          avatar: newComment.user.avatar
         }
       }
     });
@@ -134,7 +134,7 @@ exports.getComments = async (req, res) => {
         user: {
           _id: comment.user._id,
           username: comment.user.username,
-          profilepic: comment.user.profilepic,
+          avatar: comment.user.avatar,
          
         }
       }));
@@ -351,3 +351,4 @@ exports.getSharedBuildDetails = async (req, res) => {
     });
   }
 };
+

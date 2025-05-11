@@ -13,7 +13,11 @@ const userSchema = new Schema(
       minlength: 3,
       maxlength: 30,
     },
-    profilepic: String ,
+    bio:String,
+     avatar: {
+    public_id: String,  
+    url: String         
+  } ,
     email: {
       type: String,
       required: true,
@@ -61,7 +65,12 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userSchema.index({
+  username: 'text'
+});
 module.exports = mongoose.model("User", userSchema);
+
 
 // if username is not set
 /*userSchema.pre("validate", function (next) { //middleware

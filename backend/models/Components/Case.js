@@ -26,9 +26,14 @@ const caseSchema = new mongoose.Schema({
   fan_placement:String,
   PSU_mounting: String,
   dimensions_in_cm: String,
+  
 
 }, { timestamps: true });
 
-caseSchema.index({ title: "text"});
+caseSchema.index({
+  title: 'text',
+  brand: 'text',
+  product_name: 'text'
+});
 
 module.exports = mongoose.model('Case', caseSchema);

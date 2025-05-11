@@ -83,10 +83,33 @@ exports.createBuild = async (req, res) => {
 
     await newBuild.save();
 
+   
+    const populatedBuild = await Build.findById(newBuild._id)
+      .populate('components.cpu')
+      .populate('components.gpu')
+      .populate('components.motherboard')
+      .populate('components.memory')
+      .populate('components.storage')
+      .populate('components.psu')
+      .populate('components.case')
+      .populate('components.cooler');
+
+
+    let totalPrice = 0;
+    Object.values(populatedBuild.components.toObject()).forEach(component => {
+      if (component && component.price) {
+        totalPrice += component.price;
+      }
+    });
+
+    populatedBuild.totalPrice = totalPrice;
+    await populatedBuild.save();
+
     res.status(201).json({
       success: true,
       message: 'Build created successfully',
-      build: newBuild,
+      build: populatedBuild,
+      totalPrice: totalPrice,
       nextStep: `/createbuild/${newBuild._id}/finalize`
     });
   } catch (err) {
@@ -97,6 +120,7 @@ exports.createBuild = async (req, res) => {
     });
   }
 };
+
 exports.getBuildTotalPrice = async (req, res) => {
   try {
     const { buildId } = req.params;
@@ -151,15 +175,22 @@ exports.getBuildTotalPrice = async (req, res) => {
 exports.finalizeBuild = async (req, res) => {
   try {
     const { buildId } = req.params;
-    const { title, description, shareToCommunity  } = req.body;
+    const { title, description, shareToCommunity } = req.body;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
-    const user = await User.findById(req.userId);
-   
 
-    const build = await Build.findById(buildId);
+    const build = await Build.findById(buildId)
+      .populate('components.cpu')
+      .populate('components.gpu')
+      .populate('components.motherboard')
+      .populate('components.memory')
+      .populate('components.storage')
+      .populate('components.psu')
+      .populate('components.case')
+      .populate('components.cooler');
+
     if (!build) {
       return res.status(404).json({ success: false, message: 'Build not found' });
     }
@@ -171,23 +202,29 @@ exports.finalizeBuild = async (req, res) => {
       });
     }
 
+    // Calculate total price
+    let totalPrice = 0;
+    Object.values(build.components.toObject()).forEach(component => {
+      if (component && component.price) {
+        totalPrice += component.price;
+      }
+    });
+
+    // Update build details
     build.title = title || 'Unnamed Build';
     build.description = description || '';
     build.isShared = shareToCommunity === true;
-   
-    await build.save();
-     if (build.isShared) {
+    build.totalPrice = totalPrice;
+
+    if (build.isShared) {
       const newPost = new CommunityPost({
         build: build._id,
         user: req.userId,
         title: build.title,
         description: build.description
       });
-      
       await newPost.save();
     }
-
-   
 
     await User.findByIdAndUpdate(
       req.userId,
@@ -195,20 +232,12 @@ exports.finalizeBuild = async (req, res) => {
     );
 
     await build.save();
-    const populatedBuild = await Build.findById(build._id)
-    .populate('components.cpu')
-    .populate('components.gpu')
-    .populate('components.motherboard')
-    .populate('components.memory')
-    .populate('components.storage')
-    .populate('components.psu')
-    .populate('components.case')
-    .populate('components.cooler')
 
     res.json({
       success: true,
       message: `Build ${build.isShared ? 'shared' : 'saved'} successfully`,
-      build: populatedBuild
+      build: build,
+      totalPrice: totalPrice
     });
   } catch (err) {
     res.status(500).json({

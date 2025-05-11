@@ -32,5 +32,5 @@ const storageSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-storageSchema.index({ title: "text",});
+storageSchema.index({ title: "text", product_name:"text"});
 module.exports = mongoose.model('Storage', storageSchema);

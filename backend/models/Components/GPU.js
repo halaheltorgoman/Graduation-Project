@@ -33,6 +33,6 @@ Graphics_RAM_Type:String,
 
 }, { timestamps: true });
 
-gpuSchema.index({ title: "text", manufacturer: "text" });
+gpuSchema.index({ title: "text", manufacturer: "text" , product_name:"text"});
 
 module.exports = mongoose.model('GPU', gpuSchema);

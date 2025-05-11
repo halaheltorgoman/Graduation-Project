@@ -1,16 +1,12 @@
-const { MongoClient } = require("mongodb");
+
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
+const { cloudinary } = require('../config/cloudinary');
+
+
 require("dotenv").config();
 
-//const { JWT_SECRET } = require("../config");
-
-const createToken = (userId) => {
-  return jwt.sign({ userId: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-};
 
 exports.getUserData = async (req, res) => {
   try {
@@ -66,51 +62,47 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// add a component to favorites
-exports.addFavorite = async (req, res) => {
-  const { componentId, modelName } = req.body;
-
+exports.updateAvatar = async (req, res) => {
   try {
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+   
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No image provided' });
+    }
     const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (user.avatar?.public_id) {
+      await cloudinary.uploader.destroy(user.avatar.public_id);
     }
+    const updatedUser = await User.findByIdAndUpdate(
+      req.userId,
+      {
+        avatar: {
+          public_id: req.file.public_id,
+          url: req.file.path
+        }
+      },
+      { new: true }
+    ).select('avatar username');
 
-    const alreadyFavorited = user.favorites.some(
-      (fav) => fav.item.equals(componentId) && fav.onModel === modelName
-    );
+    res.json({
+      success: true,
+      message: 'Avatar updated',
+      avatar: updatedUser.avatar.url,
+      username: updatedUser.username
+    });
 
-    // add component to favorites if not already added
-    if (!alreadyFavorited) {
-      user.favorites.push({ item: componentId, onModel: modelName });
-      await user.save();
-    }
-
-    res.json({ message: "Component added to favorites", user });
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
-
-// remove a component from favorites
-exports.removeFavorite = async (req, res) => {
-  const { componentId, modelName } = req.body;
-
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+ 
+    if (req.file?.public_id) {
+      await cloudinary.uploader.destroy(req.file.public_id);
     }
-
-    // Remove the favorite that matches both the componentId and modelName
-    user.favorites = user.favorites.filter(
-      (fav) => !(fav.item.equals(componentId) && fav.onModel === modelName)
-    );
-    await user.save();
-
-    res.json({ message: "Component removed from favorites", user });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update avatar',
+      error: err.message
+    });
   }
 };
 
@@ -128,7 +120,7 @@ exports.getSavedBuilds = async (req, res) => {
       .populate({
         path: 'savedBuilds',
         populate: [
-          { path: 'user', select: 'username profilepic' },
+          { path: 'user', select: 'username avatar' },
           { path: 'components.cpu', select: 'name image_source' },
           { path: 'components.gpu', select: 'name image_source' },
           { path: 'components.cooler', select: 'name image_source' },
@@ -164,17 +156,17 @@ exports.getSavedBuilds = async (req, res) => {
         user: {
           _id: build.user._id,
           username: build.user.username,
-          profilepic: build.user.profilepic
+          avatar: build.user.avatar
         },
         components: {
           cpu: build.components.cpu?.name,
           gpu: build.components.gpu?.name,
-          gpu: build.components.cooler?.name,
-          gpu: build.components.memory?.name,
-          gpu: build.components.motherboard?.name,
-          gpu: build.components.psu?.name,
-          gpu: build.components.storage?.name,
-          gpu: build.components.case?.name
+          cooler: build.components.cooler?.name,
+          memory: build.components.memory?.name,
+          motherboard: build.components.motherboard?.name,
+          psu: build.components.psu?.name,
+          storage: build.components.storage?.name,
+          case: build.components.case?.name
           
         },
         images: build.images,

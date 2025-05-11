@@ -34,6 +34,6 @@ const mbSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-mbSchema.index({ title: "text", manufacturer: "text" });
+mbSchema.index({ title: "text", manufacturer: "text",product_name:"text" });
 
 module.exports = mongoose.model('Motherboard', mbSchema);

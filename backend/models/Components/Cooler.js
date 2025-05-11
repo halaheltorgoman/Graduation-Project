@@ -31,5 +31,10 @@ const coolerSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-coolerSchema.index({ title: "text",});
+caseSchema.index({
+  title: 'text',
+  manfacturer: 'text',
+  product_name: 'text',
+  brand:'text'
+});
 module.exports = mongoose.model('Cooler', coolerSchema);
