@@ -56,7 +56,8 @@ exports.addComment = async (req, res) => {
 
     post.comments.push({
       user: req.userId,
-      text
+      text,
+      createdAt: Date.now
     });
 
     await post.save();
