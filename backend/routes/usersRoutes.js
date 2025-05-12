@@ -16,14 +16,18 @@ const uploadProfile = multer({
 });
 
 usersRouter.get("/data", userAuth, userController.getUserData);
-
-usersRouter.get("/profile", userAuth, userController.getProfile);
-usersRouter.put("/profile", userAuth, userController.updateProfile);
+usersRouter.get('/:username', userAuth, userController.getUserProfile);
 usersRouter.get('/saved-builds', userAuth, userController.getSavedBuilds);
 usersRouter.put(
   '/avatar',userAuth,
   uploadProfile.single('avatar'),
   userController.updateAvatar
+);
+usersRouter.put(
+  '/me/profile',
+  userAuth, 
+  uploadProfile.single('avatar'), 
+  userController.updateMyProfile 
 );
 
 

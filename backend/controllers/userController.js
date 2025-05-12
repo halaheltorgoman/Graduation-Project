@@ -28,39 +28,113 @@ exports.getUserData = async (req, res) => {
   }
 };
 
-// get user profile
-exports.getProfile = async (req, res) => {
+exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.userId).select("-password");
+    const { username } = req.params;
+    const user = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    }).select('username avatar bio createdAt');
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
     }
-    res.json(user);
+
+    res.json({
+      success: true,
+      profile: {
+        username: user.username,
+        avatar: user.avatar?.url || null,
+        bio: user.bio || '',
+        memberSince: user.createdAt
+      }
+    });
+
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch profile',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
+exports.updateMyProfile = async (req, res) => {
+  try {
+    const { username, bio } = req.body;
+    const updates = {};
+
+    if (username) {
+      if (username.length < 3 || username.length > 20) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username must be 3-20 characters'
+        });
+      }
+      updates.username = username;
+    }
+
+    if (bio !== undefined) {
+      updates.bio = bio.substring(0, 150); 
+    }
+
+    if (req.file) {
+      updates.avatar = {
+        public_id: req.file.public_id,
+        url: req.file.path
+      };
+    }
+
+  
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      updates,
+      { new: true, runValidators: true }
+    ).select('username avatar bio');
+
+    if (!user) {
+  
+      if (req.file?.public_id) {
+        await cloudinary.uploader.destroy(req.file.public_id);
+      }
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Profile updated',
+      profile: {
+        username: user.username,
+        avatar: user.avatar?.url,
+        bio: user.bio
+      }
+    });
+
+  } catch (err) {
+
+    if (req.file?.public_id) {
+      await cloudinary.uploader.destroy(req.file.public_id);
+    }
+
+    if (err.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already taken'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Profile update failed',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };
 
-// update user profile
-exports.updateProfile = async (req, res) => {
-  const { username, email } = req.body;
-
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // update fields
-    user.username = username || user.username;
-    user.email = email || user.email;
-    await user.save();
-
-    res.json({ message: "Profile updated successfully", user });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
 
 exports.updateAvatar = async (req, res) => {
   try {

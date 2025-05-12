@@ -11,9 +11,12 @@ const userSchema = new Schema(
       unique: true,
       trim: true,
       minlength: 3,
-      maxlength: 30,
+      maxlength: 20,
     },
-    bio:String,
+    bio: {
+    type: String,
+    maxlength: 150
+  },
      avatar: {
     public_id: String,  
     url: String         
