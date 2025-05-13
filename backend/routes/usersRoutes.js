@@ -17,7 +17,7 @@ const uploadProfile = multer({
 
 usersRouter.get("/data", userAuth, userController.getUserData);
 usersRouter.get('/:username', userAuth, userController.getUserProfile);
-usersRouter.get('/saved-builds', userAuth, userController.getSavedBuilds);
+usersRouter.get('/saved-posts', userAuth, userController.getSavedPosts);
 usersRouter.put(
   '/avatar',userAuth,
   uploadProfile.single('avatar'),

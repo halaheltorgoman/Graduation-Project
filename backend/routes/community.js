@@ -10,8 +10,8 @@ router.get('/:postId/getcomments', getComments);
 
 router.post('/:postId/comment', authMiddleware, communityController.addComment);
 router.post('/:postId/rate', authMiddleware, communityController.rateBuild);
-router.post('/:postId/save', authMiddleware, communityController.saveBuild);
-router.delete('/:postId/unsave',authMiddleware,communityController.removeSavedBuild);
+router.post('/:postId/save-post', authMiddleware, communityController.savePost);
+router.delete('/:postId/unsave-post', authMiddleware, communityController.unsavePost);
 
 
 
