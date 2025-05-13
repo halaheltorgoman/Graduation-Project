@@ -60,6 +60,8 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+
+
 exports.updateMyProfile = async (req, res) => {
   try {
     const { username, bio } = req.body;
@@ -180,7 +182,7 @@ exports.updateAvatar = async (req, res) => {
   }
 };
 
-exports.getSavedBuilds = async (req, res) => {
+exports.getSavedPosts = async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
@@ -190,19 +192,18 @@ exports.getSavedBuilds = async (req, res) => {
     }
 
     const user = await User.findById(req.userId)
-      .select('savedBuilds')
+      .select('savedPosts')
       .populate({
-        path: 'savedBuilds',
+        path: 'savedPosts',
         populate: [
           { path: 'user', select: 'username avatar' },
-          { path: 'components.cpu', select: 'name image_source' },
-          { path: 'components.gpu', select: 'name image_source' },
-          { path: 'components.cooler', select: 'name image_source' },
-          { path: 'components.memory', select: 'name image_source' },
-          { path: 'components.motherboard', select: 'name image_source' },
-          { path: 'components.psu', select: 'name image_source' },
-          { path: 'components.storage', select: 'name image_source' },
-          { path: 'components.case', select: 'name image_source' },
+          { 
+            path: 'build', 
+            populate: {
+              path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler',
+              select: 'name image_source'
+            }
+          }
         ],
         options: {
           skip: parseInt(skip),
@@ -210,48 +211,53 @@ exports.getSavedBuilds = async (req, res) => {
           sort: { createdAt: -1 }
         }
       });
-    const totalCount = await User.findById(req.userId)
-      .then(user => user.savedBuilds.length);
 
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+
+    const totalCount = await User.findById(req.userId)
+      .then(user => user.savedPosts.length);
 
     res.json({
       success: true,
       totalSaved: totalCount,
       currentPage: parseInt(page),
       totalPages: Math.ceil(totalCount / limit),
-      savedBuilds: user.savedBuilds.map(build => ({
-        _id: build._id,
-        title: build.title,
-        description: build.description,
-        createdAt: build.createdAt,
+      savedPosts: user.savedPosts.map(post => ({
+        _id: post._id,
+        text: post.text,
+        images: post.images,
+        createdAt: post.createdAt,
+        savesCount: post.savesCount,
+        commentsCount: post.comments.length,
+        averageRating: post.averageRating,
         user: {
-          _id: build.user._id,
-          username: build.user.username,
-          avatar: build.user.avatar
+          _id: post.user._id,
+          username: post.user.username,
+          avatar: post.user.avatar?.url
         },
-        components: {
-          cpu: build.components.cpu?.name,
-          gpu: build.components.gpu?.name,
-          cooler: build.components.cooler?.name,
-          memory: build.components.memory?.name,
-          motherboard: build.components.motherboard?.name,
-          psu: build.components.psu?.name,
-          storage: build.components.storage?.name,
-          case: build.components.case?.name
-          
-        },
-        images: build.images,
-        savesCount: build.savesCount
+        build: post.build ? {
+          _id: post.build._id,
+          title: post.build.title,
+          components: {
+            cpu: post.build.components.cpu?.name,
+            gpu: post.build.components.gpu?.name,
+            motherboard: post.build.components.motherboard?.name,
+            memory: post.build.components.memory?.name,
+            storage: post.build.components.storage?.name,
+            psu: post.build.components.psu?.name,
+            case: post.build.components.case?.name,
+            cooler: post.build.components.cooler?.name
+          }
+        } : null
       }))
     });
 
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch saved builds',
+      message: 'Failed to fetch saved posts',
       error: err.message
     });
   }

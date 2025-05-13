@@ -5,7 +5,7 @@ const communityPostSchema = new Schema({
   build: { 
     type: Schema.Types.ObjectId, 
     ref: 'Build', 
-    required: true 
+    required: false 
   },
   user: { 
     type: Schema.Types.ObjectId, 

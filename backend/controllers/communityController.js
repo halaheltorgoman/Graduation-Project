@@ -211,7 +211,9 @@ exports.rateBuild = async (req, res) => {
   }
 };
 
-exports.saveBuild = async (req, res) => {
+// Add these new controller functions
+
+exports.savePost = async (req, res) => {
   try {
     const { postId } = req.params;
 
@@ -224,45 +226,40 @@ exports.saveBuild = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-  
     const user = await User.findById(req.userId);
-    if (user.savedBuilds.includes(post.build)) {
+    
+    // Check if post is already saved
+    if (user.savedPosts.includes(postId)) {
       return res.status(400).json({ 
         success: false, 
-        message: 'You already saved this build' 
+        message: 'Post already saved' 
       });
     }
 
-  
-    const updatedUser = await User.findByIdAndUpdate(
-      req.userId,
-      { $addToSet: { savedBuilds: post.build } },
-      { new: true }
-    );
+    // Add post to savedPosts
+    user.savedPosts.push(postId);
+    await user.save();
 
-    
-    post.savesCount = await User.countDocuments({ 
-      savedBuilds: post.build 
-    });
+    // Update saves count on the post
+    post.savesCount = await User.countDocuments({ savedPosts: postId });
     await post.save();
 
     res.json({
       success: true,
-      message: 'Build saved to your profile',
-      totalSaves: post.savesCount, 
-      savedBuilds: updatedUser.savedBuilds
+      message: 'Post saved successfully',
+      totalSaves: post.savesCount
     });
 
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to save build',
+      message: 'Failed to save post',
       error: err.message
     });
   }
 };
 
-exports.removeSavedBuild = async (req, res) => {
+exports.unsavePost = async (req, res) => {
   try {
     const { postId } = req.params;
 
@@ -270,7 +267,6 @@ exports.removeSavedBuild = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-  
     const [post, user] = await Promise.all([
       CommunityPost.findById(postId),
       User.findById(req.userId)
@@ -280,34 +276,32 @@ exports.removeSavedBuild = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
- 
-    const buildIndex = user.savedBuilds.indexOf(post.build);
-    if (buildIndex === -1) {
+    // Remove post from savedPosts
+    const index = user.savedPosts.indexOf(postId);
+    if (index === -1) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Build not found in your saved items' 
+        message: 'Post not found in saved items' 
       });
     }
 
-   
-    user.savedBuilds.splice(buildIndex, 1);
+    user.savedPosts.splice(index, 1);
     await user.save();
 
-  
-    post.savesCount = await User.countDocuments({ savedBuilds: post.build });
+    // Update saves count on the post
+    post.savesCount = await User.countDocuments({ savedPosts: postId });
     await post.save();
 
     res.json({
       success: true,
-      message: 'Build removed from saved items',
-      totalSaves: post.savesCount,
-      savedBuilds: user.savedBuilds 
+      message: 'Post removed from saved items',
+      totalSaves: post.savesCount
     });
 
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to remove saved build',
+      message: 'Failed to unsave post',
       error: err.message
     });
   }

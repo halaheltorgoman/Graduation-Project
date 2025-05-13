@@ -78,3 +78,120 @@ exports.createPost = async (req, res) => {
     });
   }
 };
+
+// In your communityController.js
+
+exports.getAllPosts = async (req, res) => {
+  try {
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Sorting
+    const sortBy = req.query.sortBy || '-createdAt';
+    const validSortFields = ['createdAt', 'savesCount', 'commentsCount', 'averageRating'];
+    const sortField = sortBy.replace(/^-/, '');
+    const sortOrder = sortBy.startsWith('-') ? -1 : 1;
+    
+    if (!validSortFields.includes(sortField)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid sort field'
+      });
+    }
+
+    // Filtering
+    const filter = {};
+    if (req.query.hasBuild === 'true') {
+      filter.build = { $exists: true, $ne: null };
+    } else if (req.query.hasBuild === 'false') {
+      filter.build = null;
+    }
+
+    if (req.query.userId) {
+      filter.user = req.query.userId;
+    }
+
+    // Search
+    if (req.query.search) {
+      filter.$or = [
+        { text: { $regex: req.query.search, $options: 'i' } },
+        { 'build.title': { $regex: req.query.search, $options: 'i' } }
+      ];
+    }
+
+    const [posts, total] = await Promise.all([
+      CommunityPost.find(filter)
+        .sort({ [sortField]: sortOrder })
+        .skip(skip)
+        .limit(limit)
+        .populate('user', 'username avatar')
+        .populate({
+          path: 'build',
+          populate: {
+            path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler',
+            select: 'name image_source'
+          }
+        })
+        .populate('comments.user', 'username avatar')
+        .lean(),
+      CommunityPost.countDocuments(filter)
+    ]);
+
+    // Check if user has saved each post
+    let postsWithSaveStatus = posts;
+    if (req.userId) {
+      const user = await User.findById(req.userId).select('savedPosts');
+      postsWithSaveStatus = posts.map(post => ({
+        ...post,
+        isSaved: user.savedPosts.includes(post._id)
+      }));
+    }
+
+    res.json({
+      success: true,
+      posts: postsWithSaveStatus.map(post => ({
+        _id: post._id,
+        text: post.text,
+        images: post.images,
+        createdAt: post.createdAt,
+        savesCount: post.savesCount,
+        commentsCount: post.comments.length,
+        averageRating: post.averageRating || 0,
+        isSaved: post.isSaved || false,
+        user: {
+          _id: post.user._id,
+          username: post.user.username,
+          avatar: post.user.avatar?.url
+        },
+        build: post.build ? {
+          _id: post.build._id,
+          title: post.build.title,
+          components: {
+            cpu: post.build.components.cpu?.name,
+            gpu: post.build.components.gpu?.name,
+            motherboard: post.build.components.motherboard?.name,
+            memory: post.build.components.memory?.name,
+            storage: post.build.components.storage?.name,
+            psu: post.build.components.psu?.name,
+            case: post.build.components.case?.name,
+            cooler: post.build.components.cooler?.name
+          }
+        } : null
+      })),
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalPosts: total
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch posts',
+      error: err.message
+    });
+  }
+};
