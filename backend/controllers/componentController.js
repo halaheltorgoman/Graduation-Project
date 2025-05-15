@@ -351,6 +351,60 @@ exports.searchComponents = async (req, res) => {
     res.status(500).json({ message: "Search failed", error: err.message });
   }
 };
+exports.getUserFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Return the favorites list
+    res.json(user.favorites);
+  } catch (err) {
+    console.error("Error fetching favorites:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// New method to get detailed favorite components
+exports.getUserFavoriteComponents = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Group favorites by component type
+    const favoritesByType = {};
+    user.favorites.forEach((fav) => {
+      const type = fav.componentType;
+      if (!favoritesByType[type]) {
+        favoritesByType[type] = [];
+      }
+      favoritesByType[type].push(fav.componentId);
+    });
+
+    // Fetch component details for each type
+    const results = [];
+
+    for (const [type, ids] of Object.entries(favoritesByType)) {
+      try {
+        const Model = getModel(type);
+        const components = await Model.find({ _id: { $in: ids } });
+
+        components.forEach((component) => {
+          results.push({
+            ...component.toObject(),
+            type: type,
+          });
+        });
+      } catch (err) {
+        console.error(`Error fetching ${type} components:`, err);
+      }
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error("Error fetching favorite components:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
 exports.getComponentById = async (req, res) => {
   try {
     const { type, componentId } = req.params;
@@ -393,39 +447,3 @@ exports.getComponentById = async (req, res) => {
 };
 // Add this to your components controller
 // componentController.js
-exports.getSearchSuggestions = async (req, res) => {
-  try {
-    const { type } = req.params;
-    const { query, limit = 5 } = req.query;
-
-    if (!query || query.length < 2) {
-      return res.json([]);
-    }
-
-    const Model = getComponentModel(type.toLowerCase());
-    if (!Model)
-      return res.status(400).json({ message: "Invalid component type" });
-
-    const results = await Model.aggregate([
-      {
-        $search: {
-          index: "autocomplete",
-          autocomplete: {
-            query: query,
-            path: "title",
-            fuzzy: {
-              maxEdits: 1,
-            },
-          },
-        },
-      },
-      { $limit: parseInt(limit) },
-      { $project: { _id: 1, title: 1, category: 1, image_source: 1 } },
-    ]);
-
-    res.json(results);
-  } catch (err) {
-    console.error("Error in getSuggestions:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
