@@ -28,6 +28,8 @@ app.use("/api/post", require("./routes/createpost"));
 //app.use("/api/guides", require("./routes/guides"));
 app.use("/api/ai", require("./routes/aiAssistant"));
 app.use('/api/chat', chatRoutes);
+app.use("/api/guides", require("./routes/guides"));
+//app.use("/api/ai", require("./routes/aiAssistant"));
 
 //app.use(errorHandler);
 
