@@ -35,20 +35,22 @@ const userSchema = new Schema(
       minlength: 6,
     },
     role: {
-        type: String,
-        enum: ["user", "admin"],
-        default: "user",
-      },
+    type: String,
+    enum: ["user", "admin", "guidecreator"], 
+    default: "user"
+  },
    
       favorites: [{ //fav components
         componentType: { type: String },
         componentId: { type: mongoose.Schema.Types.ObjectId },
         _id: false
       }],
+      
 
-      savedBuilds: [{ 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Build' }], //saved builds from guides
+     savedGuides: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Build'
+  }], 
 
       savedPosts: [{ type: Schema.Types.ObjectId, ref: 'CommunityPost' }], //saved posts from community
 

@@ -8,6 +8,10 @@ router.post('/validate', authMiddleware, buildController.validateBuild);
 router.put('/createbuild/:buildId/finalize', authMiddleware, buildController.finalizeBuild);
 router.post('/createbuild', authMiddleware, buildController.createBuild);
 router.get('/:buildId/price', authMiddleware, buildController.getBuildTotalPrice);
+router.get(
+  '/:buildId',
+  builderController.getBuildDetails
+);
 
 
 
