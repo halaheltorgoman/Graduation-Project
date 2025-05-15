@@ -175,7 +175,7 @@ exports.getBuildTotalPrice = async (req, res) => {
 exports.finalizeBuild = async (req, res) => {
   try {
     const { buildId } = req.params;
-    const { title, description, shareToCommunity } = req.body;
+    const { title, description, shareToCommunity, isGuide, guideCategory } = req.body;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -202,7 +202,6 @@ exports.finalizeBuild = async (req, res) => {
       });
     }
 
-    // Calculate total price
     let totalPrice = 0;
     Object.values(build.components.toObject()).forEach(component => {
       if (component && component.price) {
@@ -210,18 +209,25 @@ exports.finalizeBuild = async (req, res) => {
       }
     });
 
-    // Update build details
     build.title = title || 'Unnamed Build';
     build.description = description || '';
     build.isShared = shareToCommunity === true;
     build.totalPrice = totalPrice;
+
+    const user = await User.findById(req.userId);
+    if (user.role === 'guidecreator' && isGuide === true) {
+      build.isGuide = true;
+      build.guideCategory = guideCategory || null;
+    }
 
     if (build.isShared) {
       const newPost = new CommunityPost({
         build: build._id,
         user: req.userId,
         title: build.title,
-        description: build.description
+        description: build.description,
+        isGuide: build.isGuide,
+        guideCategory: build.guideCategory
       });
       await newPost.save();
     }
@@ -235,7 +241,7 @@ exports.finalizeBuild = async (req, res) => {
 
     res.json({
       success: true,
-      message: `Build ${build.isShared ? 'shared' : 'saved'} successfully`,
+      message: `Build ${build.isShared ? 'shared' : 'saved'} ${build.isGuide ? 'as guide' : ''} successfully`,
       build: build,
       totalPrice: totalPrice
     });
@@ -243,6 +249,101 @@ exports.finalizeBuild = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to finalize build',
+      error: err.message
+    });
+  }
+};
+
+exports.getBuildDetails = async (req, res) => {
+  try {
+    const { buildId } = req.params;
+
+
+    const build = await Build.findById(buildId)
+      .populate('user', 'username avatar')
+      .populate({
+        path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler',
+        select: 'title image_source price description'
+      })
+      .populate({
+        path: 'ratings.user',
+        select: 'username avatar'
+      });
+
+    if (!build) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Build not found' 
+      });
+    }
+
+    
+    let totalPrice = 0;
+    Object.values(build.components.toObject()).forEach(component => {
+      if (component && component.price) {
+        totalPrice += component.price;
+      }
+    });
+
+    let isSaved = false;
+    let userRating = null;
+    
+    if (req.userId) {
+      const user = await User.findById(req.userId);
+      isSaved = user.savedGuides.includes(buildId);
+      
+      const rating = build.ratings.find(r => r.user._id.equals(req.userId));
+      userRating = rating ? rating.value : null;
+    }
+
+    
+    const response = {
+      _id: build._id,
+      title: build.title,
+      description: build.description,
+      isGuide: build.isGuide,
+      guideCategory: build.guideCategory,
+      totalPrice,
+      createdAt: build.createdAt,
+      user: {
+        _id: build.user._id,
+        username: build.user.username,
+        avatar: build.user.avatar?.url
+      },
+      components: {},
+      stats: {
+        savesCount: build.savesCount || 0,
+        averageRating: build.averageRating || 0,
+        totalRatings: build.ratings.length || 0
+      },
+      userMeta: {
+        isSaved,
+        userRating
+      }
+    };
+
+    
+    Object.entries(build.components.toObject()).forEach(([type, component]) => {
+      if (component) {
+        response.components[type] = {
+          _id: component._id,
+          title: component.title,
+          image: component.image_source,
+          price: component.price,
+          
+        };
+      }
+    });
+
+    res.json({
+      success: true,
+      build: response
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get build details',
       error: err.message
     });
   }

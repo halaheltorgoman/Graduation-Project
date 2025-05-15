@@ -131,7 +131,7 @@ exports.getAllPosts = async (req, res) => {
           path: 'build',
           populate: {
             path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler',
-            select: 'name image_source'
+            select: 'title image_source'
           }
         })
         .populate('comments.user', 'username avatar')
@@ -169,14 +169,14 @@ exports.getAllPosts = async (req, res) => {
           _id: post.build._id,
           title: post.build.title,
           components: {
-            cpu: post.build.components.cpu?.name,
-            gpu: post.build.components.gpu?.name,
-            motherboard: post.build.components.motherboard?.name,
-            memory: post.build.components.memory?.name,
-            storage: post.build.components.storage?.name,
-            psu: post.build.components.psu?.name,
-            case: post.build.components.case?.name,
-            cooler: post.build.components.cooler?.name
+            cpu: post.build.components.cpu?.title,
+            gpu: post.build.components.gpu?.title,
+            motherboard: post.build.components.motherboard?.title,
+            memory: post.build.components.memory?.title,
+            storage: post.build.components.storage?.title,
+            psu: post.build.components.psu?.title,
+            case: post.build.components.case?.title,
+            cooler: post.build.components.cooler?.title
           }
         } : null
       })),

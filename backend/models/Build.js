@@ -34,11 +34,28 @@ const buildSchema = new Schema({
   totalPrice: {
     type: Number,
     default: 0
-  }
+  },
+  guideCategory: {
+    type: String,
+    enum: ['gaming', 'workstation', 'budget', 'other'],
+    default: null
+  },
+  isGuide: {
+    type: Boolean,
+    default: false
+  },
+  ratings: [{
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  value: { type: Number, required: true, min: 1, max: 5 },
+  createdAt: { type: Date, default: Date.now }
+}],
 });
 buildSchema.index({
   title: 'text',
   description: 'text',
 });
+buildSchema.index({ isGuide: 1, guideCategory: 1 });
+buildSchema.index({ isGuide: 1, savesCount: -1 });
+buildSchema.index({ isGuide: 1, averageRating: -1 });
 
 module.exports = mongoose.model('Build', buildSchema);
