@@ -14,11 +14,16 @@ router.post(
   authMiddleware,
   componentController.removeFavorite
 );
-router.get("/:type/suggestions", componentController.getSearchSuggestions);
-// search
-router.get("/:type/search", componentController.searchComponents);
-// New route for component details
 
 router.get("/:type/:componentId", componentController.getComponentById);
-
+router.get(
+  "/favorites/user",
+  authMiddleware,
+  componentController.getUserFavorites
+);
+router.get(
+  "/favorites/components",
+  authMiddleware,
+  componentController.getUserFavoriteComponents
+);
 module.exports = router;
