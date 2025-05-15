@@ -50,9 +50,9 @@ const userSchema = new Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Build' }], //saved builds from guides
 
-        savedPosts: [{ type: Schema.Types.ObjectId, ref: 'CommunityPost' }], //saved posts from community
+      savedPosts: [{ type: Schema.Types.ObjectId, ref: 'CommunityPost' }], //saved posts from community
 
-      builds: [{ //saved own builds
+      builds: [{ //user's compeleted builds
         type: Schema.Types.ObjectId,
         ref: 'Build'
       }],
