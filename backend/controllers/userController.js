@@ -262,3 +262,66 @@ exports.getSavedPosts = async (req, res) => {
     });
   }
 };
+
+exports.getUserBuilds = async (req, res) => {
+  try {
+    const { username } = req.params;
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    const user = await User.findOne({ 
+      username: { $regex: new RegExp(`^${username}$`, 'i') }
+    }).select('username avatar builds');
+
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'User not found' 
+      });
+    }
+    const builds = await Build.find({ _id: { $in: user.builds } })
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler',
+        select: 'title image_source price'
+      })
+      .lean();
+
+    const buildsWithPrices = builds.map(build => {
+      let totalPrice = 0;
+      Object.values(build.components).forEach(component => {
+        if (component && component.price) {
+          totalPrice += component.price;
+        }
+      });
+      return {
+        ...build,
+        totalPrice
+      };
+    });
+    const totalCount = user.builds.length;
+
+    res.json({
+      success: true,
+      builds: buildsWithPrices,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalCount / limit),
+        totalBuilds: totalCount
+      },
+      user: {
+        username: user.username,
+        avatar: user.avatar?.url || null
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch user builds',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+};
