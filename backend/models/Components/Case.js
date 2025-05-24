@@ -1,39 +1,36 @@
+const mongoose = require("mongoose");
 
-const mongoose = require('mongoose');
-
-const caseSchema = new mongoose.Schema({ 
-  title: { type: String, required: true ,
-    },
+const caseSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
     product_name: String,
-    rating: Number ,
-  price: { type: Number, required: true ,
+    rating: Number,
+    price: { type: Number, required: true },
+    image_source: {
+      type: String,
     },
-   image_source: {
-    type: String,
-   
-  },
-  product_link:String,
-  brand: String,
-  case_type: String,
-  
-   PSU_formfactor: {
-    type: String,
-    default: "ATX"
-  },
-  supported_motherboards:Array,
-  expansion_slots: Number,
+    product_link: String,
+    brand: String,
+    case_type: String,
 
-  fan_placement:String,
-  PSU_mounting: String,
-  dimensions_in_cm: String,
-  
+    PSU_formfactor: {
+      type: String,
+      default: "ATX",
+    },
+    supported_motherboards: Array,
+    expansion_slots: Number,
 
-}, { timestamps: true });
+    fan_placement: String,
+    PSU_mounting: String,
+    dimensions_in_cm: String,
+  },
+  { timestamps: true }
+);
 
 caseSchema.index({
-  title: 'text',
-  brand: 'text',
-  product_name: 'text'
+  title: "text",
+  brand: "text",
+  product_name: "text",
 });
 
-module.exports = mongoose.model('Case', caseSchema);
+module.exports = mongoose.model("Case", caseSchema);

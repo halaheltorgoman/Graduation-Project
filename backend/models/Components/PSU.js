@@ -1,27 +1,25 @@
+const mongoose = require("mongoose");
 
-const mongoose = require('mongoose');
-
-const psuSchema = new mongoose.Schema({ 
-  title: { type: String, required: true ,
+const psuSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    product_name: String,
+    rating: Number,
+    price: { type: Number, required: true },
+    image_source: {
+      type: String,
     },
-    productName: String,
-    Rating: Number ,
-  price: { type: Number, required: true ,
-    },
-   imageUrl: {
-    type: String,
-   
+    ProductLink: String,
+    manfucaturer: String,
+    brand: String,
+    Amperage: String,
+    MemoryType: String,
+    FormFactor: String,
+    Wattage: String,
   },
-  ProductLink:String,
-  Manfucaturer:String,
-  Brand: String,
-  Amperage: String,
-   MemoryType: String,
-  FormFactor:String,
-  Wattage: String,
+  { timestamps: true }
+);
 
-}, { timestamps: true });
+psuSchema.index({ title: "text", product_name: "text" });
 
-psuSchema.index({ title: "text", product_name:"text"});
-
-module.exports = mongoose.model('PSU', psuSchema);
+module.exports = mongoose.model("PSU", psuSchema);
