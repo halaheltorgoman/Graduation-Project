@@ -1,4 +1,11 @@
-backend/node_modules
-.env
+# Dependencies
 node_modules
+backend/node_modules
+
+# Environment variables
+.env
+<<<<<<< HEAD
+node_modules
+=======
+>>>>>>> 7c6de126 (rebase 25th May)
 backend/.env
