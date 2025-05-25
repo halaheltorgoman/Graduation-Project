@@ -17,9 +17,10 @@ const corsOptions = {
   exposedHeaders: ["set-cookie"],
 };
 // middlewares
-app.use(cors(corsOptions));
-
-app.options("*", cors(corsOptions));
+app.use(cors({
+  origin: '*', // Allow all origins for testing
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -39,6 +40,7 @@ app.use("/api/guides", require("./routes/guides"));
 app.use("/api/builds", require("./routes/build"));
 //app.use("/api/guides", require("./routes/guides"));
 app.use("/api/ai", require("./routes/aiAssistant"));
+app.use('/api/chat', chatRoutes);
 
 //app.use(errorHandler);
 
