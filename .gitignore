@@ -1,4 +1,37 @@
+# Dependencies
+node_modules
 backend/node_modules
+package-lock.json
+backend/package-lock.json
+
+# Environment variables
 .env
 backend/.env
-node_modules
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Build and dist directories
+dist
+build
+backend/dist
+backend/build
+
+# Test coverage
+coverage
+backend/coverage
+
+# Temporary files
+tmp
+temp
+backend/tmp
+backend/temp
