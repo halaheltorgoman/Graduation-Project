@@ -7,7 +7,7 @@ const messageSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'assistant'],
+    enum: ['user', 'assistant', 'system'],
     required: true
   },
   timestamp: {
@@ -15,10 +15,7 @@ const messageSchema = new mongoose.Schema({
     default: Date.now
   },
   metadata: {
-    componentsMentioned: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Component'
-    }],
+    componentsMentioned: [String],
     buildTypes: [String],
     preferencesDetected: [String]
   }
@@ -56,7 +53,7 @@ const chatHistorySchema = new mongoose.Schema({
 
 // Create indexes
 chatHistorySchema.index({ userId: 1, sessionId: 1 }, { unique: true });
-chatHistorySchema.index({ updatedAt: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 }); // 30 days TTL
+chatHistorySchema.index({ updatedAt: 1 }, { expireAfterSeconds: 12 * 60 * 60 }); // 12 hours
 chatHistorySchema.index({ 'messages.metadata.componentsMentioned': 1 });
 chatHistorySchema.index({ 'messages.metadata.buildTypes': 1 });
 
