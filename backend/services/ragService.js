@@ -15,6 +15,7 @@ const PSU = require('../models/Components/PSU');
 const Cooler = require('../models/Components/Cooler');
 const Case = require('../models/Components/Case');
 const pcBuildingKnowledge = require('../data/pcBuildingKnowledge');
+const buildService = require('../services/buildService');
 
 // Initialize Ollama embeddings
 const embeddings = new OllamaEmbeddings({
@@ -112,7 +113,6 @@ const initializeVectorStore = async () => {
         throw new Error('Empty collection, reinitializing...');
       }
     } catch (error) {
-      console.log('Creating new vector store collection...');
       // Create new persistent vector store with ChromaDB
       vectorStore = await Chroma.fromDocuments(documents, embeddings, {
         collectionName: "pc_building_knowledge",
@@ -149,6 +149,61 @@ const componentModels = {
 };
 
 /**
+ * Extract component mentions and preferences from a message
+ * @param {string} message - The message to analyze
+ * @returns {Object} - Extracted information
+ */
+const extractMessageContext = (message) => {
+  const context = {
+    componentsMentioned: [],
+    buildTypes: [],
+    preferencesDetected: []
+  };
+
+  // Extract component mentions
+  const componentTypes = Object.keys(componentModels);
+  componentTypes.forEach(type => {
+    const regex = new RegExp(`\\b${type}\\b`, 'gi');
+    if (regex.test(message)) {
+      context.componentsMentioned.push(type);
+    }
+  });
+
+  // Extract build types
+  pcBuildingKnowledge.buildTypes.forEach(buildType => {
+    if (message.toLowerCase().includes(buildType.title.toLowerCase())) {
+      context.buildTypes.push(buildType.id);
+    }
+  });
+
+  // Extract preferences
+  const budgetRegex = /\$(\d+)/g;
+  const budgetMatches = [...message.matchAll(budgetRegex)];
+  if (budgetMatches.length > 0) {
+    const maxBudget = Math.max(...budgetMatches.map(m => parseInt(m[1])));
+    context.preferencesDetected.push(`budget:${maxBudget}`);
+  }
+
+  // Extract brand preferences
+  const brands = ['NVIDIA', 'AMD', 'Intel', 'ASUS', 'MSI', 'Gigabyte', 'Corsair', 'Samsung', 'Western Digital'];
+  brands.forEach(brand => {
+    if (message.toLowerCase().includes(brand.toLowerCase())) {
+      context.preferencesDetected.push(`brand:${brand}`);
+    }
+  });
+
+  // Extract use cases
+  const useCases = ['gaming', 'productivity', 'streaming', 'editing', 'workstation'];
+  useCases.forEach(useCase => {
+    if (message.toLowerCase().includes(useCase.toLowerCase())) {
+      context.preferencesDetected.push(`useCase:${useCase}`);
+    }
+  });
+
+  return context;
+};
+
+/**
  * RAG Service for PC Building Assistant
  * This service handles:
  * 1. Retrieving user information and chat history
@@ -165,6 +220,10 @@ const ragService = {
    */
   getChatHistory: async (sessionId, userId = null) => {
     try {
+      // Check for expired sessions
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
+      await ChatHistory.deleteMany({ updatedAt: { $lt: twelveHoursAgo } });
+
       let chatHistory = await ChatHistory.findOne({ sessionId });
       
       if (!chatHistory) {
@@ -198,38 +257,53 @@ const ragService = {
    */
   updateChatHistory: async (sessionId, message) => {
     try {
-      await ChatHistory.findOneAndUpdate(
-        { sessionId },
-        {
-          $push: { messages: message },
-          $set: { updatedAt: new Date() }
+      const chatHistory = await ragService.getChatHistory(sessionId);
+      
+      // Extract context from the message
+      const messageContext = extractMessageContext(message.content);
+      
+      // Update message with extracted context
+      message.metadata = {
+        ...message.metadata,
+        ...messageContext
+      };
+
+      // Check message limit (e.g., 100 messages)
+      if (chatHistory.messages.length >= 100) {
+        // Remove oldest message
+        chatHistory.messages.shift();
+      }
+
+      // Add new message
+      chatHistory.messages.push(message);
+      
+      // Update preferences based on detected preferences
+      messageContext.preferencesDetected.forEach(pref => {
+        const [type, value] = pref.split(':');
+        switch (type) {
+          case 'budget':
+            const budget = parseInt(value);
+            if (!chatHistory.summary.knownPreferences.budgetRange.includes(budget)) {
+              chatHistory.summary.knownPreferences.budgetRange.push(budget);
+              chatHistory.summary.knownPreferences.budgetRange.sort((a, b) => a - b);
+            }
+            break;
+          case 'brand':
+            if (!chatHistory.summary.knownPreferences.preferredBrands.includes(value)) {
+              chatHistory.summary.knownPreferences.preferredBrands.push(value);
+            }
+            break;
+          case 'useCase':
+            if (!chatHistory.summary.knownPreferences.useCases.includes(value)) {
+              chatHistory.summary.knownPreferences.useCases.push(value);
+            }
+            break;
         }
-      );
+      });
+
+      await chatHistory.save();
     } catch (error) {
       console.error('Error updating chat history:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Update user preferences in chat history
-   * @param {string} sessionId - The session ID
-   * @param {Object} preferences - The preferences to update
-   * @returns {Promise<void>}
-   */
-  updateUserPreferences: async (sessionId, preferences) => {
-    try {
-      await ChatHistory.findOneAndUpdate(
-        { sessionId },
-        {
-          $set: {
-            'summary.knownPreferences': preferences,
-            updatedAt: new Date()
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error updating user preferences:', error);
       throw error;
     }
   },
@@ -434,6 +508,78 @@ const ragService = {
   },
 
   /**
+   * Check compatibility between components
+   * @param {Object} components - Object containing component data by type
+   * @returns {Object} - Compatibility results
+   */
+  checkComponentCompatibility: async (components) => {
+    const compatibilityResults = {
+      valid: true,
+      checks: {},
+      issues: []
+    };
+
+    try {
+      // CPU and Motherboard compatibility
+      if (components.cpu && components.motherboard) {
+        const cpu = components.cpu[0]; // Get the first CPU
+        const motherboard = components.motherboard[0]; // Get the first motherboard
+        const check = buildService.checkCpuMotherboard(cpu, motherboard);
+        compatibilityResults.checks.cpu_motherboard = check;
+        if (!check.valid) {
+          compatibilityResults.valid = false;
+          compatibilityResults.issues.push(`CPU-Motherboard: ${check.message}`);
+        }
+      }
+
+      // Motherboard and Case compatibility
+      if (components.motherboard && components.case) {
+        const motherboard = components.motherboard[0];
+        const pcCase = components.case[0];
+        const check = buildService.checkMotherboardCase(motherboard, pcCase);
+        compatibilityResults.checks.motherboard_case = check;
+        if (!check.valid) {
+          compatibilityResults.valid = false;
+          compatibilityResults.issues.push(`Motherboard-Case: ${check.message}`);
+        }
+      }
+
+      // Memory and Motherboard compatibility
+      if (components.ram && components.motherboard) {
+        const memory = components.ram[0];
+        const motherboard = components.motherboard[0];
+        const check = buildService.checkMemoryMotherboard(memory, motherboard);
+        compatibilityResults.checks.memory_motherboard = check;
+        if (!check.valid) {
+          compatibilityResults.valid = false;
+          compatibilityResults.issues.push(`Memory-Motherboard: ${check.message}`);
+        }
+      }
+
+      // CPU and Cooler compatibility
+      if (components.cpu && components.cooler) {
+        const cpu = components.cpu[0];
+        const cooler = components.cooler[0];
+        const check = buildService.checkCoolingCpu(cooler, cpu);
+        compatibilityResults.checks.cooling_cpu = check;
+        if (!check.valid) {
+          compatibilityResults.valid = false;
+          compatibilityResults.issues.push(`Cooler-CPU: ${check.message}`);
+        }
+      }
+
+      return compatibilityResults;
+    } catch (error) {
+      console.error('Error checking component compatibility:', error);
+      return {
+        valid: false,
+        checks: {},
+        issues: ['Error checking compatibility: ' + error.message]
+      };
+    }
+  },
+
+  /**
    * Generate a response using the RAG model
    * @param {string} prompt - The user's prompt
    * @param {string} sessionId - The session ID
@@ -443,27 +589,147 @@ const ragService = {
   generateResponse: async (prompt, sessionId, userId = null) => {
     try {
       // Get user context and chat history
-      const context = await ragService.getUserContext(userId, sessionId);
+      const userContext = await ragService.getUserContext(userId, sessionId);
       
       // Get relevant knowledge based on the prompt
       const relevantKnowledge = await ragService.getRelevantKnowledge(prompt);
       
-      // Construct a prompt with context and knowledge
+      // Extract component mentions from the prompt
+      const messageContext = extractMessageContext(prompt);
+      const componentData = {};
+
+      // Always query all component types from database
+      const componentTypes = Object.keys(componentModels);
+      for (const componentType of componentTypes) {
+        try {
+          // Get components with filters based on user preferences
+          const filters = {};
+          
+          // Add budget filter if available
+          if (userContext.preferences?.budgetRange?.length > 0) {
+            const maxBudget = Math.max(...userContext.preferences.budgetRange);
+            // Allocate budget proportionally for each component type
+            const budgetAllocation = {
+              cpu: 0.25,      // 25% of budget
+              gpu: 0.35,      // 35% of budget
+              motherboard: 0.15, // 15% of budget
+              ram: 0.10,      // 10% of budget
+              storage: 0.10,  // 10% of budget
+              psu: 0.05       // 5% of budget
+            };
+            filters.price = {
+              $lte: maxBudget * (budgetAllocation[componentType] || 0.1)
+            };
+          }
+
+          // Add brand preferences if available
+          if (userContext.preferences?.preferredBrands?.length > 0) {
+            filters.brand = { $in: userContext.preferences.preferredBrands };
+          }
+
+          // Add use case specific filters
+          if (userContext.preferences?.useCases?.length > 0) {
+            if (userContext.preferences.useCases.includes('gaming')) {
+              // Add gaming-specific filters
+              if (componentType === 'gpu') {
+                filters.memorySize = { $gte: 6 }; // Minimum 6GB VRAM for gaming
+              }
+            }
+            if (userContext.preferences.useCases.includes('productivity')) {
+              // Add productivity-specific filters
+              if (componentType === 'cpu') {
+                filters.cores = { $gte: 6 }; // Minimum 6 cores for productivity
+              }
+            }
+          }
+
+          // Get components with filters
+          const components = await ragService.getComponents(componentType, filters);
+
+          // Sort and limit components
+          componentData[componentType] = components
+            .sort((a, b) => {
+              // Sort by rating first, then by price
+              const ratingDiff = (b.rating || 0) - (a.rating || 0);
+              if (ratingDiff !== 0) return ratingDiff;
+              return a.price - b.price;
+            })
+            .slice(0, 5)
+            .map(comp => ({
+              name: comp.product_name,
+              brand: comp.brand,
+              price: comp.price,
+              rating: comp.rating,
+              specifications: comp.specifications || {},
+              // Add component-specific details
+              ...(componentType === 'cpu' && {
+                cores: comp.cores,
+                threads: comp.threads,
+                socket: comp.socket,
+                MB_chipsets: comp.MB_chipsets
+              }),
+              ...(componentType === 'gpu' && {
+                memorySize: comp.memorySize,
+                memoryType: comp.memoryType
+              }),
+              ...(componentType === 'motherboard' && {
+                socket: comp.MB_socket,
+                chipset: comp.chipset,
+                formFactor: comp.MB_form,
+                supported_memory: comp.supported_memory
+              }),
+              ...(componentType === 'ram' && {
+                capacity: comp.memory_size,
+                speed: comp.speed,
+                type: comp.DDR_generation
+              })
+            }));
+        } catch (error) {
+          console.error(`Error fetching ${componentType} components:`, error);
+        }
+      }
+
+      // Check compatibility between components
+      const compatibilityResults = await ragService.checkComponentCompatibility(componentData);
+      
+      // Construct a prompt with context, knowledge, and actual component data
       const enhancedPrompt = `
-        You are a PC building assistant. Use the following context and knowledge to answer the user's question:
+        You are a PC building assistant. Use the following context, knowledge, and actual component data to answer the user's question:
         
         User Context:
-        ${JSON.stringify(context)}
+        ${JSON.stringify(userContext)}
         
         Relevant Knowledge:
         ${JSON.stringify(relevantKnowledge)}
         
+        Available Components from Database:
+        ${JSON.stringify(componentData)}
+        
+        Component Compatibility Results:
+        ${JSON.stringify(compatibilityResults)}
+        
         User Question: ${prompt}
         
-        Please provide a helpful and accurate response based on the context, knowledge, and your understanding of PC building.
-        If the user is asking about specific components, prioritize information from the context.
-        If the user is asking general questions about PC building, use the relevant knowledge.
-        Always be helpful, accurate, and concise.
+        Please provide a helpful and accurate response based on:
+        1. The user's context and preferences
+        2. The relevant knowledge about PC building
+        3. The actual components available in our database
+        4. The compatibility between components
+        
+        Guidelines:
+        - Always use real components from our database when making recommendations
+        - Include specific prices, ratings, and specifications from our database
+        - Consider the user's preferences (budget, brands, use cases) when recommending components
+        - Ensure recommended components are compatible with each other
+        - For general questions about PC building, use the relevant knowledge
+        - Always be helpful, accurate, and concise
+        - If you're referencing previous context, make it clear in your response
+        - When recommending components, explain why they're good choices based on:
+          * The user's preferences and requirements
+          * The component's specifications and ratings
+          * Price-to-performance ratio
+          * Compatibility with other components
+        - If there are compatibility issues, explain them clearly and suggest alternatives
       `;
 
       // Call the Ollama API
@@ -477,23 +743,13 @@ const ragService = {
       await ragService.updateChatHistory(sessionId, {
         content: prompt,
         role: 'user',
-        timestamp: new Date(),
-        metadata: {
-          componentsMentioned: [], // TODO: Extract from prompt
-          buildTypes: [], // TODO: Extract from prompt
-          preferencesDetected: [] // TODO: Extract from prompt
-        }
+        timestamp: new Date()
       });
 
       await ragService.updateChatHistory(sessionId, {
         content: response.data.response,
         role: 'assistant',
-        timestamp: new Date(),
-        metadata: {
-          componentsMentioned: [], // TODO: Extract from response
-          buildTypes: [], // TODO: Extract from response
-          preferencesDetected: [] // TODO: Extract from response
-        }
+        timestamp: new Date()
       });
 
       return response.data.response;
