@@ -8,18 +8,16 @@ export default function SearchBar({
 }) {
   return (
     <div className="search-bar-container">
-      <>
-        <input type="text" placeholder="Search..." className="search-input" />
-        <button
-          className="close-search-btn"
-          onClick={() => {
-            setIsSearchOpen(false);
-            setMenuOpen(false);
-          }}
-        >
-          ✖
-        </button>
-      </>
+      <input type="text" placeholder="Search..." className="search-input" />
+      <button
+        className="close-search-btn"
+        onClick={() => {
+          setIsSearchOpen(false);
+          setMenuOpen(false);
+        }}
+      >
+        ✖
+      </button>
     </div>
   );
 }

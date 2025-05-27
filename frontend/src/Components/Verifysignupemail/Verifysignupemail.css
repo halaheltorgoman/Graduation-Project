@@ -1,0 +1,131 @@
+/* General styling */
+.verifysignupemail-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 5%;
+    background-image: 
+    linear-gradient(135deg, #302064 0%, transparent 20%),
+    linear-gradient(45deg, #621C74 0%, transparent 15%),
+    linear-gradient(315deg, #44255a 0%, transparent 25%),
+    linear-gradient(225deg, #0000007e 0%, transparent 30%);
+  position: relative;
+}
+
+.verifysignupemail-title-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.verifysignupemail-title {
+  font-size: 65px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+  text-align: center;
+}
+
+.verifysignupemail-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Form styling */
+.verifysignupemail-form {
+  padding: 2rem;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.verifysignupemail-instructions {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: lighter;
+  line-height: 1.5;
+}
+
+/* Input field styling */
+.verifysignupemail-input {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  font-size: 1rem;
+  background-color: transparent !important;
+  color: rgba(255, 255, 255, 0.945);
+  transition: all 0.3s ease;
+}
+
+.verifysignupemail-input:hover {
+  background-color: #00000042;
+  border-color: rgba(17, 62, 199, 0.6);
+  /* color: #ffffffa4; */
+}
+
+.verifysignupemail-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: #00000050 !important;
+}
+
+.verifysignupemail-input::placeholder {
+  color: rgb(255, 255, 255);
+}
+
+/* Button styling */
+.verifysignupemail-button {
+ width: 100%;
+  height: 50px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 25px;
+  background-color: #621C74;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.verifysignupemail-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #7d2496 !important;
+  color: #ffffff !important;
+}
+
+.verifysignupemail-button:focus {
+  outline: none;
+}
+
+/* Link styling */
+.verifysignupemail-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #ffffff;
+}
+
+.verifysignupemail-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.verifysignupemail-link a:hover {
+  text-decoration: underline;
+}
+
+.verifysignupemail-logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  height: 40px;
+  width: auto;
+  z-index: 10;
+}

@@ -1,0 +1,193 @@
+/* General styling */
+.signupverification-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 5%;
+  background-image: 
+    linear-gradient(135deg, #302064 0%, transparent 20%),
+    linear-gradient(45deg, #621C74 0%, transparent 15%),
+    linear-gradient(315deg, #44255a 0%, transparent 25%),
+    linear-gradient(225deg, #0000007e 0%, transparent 30%);
+}
+
+.signupverification-title-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.signupverification-title {
+  font-size: 65px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+  text-align: center;
+}
+
+.signupverification-subtitle {
+  font-size: 22px;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.signupverification-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Form styling */
+.signupverification-form {
+  padding: 2rem;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.signupverification-instructions {
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+  font-weight: lighter;
+  line-height: 1.5;
+}
+
+/* Verification code input styling */
+.signupverification-code-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.signupverification-code-input {
+  width: 45px;
+  height: 60px;
+  text-align: center;
+  font-size: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.signupverification-code-input:hover {
+  background-color: #00000042;
+  border-color: rgba(17, 62, 199, 0.6);
+}
+
+.signupverification-code-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.6);
+  background-color: #00000050;
+}
+
+/* Button styling */
+.signupverification-button {
+  width: 100%;
+  height: 50px;
+  padding: 0.9rem 1.2rem;
+  border-radius: 25px;
+  background-color: #621C74;
+  border: none;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signupverification-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #7d2496 !important;
+  color: #ffffff !important;
+}
+
+.signupverification-button:focus {
+  outline: none;
+}
+
+/* Link styling */
+.signupverification-login-link {
+  text-align: center;
+  margin-top: 1.2rem;
+  color: #ffffff;
+}
+
+.signupverification-login-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.signupverification-login-link a:hover {
+  text-decoration: underline;
+}
+
+/* Resend code styling */
+.signupverification-resend {
+  text-align: center;
+  margin-top: 1.2rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.signupverification-resend-button {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+}
+
+.signupverification-resend-button:hover {
+  text-decoration: underline;
+}
+
+
+/* Message styling */
+.ant-message {
+  font-size: 14px;
+}
+
+.ant-message-success {
+  color: #52c41a !important;
+
+}
+
+.ant-message-error {
+  color: #ff4d4f !important;
+}
+
+.ant-message-info {
+  color: #1890ff !important;
+
+}
+
+.ant-message-notice-content {
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(180, 99, 209, 0.436) !important;
+}
+
+
+.verifyforgotpassword-logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  height: 40px; /* Adjust based on your logo size */
+  width: auto;
+  z-index: 10;
+}
+
+/* If you need to adjust the container to accommodate the logo */
+.verifyforgotpassword-container {
+  position: relative; /* Add this to make logo positioning relative to container */
+  /* ... keep your existing container styles ... */
+}

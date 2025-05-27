@@ -1,0 +1,259 @@
+/* General styling */
+.login-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  padding: 0 5%;
+    background-image: 
+    linear-gradient(135deg, #302064 0%, transparent 20%),
+    linear-gradient(45deg, #621C74 0%, transparent 15%),
+    linear-gradient(315deg, #44255a 0%, transparent 25%),
+    linear-gradient(225deg, #0000007e 0%, transparent 30%);
+}
+
+.login-title-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.login-title {
+  font-size: 65px;
+  font-weight: bold;
+  color: #ffffff;
+  margin: 0;
+  text-align: center;
+}
+
+.login-form-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+/* Form styling */
+.login-form {
+  padding: 2rem;
+  border-radius: 15px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-title {
+  font-size: 30px;
+  color: #ffffff;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: normal;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ffffff;
+  font-weight: lighter;
+}
+
+/* Updated Input Fields - Unified style for both email and password */
+.login-form .ant-input,
+.login-form .ant-input-password {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 25px !important;
+  font-size: 1rem;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.945) !important;
+  transition: all 0.3s ease;
+}
+
+.login-form .ant-input:hover,
+.login-form .ant-input-password:hover {
+  background-color: #00000042 !important;
+  border-color: rgba(17, 62, 199, 0.6) !important;
+  color: #ffffffa4 !important;
+}
+
+.login-form .ant-input:focus,
+.login-form .ant-input-password:focus-within {
+  background-color: #00000050 !important;
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  color: rgb(255, 255, 255) !important;
+}
+
+.login-form .ant-input::placeholder,
+.ant-input-password .ant-input-password-icon {
+  color: white !important;
+}
+
+/* Password field specific styles */
+.login-form .ant-input-password .ant-input {
+  background-color: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+/* .login-form .ant-input-password .ant-input-suffix {
+  padding-right: 1rem !important;
+  color: transparent !important;
+} */
+
+.login-form .ant-input-password:hover .ant-input-suffix {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Error states */
+.login-form .ant-form-item-has-error .ant-input
+.login-form .ant-form-item-has-error .ant-input-password {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+/* Remember me checkbox */
+.remember-me {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.remember-me input {
+  margin-right: 0.5rem;
+}
+
+/* Login button */
+.login-button {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border-radius: 25px !important;
+  background-color: #621C74 !important;
+  border: none !important;
+  color: white !important;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756) !important;
+  background-color: #7d2496 !important;
+  color: #ffffff !important;
+}
+
+.login-button:focus {
+  outline: none;
+}
+
+.login-button.ant-btn {
+  background: transparent;
+  border: none;
+}
+
+/* Sign up link */
+.signup-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #ffffff;
+}
+
+.signup-link a {
+  color: #016ada;
+  text-decoration: none;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+  color: #007bff;
+}
+
+/* Form item adjustments */
+.login-form .ant-form-item {
+  margin-bottom: 1.8rem;
+}
+
+.login-form .ant-form-item-explain-error {
+  color: #ff4d4f;
+  font-size: 0.8rem;
+  font-weight: 350;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Checkbox styling */
+.login-form .ant-checkbox-wrapper {
+  color: #ffffff;
+  font-weight: lighter;
+}
+
+.login-form .ant-checkbox-inner {
+  background-color: rgba(225, 20, 20, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.login-form .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #621C74;
+  border-color: #621C74;
+}
+
+.login-form .ant-form-item {
+  margin-bottom: 10;
+}
+
+.login-form .ant-form-item-control {
+  width: 100%;
+}
+
+/* Form options */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.8rem;
+}
+
+.forgot-password {
+  color: #7d2496;
+  font-size: 0.9rem;
+  transition: color 0.3s;
+}
+
+.forgot-password:hover {
+  color: #c423f1;
+  text-decoration: underline;
+}
+
+.remember-me {
+  margin-bottom: 0 !important;
+}
+
+.remember-me .ant-checkbox-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.verifyforgotpassword-logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  height: 40px; /* Adjust based on your logo size */
+  width: auto;
+  z-index: 10;
+}
+
+/* If you need to adjust the container to accommodate the logo */
+.verifyforgotpassword-container {
+  position: relative; /* Add this to make logo positioning relative to container */
+  /* ... keep your existing container styles ... */
+}

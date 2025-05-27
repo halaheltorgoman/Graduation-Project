@@ -1,0 +1,606 @@
+/* ===== Base Styles ===== */
+.ai-assistant-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+  color: white;
+  font-family: 'Red Rose', sans-serif;
+  position: relative;
+  transition: padding-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Sidebar Styles ===== */
+.with-sidebar {
+  padding-left: 150px; 
+}
+
+.with-sidebar.closed-sidebar {
+  padding-left: 80px; /* Reduced space when closed */
+}
+
+.chat-sidebar {
+  width: 300px;
+  background: rgba(255, 255, 255, 0.092);
+  border-radius: 16px;
+  padding: 20px;
+  position: fixed;
+  left: 20px;
+  top: 100px;
+  bottom: 100px; /* Increased bottom margin to account for footer height */
+  max-height: calc(100vh - 100px); /* Ensure sidebar doesn't exceed viewport minus top/bottom margins */
+  overflow-y: auto;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 10; /* Ensure sidebar stays below footer if footer has higher z-index */
+}
+
+.chat-sidebar.closed {
+  width: 60px;
+  padding: 20px 10px;
+  transform: translateX(-20px);
+}
+
+.chat-sidebar.closed .sidebar-toggle img {
+  width: 18px; /* Increased from 12px */
+  height: 18px; /* Increased from 12px */
+  margin-left: 5px; /* Added some spacing */
+}
+
+.sidebar-header {
+  margin-bottom: 20px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.sidebar-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding-top: 16px; 
+  padding-left: 5px; 
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+  transform: scale(1.1);
+}
+
+.sidebar-toggle img {
+  width: 12px;
+  height: 12px;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-search {
+  position: relative;
+  margin-left: 25px;
+  opacity: 1;
+  transition: all 0.3s ease;
+  font-weight: 350;
+  font-size: 0.9rem;
+}
+
+.chat-sidebar.closed .sidebar-search {
+  opacity: 0;
+  margin-left: 0;
+  pointer-events: none;
+}
+
+.sidebar-search input {
+  width: 235px;
+  padding: 10px 30px 10px 10px;
+  border-radius: 20px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.sidebar-title {
+  margin-top: 25px;
+  color: #BF30D9;
+  font-size: 1.2rem;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.chat-sidebar.closed .sidebar-title {
+  opacity: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: all 0.3s ease;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chat-sidebar.closed .history-list {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.week-section {
+  margin-bottom: 15px;
+}
+
+.week-title {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 350;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.history-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.history-item h5 {
+  margin: 0 0 5px 0;
+  color: white;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-item p {
+  margin: 0 0 5px 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-time {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.75rem;
+  display: block;
+  text-align: right;
+}
+
+/* ===== Main Content Styles ===== */
+.ai-main-content {
+  width: 100%;
+  max-width: 1000px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+}
+
+.ai-header {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  /* margin-bottom: 40px; */
+}
+
+.aiassistant-logo {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+  flex-wrap: wrap;
+}
+
+.ai-greeting h1 {
+  font-size: 2.2rem;
+  font-weight: bolder;
+  background: linear-gradient(to right, #ffffff, #977DFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* margin-bottom: 5px; */
+}
+
+.ai-greeting h2 {
+  font-size: 2.2rem;
+  font-weight: bolder;
+  margin-bottom: 15px;
+  background: linear-gradient(to right, #ffffff, #977DFF);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ai-greeting p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 350;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.prompt-suggestions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.prompt-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.prompt-card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.prompt-card p {
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  font-weight: 350;
+  min-height: 40px;
+}
+
+.prompt-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  margin-top: 20px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.prompt-card:hover .prompt-icon {
+  opacity: 1;
+}
+
+.refresh-prompts {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #BF30D9;
+  margin-bottom: 37px;
+  cursor: pointer;
+  font-weight: 350;
+  transition: all 0.3s ease;
+}
+
+.refresh-prompts:hover {
+  color: #d94bd9;
+}
+
+.refresh-prompts img {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.refresh-prompts:hover img {
+  transform: rotate(180deg);
+}
+
+/* ===== Chat Container Styles ===== */
+.chat-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(10px);
+  transition: all 0.5s ease-out;
+}
+
+.chat-messages {
+  height: 0;
+  overflow-y: auto; /* Changed from hidden to auto */
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transition: 
+    height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.4s ease,
+    margin-bottom 0.3s ease;
+  opacity: 0;
+  flex-grow: 1; /* Added to allow expansion */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+}
+
+.chat-container.active .chat-messages {
+  min-height: 400px;
+  max-height: 60vh; /* Or whatever max you prefer */
+  height: auto;
+  overflow-y: auto; /* Ensure scroll is enabled */
+  margin-bottom: 20px;
+  opacity: 1;
+}
+
+
+.message-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 100%;
+  width: 100%; 
+  flex-shrink: 0; 
+}
+
+.message-container.user {
+  justify-content: flex-end;
+  /* margin-right: 0px; */
+}
+
+.message-container.ai {
+  justify-content: flex-start;
+}
+
+.message {
+  max-width: 70%;
+  padding: 15px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.message.user {
+  border-bottom-right-radius: 0;
+  background-color: #3E2F54;
+  font-weight: 350;
+  margin-left: auto; 
+}
+
+
+.message.ai {
+  border-bottom-left-radius: 0;
+  background-color: #c030d975;
+  font-weight: 400;
+  /* max-width: 80%; Slightly larger max-width */
+}
+/* Ensure message text wraps properly */
+.message p {
+  margin: 0;
+  word-break: break-word; /* Break long words if needed */
+}
+
+.message-ai-logo {
+  width: 30px;
+  height: 30px;
+  margin-top: 5px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 47px;
+}
+
+.chat-input {
+  margin-top: 10px;
+}
+
+.input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.chat-textarea {
+  flex: 1;
+  padding: 15px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  resize: none;
+  overflow-y: hidden;
+  min-height: 50px;
+  max-height: 150px;
+  line-height: 1.5;
+}
+
+.chat-textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chat-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 15px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 400;
+  transition: all 0.2s ease;
+}
+
+.chat-input input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.chat-input input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.chat-input button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: #c030d975;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chat-input button:hover {
+  background: #BF30D9;
+  transform: scale(1.05);
+}
+
+.chat-input button img {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.new-chat-button {
+  background: #8269a9;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  margin: 0 auto 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 350;
+}
+
+.new-chat-button:hover {
+  background: #4d3a6a;
+  transform: translateY(-2px);
+}
+
+/* ===== Scrollbar Styles ===== */
+.chat-sidebar::-webkit-scrollbar,
+.chat-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-sidebar::-webkit-scrollbar-track,
+.chat-messages::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.chat-sidebar::-webkit-scrollbar-thumb,
+.chat-messages::-webkit-scrollbar-thumb {
+  background: #d4c0d7c6;
+  border-radius: 10px;
+
+}
+
+/* ===== Footer Clearance Utility (Add this if you need more control) ===== */
+/* Use this class on your footer element if needed */
+
+/* Alternative approach - if you know your footer height, use this instead */
+
+
+.footer {
+  position: relative;
+  z-index: 20; /* Higher than sidebar z-index */
+}
+
+/* Alternative approach - if you know your footer height, use this instead */
+.chat-sidebar.with-footer {
+  bottom: 120px; /* Adjust this value to match your footer height + some margin */
+}
+
+
+
+/* ===== Responsive Styles ===== */
+@media (max-width: 1200px) {
+  .with-sidebar,
+  .with-sidebar.closed-sidebar {
+    padding-left: 0;
+  }
+  
+  .chat-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    margin-bottom: 20px;
+    transform: none !important;
+    bottom: auto; /* Reset bottom positioning for mobile */
+  }
+  
+  .chat-sidebar.closed {
+    width: 100%;
+    padding: 20px;
+    max-height: 60px;
+    overflow: hidden;
+  }
+  
+  .prompt-suggestions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .prompt-suggestions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .ai-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .message {
+    max-width: 85%;
+  }
+  
+  .chat-container.active .chat-messages {
+    height: 350px;
+  }
+}
+
+@media (max-width: 576px) {
+  .prompt-suggestions {
+    grid-template-columns: 1fr;
+  }
+  
+  .ai-assistant-container {
+    padding: 15px;
+  }
+  
+  .chat-container.active .chat-messages {
+    height: 300px;
+  }
+  
+  .ai-greeting h1,
+  .ai-greeting h2 {
+    font-size: 1.8rem;
+  }
+}
