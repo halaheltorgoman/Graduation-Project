@@ -1,0 +1,145 @@
+.editProfile {
+  background: rgba(83, 87, 99, 0.39);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  max-width: 500px;
+  padding: 2em;
+  border-radius: 12px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  gap: 2em;
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.3s ease-in-out;
+}
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.8em;
+}
+.profile_error {
+  color: red;
+}
+/* Profile Section: Aligning Image & Edit Icon */
+.editProfile_main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1em;
+  width: 100%;
+}
+/* Profile Image Circle */
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #ddd;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Avatar Icon */
+.default-avatar-icon,
+.loading-avatar-icon {
+  font-size: 36px;
+  color: #999;
+}
+
+/* Edit Icon Beside Profile */
+.edit-icon {
+  background: transparent;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+  font-weight: 900;
+  text-decoration: underline;
+}
+.edit-icon button {
+  display: flex;
+  white-space: nowrap;
+  font-weight: 900;
+  border-radius: 12px;
+  padding: 5px 8px;
+  gap: 0.3em;
+}
+.edit-icon button:hover {
+  /* color: white;
+      border: white solid 1px; */
+
+  border-color: rgba(255, 255, 255, 0.6); /* Brighter border */
+}
+
+.user_form {
+  width: 100%;
+  align-self: center;
+}
+.user_form form {
+  display: flex;
+  flex-direction: column;
+  height: 30vh;
+  justify-content: space-between;
+}
+
+.edit_userInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3em;
+  width: 100%;
+}
+
+.editProfile_btns {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.editProfile_btns .change-password {
+  font-size: 12px;
+  border: white solid 1px;
+  padding: 0.7em 2em;
+  border-radius: 1em;
+  cursor: pointer;
+}
+.change-password:hover {
+  background-color: #621c74;
+}
+
+.editProfile_submission_btns {
+  display: flex;
+  width: 50%;
+  justify-content: space-around;
+}
+
+.editProfile_submission_btns button {
+  font-size: 12px;
+  border: white solid 1px;
+  padding: 0.7em 2em;
+  border-radius: 1em;
+  cursor: pointer;
+}
+.editProfile_cancelBtn:hover {
+  background-color: red;
+}
+.editProfile_saveBtn:hover {
+  background-color: #621c74;
+}

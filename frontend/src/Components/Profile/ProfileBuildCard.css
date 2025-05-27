@@ -1,0 +1,82 @@
+.profile_buildCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin: 1em;
+  width: 100%;
+}
+
+.profile_buildCard_main {
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  background-color: rgba(255, 255, 255, 0.0863);
+  padding: 1em 2em;
+  width: 100%;
+  border-radius: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+}
+
+.profile_buildCard_info {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+}
+
+.profile_buildCard_info img {
+  width: 100px; /* Adjust image size for smaller screens */
+  height: auto;
+}
+
+.profile_buildCard_buttons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1em;
+  flex-wrap: wrap; /* Allow buttons to wrap if needed */
+}
+
+.profile_buildCard_Edit,
+.profile_buildCard_Share {
+  padding: 10px 16px;
+  border-radius: 12px;
+  white-space: nowrap;
+  max-width: fit-content;
+  font-size: 14px;
+}
+
+.profile_buildCard_Edit {
+  background-color: white;
+  color: #621c74;
+}
+
+.profile_buildCard_Share {
+  background-color: #621c74;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile_buildCard_main {
+    flex-direction: column;
+    align-items: center;
+    padding: 1em;
+  }
+
+  .profile_buildCard_info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile_buildCard_buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .profile_buildCard_Edit,
+  .profile_buildCard_Share {
+    width: 100%; /* Make buttons full width */
+    text-align: center;
+  }
+}

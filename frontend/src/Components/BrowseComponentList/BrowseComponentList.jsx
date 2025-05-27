@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
 import { MdArrowOutward } from "react-icons/md";
 import ComponentShimmer from "../ComponentShimmer/ComponentShimmer";
+import TransparentImage from "../TransparentImage/TransparentImage";
 
 const BrowseComponentList = ({
   components,
@@ -53,10 +54,10 @@ const BrowseComponentList = ({
                 </span>
               </div>
               <div className="componentCard_secondSec">
-                <img
-                  className="component_image"
+                <TransparentImage
                   src={component.image_source}
-                  alt={component.title}
+                  alt={component.name}
+                  className="component_image"
                 />
                 <p className="component_title">{component.title}</p>
                 <p className="component_price">

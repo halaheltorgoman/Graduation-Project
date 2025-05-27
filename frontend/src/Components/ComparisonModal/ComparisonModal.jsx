@@ -2,6 +2,7 @@ import React from "react";
 import "./ComparisonModal.css";
 import { useParams } from "react-router-dom";
 import { FaTimes } from "react-icons/fa";
+import TransparentImage from "../TransparentImage/TransparentImage";
 
 const specTemplates = {
   cpu: [
@@ -162,7 +163,7 @@ const ComparisonModal = ({ products, onClose }) => {
               <div className="compare_product-header">
                 <h3>{products[0].title || products[0].name}</h3>
                 <div className="compare_image_wrapper">
-                  <img
+                  <TransparentImage
                     src={products[0].image_source || products[0].imageUrl}
                     alt={products[0].title || products[0].name}
                     className="compare_product-image"
@@ -181,7 +182,7 @@ const ComparisonModal = ({ products, onClose }) => {
               <div className="compare_product-header">
                 <h3>{products[1].title || products[1].name}</h3>
                 <div className="compare_image_wrapper">
-                  <img
+                  <TransparentImage
                     src={products[1].image_source || products[1].imageUrl}
                     alt={products[1].title || products[1].name}
                     className="compare_product-image"

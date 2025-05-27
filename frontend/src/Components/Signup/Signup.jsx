@@ -1,139 +1,229 @@
-import React from "react";
-import { Button, Checkbox, Form, Input, message } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
-import './Signup.css';
+import { Button, Checkbox, Input, message, Alert } from "antd";
+import { Link, useNavigate } from "react-router-dom";
+import "./Signup.css";
 import logo from "../../assets/images/logo.svg";
+import React, { useState } from "react";
+import axios from "axios";
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [apiError, setApiError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [errors, setErrors] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-  const onFinish = (values) => {
-    console.log('Success:', values);
-    message.success('Account created successfully! Redirecting...');
-    setTimeout(() => {
-      navigate('/verify-signup-email');
-    }, 1500);
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+
+    switch (name) {
+      case "username":
+        if (!value) newErrors.username = "Please input your username!";
+        else if (value.length < 3)
+          newErrors.username = "Username must be at least 3 characters";
+        else newErrors.username = "";
+        break;
+
+      case "email":
+        if (!value) newErrors.email = "Please input your email!";
+        else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+          newErrors.email = "Please enter a valid email address";
+        else newErrors.email = "";
+        break;
+
+      case "password":
+        if (!value) newErrors.password = "Please input your password!";
+        else if (value.length < 8)
+          newErrors.password = "Password must be at least 8 characters";
+        else newErrors.password = "";
+        // Trigger confirm password validation when password changes
+        if (formData.confirmPassword) {
+          validateField("confirmPassword", formData.confirmPassword);
+        }
+        break;
+
+      case "confirmPassword":
+        if (!value) newErrors.confirmPassword = "Please confirm your password!";
+        else if (value !== formData.password)
+          newErrors.confirmPassword = "The two passwords do not match!";
+        else newErrors.confirmPassword = "";
+        break;
+
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return newErrors[name] === "";
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
-    message.error('Signup failed. Please check your information.');
+  const handleChange = (name, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    validateField(name, value);
+  };
+
+  const onFinish = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post(
+        `http://localhost:4000/api/auth/signup`,
+        formData,
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        message.success("Account created successfully! Redirecting...");
+        navigate("/signup-verification", {
+          state: {
+            userId: response.data.userId,
+            userEmail: response.data.userEmail,
+          },
+        });
+      }
+    } catch (error) {
+      setApiError(error?.response?.data?.message);
+      message.error(
+        error?.response?.data?.message ||
+          "Signup failed. Please check your information."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    let isValid = true;
+
+    // Validate all fields
+    Object.keys(formData).forEach((key) => {
+      if (!validateField(key, formData[key])) {
+        isValid = false;
+      }
+    });
+
+    if (isValid) {
+      await onFinish();
+    }
   };
 
   return (
     <div className="signup-container">
-             <Link to="/">
-        <img 
-          src={logo} 
-          alt="PC Smith Logo" 
+      <Link to="/">
+        <img
+          src={logo}
+          alt="PC Smith Logo"
           className="verifyforgotpassword-logo"
         />
       </Link>
       <div className="signup-title-container">
         <h1 className="signup-title">Create Account</h1>
       </div>
-      
+
       <div className="signup-form-container">
-        <Form
-          name="signup"
-          className="signup-form"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
-          autoComplete="off"
-        >
-          <h2 className="form-title">Sign Up</h2>
-          
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please input your username!' }]}
-          >
-            <Input 
+        {apiError && (
+          <Alert
+            message={apiError}
+            type="error"
+            showIcon
+            style={{ marginBottom: 24 }}
+          />
+        )}
+        <form onSubmit={handleSubmit} className="signup-form">
+          {/* Username Field */}
+          <div className="ant-form-item">
+            <Input
               className="form-input"
-              placeholder="Username" 
+              placeholder="Username"
+              value={formData.username}
+              onChange={(e) => handleChange("username", e.target.value)}
+              onBlur={(e) => validateField("username", e.target.value)}
             />
-          </Form.Item>
+            {errors.username && (
+              <div className="ant-form-item-explain-error">
+                {errors.username}
+              </div>
+            )}
+          </div>
 
-          <Form.Item
-            name="email"
-            rules={[{ 
-              required: true, 
-              type: 'email',
-              message: 'Please input a valid email!' 
-            }]}
-          >
-            <Input 
+          {/* Email Field */}
+          <div className="ant-form-item">
+            <Input
               className="form-input"
-              placeholder="Email Address" 
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={(e) => handleChange("email", e.target.value)}
+              onBlur={(e) => validateField("email", e.target.value)}
             />
-          </Form.Item>
+            {errors.email && (
+              <div className="ant-form-item-explain-error">{errors.email}</div>
+            )}
+          </div>
 
-          <Form.Item
-            name="password"
-            rules={[{ 
-              required: true, 
-              message: 'Please input your password!',
-              pattern: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/,
-              message: 'Password must be 8+ chars with letters and numbers!'
-            }]}
-          >
-            <Input.Password 
+          {/* Password Field */}
+          <div className="ant-form-item">
+            <Input.Password
               className="form-input"
               placeholder="Password"
+              value={formData.password}
+              onChange={(e) => handleChange("password", e.target.value)}
+              onBlur={(e) => validateField("password", e.target.value)}
             />
-          </Form.Item>
+            {errors.password && (
+              <div className="ant-form-item-explain-error">
+                {errors.password}
+              </div>
+            )}
+          </div>
 
-          <Form.Item
-            name="confirmPassword"
-            dependencies={['password']}
-            rules={[
-              { 
-                required: true, 
-                message: 'Please confirm your password!' 
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(new Error('The two passwords do not match!'));
-                },
-              }),
-            ]}
-          >
-            <Input.Password 
+          {/* Confirm Password Field */}
+          <div className="ant-form-item">
+            <Input.Password
               className="form-input"
               placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              onBlur={(e) => validateField("confirmPassword", e.target.value)}
             />
-          </Form.Item>
+            {errors.confirmPassword && (
+              <div className="ant-form-item-explain-error">
+                {errors.confirmPassword}
+              </div>
+            )}
+          </div>
 
           <p className="password-requirement-text">
-            Password must be a combination of minimum 8 letters and numbers.
+            Password must be at least 8 characters.
           </p>
 
           <div className="form-options">
-            <Form.Item 
-              name="remember" 
-              valuePropName="checked"
-              className="remember-me"
-            >
-              <Checkbox>Remember me</Checkbox>
-            </Form.Item>
+            <Checkbox>Remember me</Checkbox>
           </div>
 
-          <Form.Item>
-            <Button 
-              htmlType="submit" 
-              className="signup-button"
-            >
-              Sign Up
-            </Button>
-          </Form.Item>
-          
+          <Button
+            htmlType="submit"
+            className="signup-button"
+            loading={isLoading}
+          >
+            Sign Up
+          </Button>
+
           <p className="login-link">
             Already have an account? <Link to="/login">Sign In</Link>
           </p>
-        </Form>
+        </form>
       </div>
     </div>
   );

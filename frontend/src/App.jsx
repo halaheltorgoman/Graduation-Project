@@ -21,9 +21,8 @@ import VerifyForgotPassword from "./Components/VerifyForgotPassword/VerifyForgot
 import ComponentDetails from "./Components/ComponentDetails/ComponentDetails";
 import Verifysignupemail from "./Components/Verifysignupemail/Verifysignupemail";
 import Signupverification from "./Components/Signupverification/Signupverification";
-
-import { AnimatePresence } from 'framer-motion';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { ContextProvider } from "./Context/ContextProvider";
+import { Routes, Route, useLocation } from "react-router-dom";
 
 const router = createBrowserRouter([
   {
@@ -56,19 +55,19 @@ const router = createBrowserRouter([
   { path: "login", element: <Login /> },
   { path: "signup", element: <Signup /> },
   { path: "forgot-password", element: <Forgotpassword /> },
-  {path: "verify-forgot-password", element: <VerifyForgotPassword />},
-  {path: "home", element: <Home />},
-  {path: "signup-verification", element: <Signupverification />},
-  {path: "verify-signup-email", element: <Verifysignupemail />},
+  { path: "verify-forgot-password", element: <VerifyForgotPassword /> },
+  { path: "home", element: <Home /> },
+  { path: "signup-verification", element: <Signupverification /> },
+  { path: "verify-signup-email", element: <Verifysignupemail /> },
 ]);
 
 function App() {
   return (
     <div>
-      <RouterProvider router={router} />
+      <ContextProvider>
+        <RouterProvider router={router} />
+      </ContextProvider>
     </div>
-
-    
   );
 }
 

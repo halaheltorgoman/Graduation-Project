@@ -1,0 +1,94 @@
+/* BuildCarousel.css */
+.custom-carousel-container {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 30px auto;
+  position: relative;
+  padding: 20px 40px; /* Creates space for arrows on sides */
+  margin: 10px;
+}
+
+.custom-carousel-image {
+  width: 100%;
+  height: 180px;
+
+  border-radius: 14px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Arrow positioning outside */
+.ant-carousel .slick-prev {
+  left: -40px; /* Position left arrow outside container */
+}
+
+.ant-carousel .slick-next {
+  right: -40px; /* Position right arrow outside container */
+}
+
+/* Arrow styling */
+.ant-carousel .slick-arrow {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  z-index: 2;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.ant-carousel .slick-arrow:before {
+  color: #a259ff !important;
+  font-size: 18px;
+  opacity: 1;
+}
+
+.ant-carousel .slick-arrow:hover:before {
+  color: white !important;
+}
+
+/* Dots positioning below image */
+.ant-carousel .slick-dots {
+  position: absolute;
+  bottom: -20px;
+  width: 100%;
+  display: flex !important;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ant-carousel .slick-dots li {
+  margin: 0;
+  width: auto !important; /* Override Ant Design's width */
+  height: auto !important; /* Override Ant Design's height */
+  /* Disable Ant Design's default progress effect */
+}
+
+.ant-carousel .slick-dots li button {
+  width: 8px;
+  height: 8px;
+  border-radius: 10%;
+  border-radius: 50% !important; /* Force circle shape */
+  background: white !important; /* Set your desired color */
+  opacity: 0.6;
+  transition: all 0.3s ease;
+  /* Remove Ant Design's pseudo-element filling effect */
+}
+
+.ant-carousel .slick-dots li.slick-active button {
+  opacity: 1;
+  width: 8px !important; /* Keep it circular even when active */
+  background: #bf30d9 !important; /* Set your desired color */
+  /* Ensure no partial filling effect remains */
+  transform: none !important;
+}
+/* Override Ant Design's ::after pseudo-element */
+.ant-carousel .slick-dots li::after {
+  display: none !important;
+}
