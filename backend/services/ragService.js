@@ -58,7 +58,6 @@ const initializeVectorStore = async () => {
   try {
     const documents = [];
 
-    // Add concepts
     for (const concept of pcBuildingKnowledge.concepts) {
       const conceptText = `${concept.title}\n${concept.content}`;
       const chunkedDocs = await createChunkedDocuments(conceptText, {
@@ -69,7 +68,6 @@ const initializeVectorStore = async () => {
       documents.push(...chunkedDocs);
     }
 
-    // Add component knowledge
     for (const [componentType, knowledgeList] of Object.entries(pcBuildingKnowledge.components)) {
       for (const knowledge of knowledgeList) {
         const componentText = `${knowledge.title}\n${knowledge.content}`;
@@ -83,7 +81,6 @@ const initializeVectorStore = async () => {
       }
     }
 
-    // Add build types
     for (const buildType of pcBuildingKnowledge.buildTypes) {
       const buildTypeText = `${buildType.title}\n${buildType.content}`;
       const chunkedDocs = await createChunkedDocuments(buildTypeText, {
@@ -96,7 +93,6 @@ const initializeVectorStore = async () => {
 
     console.log(`Total documents to be added to vector store: ${documents.length}`);
 
-    // First try to load existing collection
     try {
       vectorStore = await Chroma.load({
         collectionName: "pc_building_knowledge",
@@ -113,14 +109,12 @@ const initializeVectorStore = async () => {
         throw new Error('Empty collection, reinitializing...');
       }
     } catch (error) {
-      // Create new persistent vector store with ChromaDB
       vectorStore = await Chroma.fromDocuments(documents, embeddings, {
         collectionName: "pc_building_knowledge",
         url: "http://localhost:8001",
         apiVersion: "v2"
       });
 
-      // Verify the collection exists and get document count
       const collection = await vectorStore.ensureCollection();
       const count = await collection.count();
       console.log(`Vector store initialized with ${count} documents`);
@@ -136,7 +130,6 @@ const initializeVectorStore = async () => {
 // Initialize vector store on startup
 initializeVectorStore().catch(console.error);
 
-// Component models mapping
 const componentModels = {
   cpu: CPU,
   gpu: GPU,
@@ -160,7 +153,6 @@ const extractMessageContext = (message) => {
     preferencesDetected: []
   };
 
-  // Extract component mentions
   const componentTypes = Object.keys(componentModels);
   componentTypes.forEach(type => {
     const regex = new RegExp(`\\b${type}\\b`, 'gi');
@@ -169,14 +161,12 @@ const extractMessageContext = (message) => {
     }
   });
 
-  // Extract build types
   pcBuildingKnowledge.buildTypes.forEach(buildType => {
     if (message.toLowerCase().includes(buildType.title.toLowerCase())) {
       context.buildTypes.push(buildType.id);
     }
   });
 
-  // Extract preferences
   const budgetRegex = /\$(\d+)/g;
   const budgetMatches = [...message.matchAll(budgetRegex)];
   if (budgetMatches.length > 0) {
@@ -184,7 +174,6 @@ const extractMessageContext = (message) => {
     context.preferencesDetected.push(`budget:${maxBudget}`);
   }
 
-  // Extract brand preferences
   const brands = ['NVIDIA', 'AMD', 'Intel', 'ASUS', 'MSI', 'Gigabyte', 'Corsair', 'Samsung', 'Western Digital'];
   brands.forEach(brand => {
     if (message.toLowerCase().includes(brand.toLowerCase())) {
@@ -192,7 +181,6 @@ const extractMessageContext = (message) => {
     }
   });
 
-  // Extract use cases
   const useCases = ['gaming', 'productivity', 'streaming', 'editing', 'workstation'];
   useCases.forEach(useCase => {
     if (message.toLowerCase().includes(useCase.toLowerCase())) {
@@ -259,25 +247,20 @@ const ragService = {
     try {
       const chatHistory = await ragService.getChatHistory(sessionId);
       
-      // Extract context from the message
       const messageContext = extractMessageContext(message.content);
       
-      // Update message with extracted context
       message.metadata = {
         ...message.metadata,
         ...messageContext
       };
 
-      // Check message limit (e.g., 100 messages)
+      // Check message limit
       if (chatHistory.messages.length >= 100) {
-        // Remove oldest message
         chatHistory.messages.shift();
       }
 
-      // Add new message
       chatHistory.messages.push(message);
       
-      // Update preferences based on detected preferences
       messageContext.preferencesDetected.forEach(pref => {
         const [type, value] = pref.split(':');
         switch (type) {
@@ -406,13 +389,12 @@ const ragService = {
       };
 
       // Organize results by type and merge chunks
-      const processedDocs = new Map(); // To track processed documents
+      const processedDocs = new Map();
 
       results.forEach(result => {
         const { type, componentType, id, title, chunkIndex, totalChunks } = result.metadata;
         const content = result.pageContent;
 
-        // Skip if we've already processed this document
         if (processedDocs.has(id)) {
           return;
         }
@@ -520,10 +502,9 @@ const ragService = {
     };
 
     try {
-      // CPU and Motherboard compatibility
       if (components.cpu && components.motherboard) {
-        const cpu = components.cpu[0]; // Get the first CPU
-        const motherboard = components.motherboard[0]; // Get the first motherboard
+        const cpu = components.cpu[0];
+        const motherboard = components.motherboard[0];
         const check = buildService.checkCpuMotherboard(cpu, motherboard);
         compatibilityResults.checks.cpu_motherboard = check;
         if (!check.valid) {
@@ -532,7 +513,6 @@ const ragService = {
         }
       }
 
-      // Motherboard and Case compatibility
       if (components.motherboard && components.case) {
         const motherboard = components.motherboard[0];
         const pcCase = components.case[0];
@@ -544,7 +524,6 @@ const ragService = {
         }
       }
 
-      // Memory and Motherboard compatibility
       if (components.ram && components.motherboard) {
         const memory = components.ram[0];
         const motherboard = components.motherboard[0];
@@ -556,7 +535,6 @@ const ragService = {
         }
       }
 
-      // CPU and Cooler compatibility
       if (components.cpu && components.cooler) {
         const cpu = components.cpu[0];
         const cooler = components.cooler[0];
@@ -588,68 +566,54 @@ const ragService = {
    */
   generateResponse: async (prompt, sessionId, userId = null) => {
     try {
-      // Get user context and chat history
       const userContext = await ragService.getUserContext(userId, sessionId);
       
-      // Get relevant knowledge based on the prompt
       const relevantKnowledge = await ragService.getRelevantKnowledge(prompt);
       
-      // Extract component mentions from the prompt
       const messageContext = extractMessageContext(prompt);
       const componentData = {};
 
-      // Always query all component types from database
       const componentTypes = Object.keys(componentModels);
       for (const componentType of componentTypes) {
         try {
-          // Get components with filters based on user preferences
           const filters = {};
           
-          // Add budget filter if available
           if (userContext.preferences?.budgetRange?.length > 0) {
             const maxBudget = Math.max(...userContext.preferences.budgetRange);
-            // Allocate budget proportionally for each component type
             const budgetAllocation = {
-              cpu: 0.25,      // 25% of budget
-              gpu: 0.35,      // 35% of budget
-              motherboard: 0.15, // 15% of budget
-              ram: 0.10,      // 10% of budget
-              storage: 0.10,  // 10% of budget
-              psu: 0.05       // 5% of budget
+              cpu: 0.25,
+              gpu: 0.35,
+              motherboard: 0.15,
+              ram: 0.10,
+              storage: 0.10,
+              psu: 0.05
             };
             filters.price = {
               $lte: maxBudget * (budgetAllocation[componentType] || 0.1)
             };
           }
 
-          // Add brand preferences if available
           if (userContext.preferences?.preferredBrands?.length > 0) {
             filters.brand = { $in: userContext.preferences.preferredBrands };
           }
 
-          // Add use case specific filters
           if (userContext.preferences?.useCases?.length > 0) {
             if (userContext.preferences.useCases.includes('gaming')) {
-              // Add gaming-specific filters
               if (componentType === 'gpu') {
-                filters.memorySize = { $gte: 6 }; // Minimum 6GB VRAM for gaming
+                filters.memorySize = { $gte: 6 };
               }
             }
             if (userContext.preferences.useCases.includes('productivity')) {
-              // Add productivity-specific filters
               if (componentType === 'cpu') {
-                filters.cores = { $gte: 6 }; // Minimum 6 cores for productivity
+                filters.cores = { $gte: 6 };
               }
             }
           }
 
-          // Get components with filters
           const components = await ragService.getComponents(componentType, filters);
 
-          // Sort and limit components
           componentData[componentType] = components
             .sort((a, b) => {
-              // Sort by rating first, then by price
               const ratingDiff = (b.rating || 0) - (a.rating || 0);
               if (ratingDiff !== 0) return ratingDiff;
               return a.price - b.price;
@@ -661,7 +625,6 @@ const ragService = {
               price: comp.price,
               rating: comp.rating,
               specifications: comp.specifications || {},
-              // Add component-specific details
               ...(componentType === 'cpu' && {
                 cores: comp.cores,
                 threads: comp.threads,
@@ -689,7 +652,6 @@ const ragService = {
         }
       }
 
-      // Check compatibility between components
       const compatibilityResults = await ragService.checkComponentCompatibility(componentData);
       
       // Construct a prompt with context, knowledge, and actual component data
@@ -732,14 +694,12 @@ const ragService = {
         - If there are compatibility issues, explain them clearly and suggest alternatives
       `;
 
-      // Call the Ollama API
       const response = await axios.post(`${process.env.OLLAMA_URL}/api/generate`, {
         model: "llama3.2:latest",
         prompt: enhancedPrompt,
         stream: false,
       });
 
-      // Update chat history with the new message
       await ragService.updateChatHistory(sessionId, {
         content: prompt,
         role: 'user',
@@ -766,7 +726,6 @@ const ragService = {
    */
   generateBuild: async (requirements) => {
     try {
-      // Extract requirements
       const { budget, purpose, performance, preferences = [] } = requirements;
       
       // Find relevant build type based on requirements
@@ -792,10 +751,6 @@ const ragService = {
       if (!relevantBuildType) {
         relevantBuildType = pcBuildingKnowledge.buildTypes[0]; // Default to budget gaming
       }
-      
-      // Get components based on the build type
-      // This is a simplified version - in a real implementation, you would query the database
-      // for actual components that match the recommendations
       
       return {
         buildType: relevantBuildType.title,
