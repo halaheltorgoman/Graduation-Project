@@ -1,0 +1,58 @@
+.custom-textarea {
+  color: white;
+  background-color: transparent !important;
+  transition: all 0.2s ease-in-out;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width: 100%;
+  border: none; /* Remove all borders */
+  border-bottom: 2px solid rgba(255, 255, 255, 0.5); /* Add bottom border only */
+  border-radius: 0; /* Ensure no rounded corners */
+  padding-right: 30px !important;
+  font-weight: 900; /* Reserves space for the icon */
+  cursor: default; /* Default cursor */
+}
+
+/* Placeholder */
+.custom-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Ensure background remains transparent when clicked */
+.custom-textarea:focus,
+.custom-textarea:focus-within {
+  background-color: transparent !important;
+  color: white !important;
+  border-bottom: 2px solid white; /* Highlight border when focused */
+}
+
+/* Center text when editing is finished */
+.centered {
+  text-align: center !important;
+}
+
+/* Show text cursor only when editing */
+.editing {
+  cursor: text !important;
+}
+
+/* Prevent text from going under the icon */
+.icon-container {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  color: white;
+  border-radius: 4px;
+}
+.custom-textarea::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari, and Edge */
+}
+
+.custom-textarea {
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for Internet Explorer/Edge */
+}

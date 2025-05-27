@@ -19,6 +19,7 @@
   "homepage": "https://github.com/halaheltorgoman/Graduation-Project#readme",
   "description": "",
   "dependencies": {
+    "framer-motion": "^12.11.0",
     "graduation-project": "file:"
   }
 }

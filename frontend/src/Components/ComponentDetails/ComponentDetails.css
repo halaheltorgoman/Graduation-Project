@@ -23,11 +23,14 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 1rem;
-  transition: background 0.2s ease;
+  /* transition: background 0.2s ease; */
+  transition: all 0.3s ease;
+  
 }
 
 .back-button:hover {
   background: var(--background-tertiary);
+  transform: translateY(-10%) scale(1.03);
 }
 
 .loading-container,
@@ -41,10 +44,10 @@
 .component_details_container {
   display: flex;
   flex-wrap: wrap;
-  gap: 30px;
+  gap: 50px;
   border-radius: 15px;
   padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(149, 93, 209, 0.5);
   color: var(--text-primary);
 }
 .component_details_primary {
@@ -63,7 +66,7 @@
 .component_details_favorite .favorite-icon {
   font-size: 1.5rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease-in-out;
   color: var(--text-primary);
 }
 
@@ -78,7 +81,7 @@
 .component_details_image img {
   max-width: 100%;
   max-height: 700px;
-  width: 500px;
+  width: 300px;
   object-fit: contain;
   border-radius: 10px;
   border: 1px solid #ddd;
@@ -93,7 +96,8 @@
 .component_details_description h3,
 .component_details_specs h3 {
   margin-bottom: 0.5rem;
-  font-size: 1.4rem;
+  font-size: 1.15rem;
+  font-weight: 350;
 
   color: var(--text-primary);
 }
@@ -117,7 +121,8 @@
   font-size: 24px;
   margin-top: 1.5rem;
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1.8rem;
   word-break: break-word;
 }
 .component_details_price_rate {
@@ -129,6 +134,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 24px;
+  font-weight: 350;
 }
 
 .component_details_rating .rating_star {
@@ -136,8 +142,8 @@
 }
 
 .component_details_price {
-  font-size: 30px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 350;
   color: var(--text-primary);
 }
 
@@ -147,17 +153,17 @@
   color: var(--text-secondary);
 }
 .component_details_specs {
-  margin-top: 5rem;
+  margin-top: 3.6rem;
 }
 
 .component_details-list {
-  list-style: none;
+  /* list-style-type: style bullet; */
   padding-left: 1.5rem;
   margin: 0;
 }
 .component_details_spec-item {
   padding: 10px 0;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 0px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   font-size: 1.1rem;
@@ -166,7 +172,7 @@
 .component_details_spec-label {
   min-width: 150px;
   display: inline-block;
-  color: #bf30d9;
+  color: #ffffff;
   font-weight: 600;
   margin-right: 1rem;
 }
@@ -174,6 +180,7 @@
 .component_details_spec-value {
   color: var(--text-primary);
   flex: 1;
+  font-weight: 350;
   word-break: break-word;
 }
 .component_details_no-specs-message {
@@ -189,27 +196,27 @@
   margin-bottom: 1em;
 }
 .component_details_share-button {
-  width: 100%;
+  width: 500px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: 24px;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
-  background: #bf30d9;
+  background: #621C74;
   color: var(--text-primary);
 }
 
 .component_details_share-button:hover {
-  background: #88219a;
+  background: #802597;
 }
 .component_details_button-icon {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 /* Share Modal */
 .share-modal-overlay {
@@ -226,7 +233,7 @@
 }
 
 .share-modal-content {
-  background: rgba(44, 43, 44, 0.9);
+  background: rgba(33, 23, 38, 0.937);
   padding: 25px 30px;
   border-radius: 12px;
   width: 90%;

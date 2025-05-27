@@ -1,0 +1,111 @@
+.profile_main {
+  display: flex;
+  flex-direction: column;
+  margin: 1em 4em;
+}
+.profile_primary {
+  /* background-color: blue; */
+  margin-top: 1em;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1em;
+}
+.profile_image {
+  border-radius: 100%;
+  width: 100px; /* Adjust size */
+  height: 100px; /* Make sure width and height are equal */
+  background-color: #621c74; /* Change color as needed */
+  border-radius: 50%; /* Makes it a circle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: Arial, sans-serif;
+
+  overflow: hidden;
+}
+.profile_image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profie_user_info {
+  display: inline-flex;
+  flex-direction: row;
+  gap: 2em;
+  align-items: center;
+}
+
+.profile_username {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal; /* Allows wrapping */
+}
+.profile_followerCount {
+  /* background-color: burlywood; */
+  flex: 1;
+  white-space: nowrap;
+  justify-content: flex-end;
+  align-self: center;
+
+  font-size: smaller;
+}
+.profile_userBio {
+  font-size: small;
+  color: #7d7e80;
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal; /* Allows wrapping */
+}
+.profile_editbtn button {
+  background-color: #621c74;
+  padding: 10px 16px;
+  border-radius: 15px;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 400;
+}
+.profile_editbtn button:hover {
+  background-color: #41124d;
+}
+.profile_folders {
+  display: flex;
+  flex-direction: column;
+}
+.profile_newFolder {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4em;
+  color: white;
+}
+.profile_newFolder button:hover {
+  color: #621c74;
+}
+.profile_newFolder button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.1em;
+}
+
+.profile_folderContent {
+  display: flex;
+  flex-direction: column;
+
+  /* Align items properly */
+  /* Ensure it takes full width */
+}
+
+.profile_deleteFolderBtn {
+  border: white solid 1px;
+  padding: 5px 8px;
+  border-radius: 1em;
+  white-space: nowrap; /* Prevents text from wrapping */
+  align-self: flex-end;
+}
+.profile_deleteFolderBtn:hover {
+  border: red solid 1px;
+  color: red;
+}
