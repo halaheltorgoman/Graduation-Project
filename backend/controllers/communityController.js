@@ -1,157 +1,349 @@
-
-const User = require('../models/User');
+const CommunityPost = require('../models/CommunityPost');
 const Build = require('../models/Build');
-const CPU = require('../models/Components/CPU');
-const GPU = require('../models/Components/GPU');
-const Motherboard = require('../models/Components/MotherBoard');
-const Case = require('../models/Components/Case');
-const Memory = require('../models/Components/Memory');
-const Storage = require('../models/Components/Storage');
-//const PSU = require('../models/Components/PSU');
-const Cooler = require('../models/Components/Cooler');
-
-
-const componentModels = {
-  cpu: CPU,
-  gpu: GPU,
-  motherboard: Motherboard,
-  memory: Memory,
-  case:Case,
-  storage: Storage,
-  //psu: PSU,
-  cooler: Cooler,
-
-};
-function getComponentModel(type) {
-  const model = componentModels[type.toLowerCase()];
-  if (!model) throw new Error('Invalid component type');
-  return model;
-}
-
+const User = require('../models/User');
 
 exports.getSharedBuilds = async (req, res) => {
   try {
-    const builds = await Build.find({ isShared: true })
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const posts = await CommunityPost.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .populate('user', 'username')
-      .sort({ createdAt: -1 });
-
-    const populatedBuilds = await Promise.all(builds.map(async (build) => {
-      const components = await Promise.all(build.components.map(async (comp) => {
-        const Model = getComponentModel(comp.type);
-        const component = await Model.findById(comp.componentId, 'title price imageUrl');
-        return { ...comp.toObject(), details: component };
-      }));
-      return { ...build.toObject(), components };
-    }));
-
-    res.json(populatedBuilds);
-  } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch builds', error: err.message });
-  }
-};
-
-
-exports.shareBuild = async (req, res) => {
-  try {
-    const build = await Build.findById(req.params.id);
-    
-    if (!build) return res.status(404).json({ message: 'Build not found' });
-    if (build.user.toString() !== req.userId) {
-      return res.status(403).json({ message: 'Not authorized to share this build' });
-    }
-
-    build.isShared = !build.isShared;
-    await build.save();
-    
-    res.json({ message: `Build ${build.isShared ? 'shared' : 'unshared'}` });
-  } catch (err) {
-    res.status(500).json({ message: 'Sharing failed', error: err.message });
-  }
-};
-
-exports.getBuildDetails = async (req, res) => {
-  try {
-    const build = await Build.findById(req.params.id)
-      .populate('user', 'username')
+      .populate({
+        path: 'build',
+        populate: {
+          path: 'components.cpu components.gpu components.motherboard'
+        }
+      })
+      .populate('ratings.user', 'username')
       .populate('comments.user', 'username');
 
-    if (!build || !build.isShared) {
-      return res.status(404).json({ message: 'Build not found or not shared' });
-    }
+    const total = await CommunityPost.countDocuments();
 
-    // Populate components dynamically
-    const components = await Promise.all(build.components.map(async (comp) => {
-      const Model = getComponentModel(comp.type);
-      const component = await Model.findById(comp.componentId, 'name price imageUrl');
-      return { ...comp.toObject(), details: component };
-    }));
-
-    res.json({ ...build.toObject(), components });
+    res.json({
+      success: true,
+      posts,
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalPosts: total
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to fetch build details', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch community posts',
+      error: err.message
+    });
   }
 };
 
 exports.addComment = async (req, res) => {
   try {
-    const build = await Build.findById(req.params.id);
-    if (!build || !build.isShared) {
-      return res.status(404).json({ message: 'Build not found or not shared' });
+    const { postId } = req.params;
+    const { text } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    build.comments.push({
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    post.comments.push({
       user: req.userId,
-      text: req.body.text
+      text,
+      createdAt: Date.now
     });
 
-    await build.save();
-    res.json(build.comments);
+    await post.save();
+    const updatedPost = await CommunityPost.findById(postId)
+      .populate({
+        path: 'comments.user',
+        select: 'username avatar' // Include any other user fields you want
+      });
+      const newComment = updatedPost.comments.find(comment => 
+        comment._id.toString() === post.comments[post.comments.length - 1]._id.toString()
+      );
+  
+
+    res.json({
+      success: true,
+      message: 'Comment added successfully',
+      comment: {
+        _id: newComment._id,
+        text: newComment.text,
+        createdAt: newComment.createdAt,
+        user: {
+          _id: newComment.user._id,
+          username: newComment.user.username,
+          avatar: newComment.user.avatar
+        }
+      }
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Comment failed', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add comment',
+      error: err.message
+    });
   }
 };
-exports.addRating = async (req, res) => {
+
+exports.getComments = async (req, res) => {
   try {
-    const build = await Build.findById(req.params.id);
-    if (!build || !build.isShared) {
-      return res.status(404).json({ message: 'Build not found or not shared' });
+    const { postId } = req.params;
+    const { 
+      page = 1,    
+      limit = 10,    
+      sort = '-createdAt' 
+    } = req.query;
+
+    const postExists = await CommunityPost.exists({ _id: postId });
+    if (!postExists) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Post not found' 
+      });
     }
 
-    const existingRating = build.ratings.find(r => r.user.toString() === req.userId);
+    const post = await CommunityPost.findById(postId)
+      .populate({
+        path: 'comments.user',
+        select: 'username profile avatar'
+      })
+      .select('comments')
+      .slice('comments', [ 
+        (page - 1) * limit, 
+        parseInt(limit)
+      ]);
+
+
+    const formattedComments = post.comments
+      .sort((a, b) => {
+        if (sort === '-createdAt') return b.createdAt - a.createdAt;
+        return a.createdAt - b.createdAt;
+      })
+      .map(comment => ({
+        _id: comment._id,
+        text: comment.text,
+        createdAt: comment.createdAt,
+        user: {
+          _id: comment.user._id,
+          username: comment.user.username,
+          avatar: comment.user.avatar,
+         
+        }
+      }));
+
+    const commentCount = (await CommunityPost.findById(postId)).comments.length;
+
+    res.json({
+      success: true,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(commentCount / limit),
+        totalComments: commentCount
+      },
+      comments: formattedComments
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch comments',
+      error: err.message
+    });
+  }
+};
+
+exports.rateBuild = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { value } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    if (value < 1 || value > 5) {
+      return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
+    }
+
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    const existingRating = post.ratings.find(r => r.user.equals(req.userId));
     if (existingRating) {
-      existingRating.value = req.body.rating;
+      existingRating.value = value;
     } else {
-      build.ratings.push({ user: req.userId, value: req.body.rating });
+      post.ratings.push({
+        user: req.userId,
+        value
+      });
     }
 
-    build.averageRating = build.ratings.reduce((sum, r) => sum + r.value, 0) / build.ratings.length;
+    const sum = post.ratings.reduce((acc, curr) => acc + curr.value, 0);
+    post.averageRating = sum / post.ratings.length;
 
-    await build.save();
-    res.json(build.ratings);
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Post rated successfully',
+      averageRating: post.averageRating,
+      userRating: value,
+      totalRatings: post.ratings.length 
+    });
+
   } catch (err) {
-    res.status(500).json({ message: 'Rating failed', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to rate post',
+      error: err.message
+    });
   }
 };
 
-exports.saveBuild = async (req, res) => {
+// Add these new controller functions
+
+exports.savePost = async (req, res) => {
   try {
+    const { postId } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const post = await CommunityPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
     const user = await User.findById(req.userId);
-    const build = await Build.findById(req.params.id);
     
-    if (!build || !build.isShared) {
-      return res.status(404).json({ message: 'Build not found or not shared' });
+    // Check if post is already saved
+    if (user.savedPosts.includes(postId)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Post already saved' 
+      });
     }
 
-    if (user.savedBuilds.includes(build._id)) {
-      return res.status(400).json({ message: 'Build already saved' });
-    }
-
-    user.savedBuilds.push(build._id);
+    // Add post to savedPosts
+    user.savedPosts.push(postId);
     await user.save();
-    
-    res.json({ message: 'Build saved', savedBuilds: user.savedBuilds });
+
+    // Update saves count on the post
+    post.savesCount = await User.countDocuments({ savedPosts: postId });
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Post saved successfully',
+      totalSaves: post.savesCount
+    });
+
   } catch (err) {
-    res.status(500).json({ message: 'Save failed', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save post',
+      error: err.message
+    });
+  }
+};
+
+exports.unsavePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    const [post, user] = await Promise.all([
+      CommunityPost.findById(postId),
+      User.findById(req.userId)
+    ]);
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    // Remove post from savedPosts
+    const index = user.savedPosts.indexOf(postId);
+    if (index === -1) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Post not found in saved items' 
+      });
+    }
+
+    user.savedPosts.splice(index, 1);
+    await user.save();
+
+    // Update saves count on the post
+    post.savesCount = await User.countDocuments({ savedPosts: postId });
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Post removed from saved items',
+      totalSaves: post.savesCount
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to unsave post',
+      error: err.message
+    });
+  }
+};
+
+
+exports.getSharedBuildDetails = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await CommunityPost.findById(postId)
+      .populate('user', 'username')
+      .populate({
+        path: 'build',
+        populate: {
+          path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler'
+        }
+      })
+      .populate('ratings.user', 'username')
+      .populate('comments.user', 'username');
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
+    }
+
+    let userRating = null;
+    if (req.userId) {
+      const rating = post.ratings.find(r => r.user._id.equals(req.userId));
+      if (rating) userRating = rating.value;
+    }
+
+    res.json({
+      success: true,
+      post,
+      userRating
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get post details',
+      error: err.message
+    });
   }
 };
 

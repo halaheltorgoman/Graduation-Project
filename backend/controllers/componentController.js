@@ -5,7 +5,7 @@ const Motherboard = require("../models/Components/MotherBoard");
 const Case = require("../models/Components/Case");
 const Memory = require("../models/Components/Memory");
 const Storage = require("../models/Components/Storage");
-//const PSU = require('../models/Components/PSU');
+const PSU = require("../models/Components/PSU");
 const Cooler = require("../models/Components/Cooler");
 
 const componentModels = {
@@ -15,8 +15,8 @@ const componentModels = {
   memory: Memory,
   case: Case,
   storage: Storage,
-  //psu: PSU,
-  cooling: Cooler,
+  psu: PSU,
+  cooler: Cooler,
 };
 function getComponentModel(type) {
   const model = componentModels[type.toLowerCase()];
@@ -186,7 +186,7 @@ exports.getComponentsByType = async (req, res) => {
             : [queryParams.color],
         };
       }
-    } else if (componentType === "cooling") {
+    } else if (componentType === "cooler") {
       if (queryParams.cooling_method) {
         filter.cooling_method = {
           $in: Array.isArray(queryParams.cooling_method)
@@ -257,57 +257,172 @@ exports.getComponentsByType = async (req, res) => {
 exports.addToFavorites = async (req, res) => {
   try {
     const { componentId, componentType } = req.body;
+    if (!componentId || !componentType) {
+      return res.status(400).json({
+        message: "Component ID and type are required",
+      });
+    }
 
+    // Find user by ID from auth middleware
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const Model = getComponentModel(componentType.toLowerCase());
-    const component = await Model.findById(componentId);
+    // Validate component exists
+    try {
+      const Model = getComponentModel(componentType);
+      const component = await Model.findById(componentId);
 
-    if (!component)
-      return res.status(404).json({ message: "Component not found" });
-
-    // Check if already favorited
-    if (
-      user.favorites.some(
-        (fav) =>
-          fav.componentId.equals(componentId) && fav.componentType.toLowerCase()
-      )
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Component already in favorites" });
+      if (!component) {
+        return res.status(404).json({ message: "Component not found" });
+      }
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid component type" });
     }
 
+    // Check if already favorited
+    const alreadyFavorited = user.favorites.some(
+      (fav) =>
+        fav.componentId.toString() === componentId &&
+        fav.componentType.toLowerCase() === componentType.toLowerCase()
+    );
+
+    if (alreadyFavorited) {
+      return res.status(200).json({
+        message: "Component already in favorites",
+        favorites: user.favorites,
+      });
+    }
+
+    // Add to favorites
     user.favorites.push({
       componentType: componentType.toLowerCase(),
       componentId,
     });
 
     await user.save();
-    res.json({ message: "Added to favorites", favorites: user.favorites });
+    res.status(201).json({
+      message: "Added to favorites",
+      favorites: user.favorites,
+    });
   } catch (err) {
+    console.error("Error adding to favorites:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
 exports.removeFavorite = async (req, res) => {
   try {
-    const { componentId, componentType } = req.body;
+    // Get component ID from either params or body
+    const componentId = req.params.id || req.body.componentId;
+    const componentType = req.body.componentType;
+
+    console.log("Remove favorite request:", { componentId, componentType });
+
+    if (!componentId) {
+      return res.status(400).json({
+        message: "Component ID is required",
+      });
+    }
 
     const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.favorites = user.favorites.filter(
-      (fav) =>
-        !(
-          fav.componentType === componentType &&
-          fav.componentId.equals(componentId)
-        )
-    );
+    // For flexibility, remove by componentId regardless of type if type is not provided
+    if (!componentType) {
+      console.log("Removing by ID only");
+      user.favorites = user.favorites.filter(
+        (fav) => fav.componentId.toString() !== componentId
+      );
+    } else {
+      console.log("Removing by ID and type");
+      // Check if component is in favorites with the specified type
+      const favoriteExists = user.favorites.some(
+        (fav) =>
+          fav.componentId.toString() === componentId &&
+          fav.componentType.toLowerCase() === componentType.toLowerCase()
+      );
+
+      if (!favoriteExists) {
+        console.log("Component not found in favorites");
+        return res.status(200).json({
+          message: "Component not found in favorites",
+          favorites: user.favorites,
+        });
+      }
+
+      // Remove from favorites
+      user.favorites = user.favorites.filter(
+        (fav) =>
+          !(
+            fav.componentType.toLowerCase() === componentType.toLowerCase() &&
+            fav.componentId.toString() === componentId
+          )
+      );
+    }
 
     await user.save();
-    res.json({ message: "Removed from favorites", favorites: user.favorites });
+    console.log("Removed from favorites successfully");
+    res.json({
+      message: "Removed from favorites",
+      favorites: user.favorites,
+    });
   } catch (err) {
+    console.error("Error removing favorite:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+exports.getUserFavorites = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Return the favorites list
+    res.json(user.favorites);
+  } catch (err) {
+    console.error("Error fetching favorites:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// New method to get detailed favorite components
+exports.getUserFavoriteComponents = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Group favorites by component type
+    const favoritesByType = {};
+    user.favorites.forEach((fav) => {
+      const type = fav.componentType;
+      if (!favoritesByType[type]) {
+        favoritesByType[type] = [];
+      }
+      favoritesByType[type].push(fav.componentId);
+    });
+
+    // Fetch component details for each type
+    const results = [];
+
+    for (const [type, ids] of Object.entries(favoritesByType)) {
+      try {
+        const Model = getModel(type);
+        const components = await Model.find({ _id: { $in: ids } });
+
+        components.forEach((component) => {
+          results.push({
+            ...component.toObject(),
+            type: type,
+          });
+        });
+      } catch (err) {
+        console.error(`Error fetching ${type} components:`, err);
+      }
+    }
+
+    res.json(results);
+  } catch (err) {
+    console.error("Error fetching favorite components:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };

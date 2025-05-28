@@ -1,19 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const communityController = require('../controllers/communityController');
-//const authMiddleware = require('../middleware/authMiddleware');
-const authMiddleware = require('../middleware/userAuth');
+const communityController = require("../controllers/communityController");
+const authMiddleware = require("../middleware/authMiddleware");
 
-// Public routes
-router.get('/', communityController.getSharedBuilds);
-router.get('/:id', communityController.getBuildDetails);
+router.get("/", communityController.getSharedBuilds);
+router.get("/:postId", communityController.getSharedBuildDetails);
+router.get("/:postId/getcomments", communityController.getComments);
 
-
-// Protected routes
-
-router.post('/:id/share', authMiddleware, communityController.shareBuild);
-router.post('/:id/comments', authMiddleware, communityController.addComment);
-router.post('/:id/ratings', authMiddleware, communityController.addRating);
-router.post('/:id/save', authMiddleware, communityController.saveBuild);
+router.post("/:postId/comment", authMiddleware, communityController.addComment);
+router.post("/:postId/rate", authMiddleware, communityController.rateBuild);
+router.post("/:postId/save", authMiddleware, communityController.savePost);
+router.delete(
+  "/:postId/unsave",
+  authMiddleware,
+  communityController.unsavePost
+);
 
 module.exports = router;
