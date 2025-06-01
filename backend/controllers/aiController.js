@@ -9,7 +9,7 @@ require("dotenv").config();
  * @param {Object} res - Express response object
  */
 exports.askAI = async (req, res) => {
-  const { prompt, userId, componentType, filters, requirements } = req.body;
+  const { prompt, componentType, filters, requirements } = req.body;
   const sessionId = req.cookies.sessionId || uuidv4();
 
   if (!prompt) {
@@ -27,7 +27,7 @@ exports.askAI = async (req, res) => {
     }
     
     // Generate response using the RAG service
-    const response = await ragService.generateResponse(prompt, sessionId, userId);
+    const response = await ragService.generateResponse(prompt, sessionId, req);
     
     res.json({ response });
   } catch (error) {
@@ -45,7 +45,7 @@ exports.askAI = async (req, res) => {
  * @param {Object} res - Express response object
  */
 exports.generateBuild = async (req, res) => {
-  const { requirements, userId } = req.body;
+  const { requirements } = req.body;
   const sessionId = req.cookies.sessionId;
 
   if (!requirements) {
@@ -70,6 +70,37 @@ exports.generateBuild = async (req, res) => {
     console.error("Error generating build:", error);
     res.status(500).json({ 
       error: "Failed to generate build",
+      details: error.message 
+    });
+  }
+};
+
+/**
+ * Associate an anonymous session with a user account
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.associateSession = async (req, res) => {
+  const sessionId = req.cookies.sessionId;
+
+  if (!sessionId) {
+    return res.status(400).json({ error: "No session found" });
+  }
+
+  try {
+    const chatHistory = await ragService.associateSessionWithUser(sessionId, req.userId);
+    res.json({ 
+      success: true,
+      message: "Session associated with user account",
+      chatHistory: {
+        messageCount: chatHistory.messages.length,
+        lastUpdated: chatHistory.updatedAt
+      }
+    });
+  } catch (error) {
+    console.error("Error associating session:", error);
+    res.status(500).json({ 
+      error: "Failed to associate session",
       details: error.message 
     });
   }

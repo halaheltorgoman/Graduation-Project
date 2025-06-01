@@ -203,10 +203,10 @@ const ragService = {
   /**
    * Get or create chat history for a session
    * @param {string} sessionId - The session ID
-   * @param {string} userId - Optional user ID
+   * @param {Object} req - Request object
    * @returns {Promise<Object>} - Chat history
    */
-  getChatHistory: async (sessionId, userId = null) => {
+  getChatHistory: async (sessionId, req) => {
     try {
       // Check for expired sessions
       const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
@@ -217,7 +217,7 @@ const ragService = {
       if (!chatHistory) {
         chatHistory = new ChatHistory({
           sessionId,
-          userId,
+          userId: req?.userId || null,
           messages: [],
           summary: {
             knownPreferences: {
@@ -228,11 +228,43 @@ const ragService = {
           }
         });
         await chatHistory.save();
+      } else if (req?.userId && !chatHistory.userId) {
+        // If user is logged in and this was an anonymous session, associate it with the user
+        chatHistory.userId = req.userId;
+        await chatHistory.save();
       }
       
       return chatHistory;
     } catch (error) {
       console.error('Error getting chat history:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Associate an anonymous session with a user account
+   * @param {string} sessionId - The session ID to associate
+   * @param {string} userId - The user ID to associate with
+   * @returns {Promise<Object>} - Updated chat history
+   */
+  associateSessionWithUser: async (sessionId, userId) => {
+    try {
+      const chatHistory = await ChatHistory.findOne({ sessionId });
+      
+      if (!chatHistory) {
+        throw new Error('Session not found');
+      }
+
+      if (chatHistory.userId) {
+        throw new Error('Session already associated with a user');
+      }
+
+      chatHistory.userId = userId;
+      await chatHistory.save();
+
+      return chatHistory;
+    } catch (error) {
+      console.error('Error associating session with user:', error);
       throw error;
     }
   },
@@ -293,17 +325,17 @@ const ragService = {
 
   /**
    * Get user information and context
-   * @param {string} userId - The user ID
+   * @param {Object} req - Request object
    * @param {string} sessionId - The session ID
    * @returns {Promise<Object>} - User information and context
    */
-  getUserContext: async (userId, sessionId) => {
+  getUserContext: async (req, sessionId) => {
     try {
-      const chatHistory = await ragService.getChatHistory(sessionId, userId);
+      const chatHistory = await ragService.getChatHistory(sessionId, req);
       let userInfo = null;
       
-      if (userId) {
-        const user = await User.findById(userId);
+      if (req?.userId) {
+        const user = await User.findById(req.userId);
         if (user) {
           const savedBuilds = await Build.find({ _id: { $in: user.savedBuilds } });
           const ownBuilds = await Build.find({ _id: { $in: user.builds } });
@@ -561,12 +593,12 @@ const ragService = {
    * Generate a response using the RAG model
    * @param {string} prompt - The user's prompt
    * @param {string} sessionId - The session ID
-   * @param {string} userId - Optional user ID
+   * @param {Object} req - Request object
    * @returns {Promise<string>} - The generated response
    */
-  generateResponse: async (prompt, sessionId, userId = null) => {
+  generateResponse: async (prompt, sessionId, req) => {
     try {
-      const userContext = await ragService.getUserContext(userId, sessionId);
+      const userContext = await ragService.getUserContext(req, sessionId);
       
       const relevantKnowledge = await ragService.getRelevantKnowledge(prompt);
       
@@ -719,55 +751,55 @@ const ragService = {
     }
   },
 
-  /**
-   * Generate a PC build based on user requirements
-   * @param {Object} requirements - User requirements for the build
-   * @returns {Promise<Object>} - The generated build
-   */
-  generateBuild: async (requirements) => {
-    try {
-      const { budget, purpose, performance, preferences = [] } = requirements;
+//   /**
+//    * Generate a PC build based on user requirements
+//    * @param {Object} requirements - User requirements for the build
+//    * @returns {Promise<Object>} - The generated build
+//    */
+//   generateBuild: async (requirements) => {
+//     try {
+//       const { budget, purpose, performance, preferences = [] } = requirements;
       
-      // Find relevant build type based on requirements
-      let relevantBuildType = null;
+//       // Find relevant build type based on requirements
+//       let relevantBuildType = null;
       
-      if (purpose === 'gaming') {
-        if (budget <= 800) {
-          relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-gaming');
-        } else if (budget <= 1500) {
-          relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'mid-range-gaming');
-        } else {
-          relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'high-end-gaming');
-        }
-      } else if (purpose === 'productivity') {
-        if (budget <= 800) {
-          relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-productivity');
-        } else {
-          relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'productivity');
-        }
-      }
+//       if (purpose === 'gaming') {
+//         if (budget <= 800) {
+//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-gaming');
+//         } else if (budget <= 1500) {
+//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'mid-range-gaming');
+//         } else {
+//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'high-end-gaming');
+//         }
+//       } else if (purpose === 'productivity') {
+//         if (budget <= 800) {
+//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-productivity');
+//         } else {
+//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'productivity');
+//         }
+//       }
       
-      // If no specific build type is found, use a default
-      if (!relevantBuildType) {
-        relevantBuildType = pcBuildingKnowledge.buildTypes[0]; // Default to budget gaming
-      }
+//       // If no specific build type is found, use a default
+//       if (!relevantBuildType) {
+//         relevantBuildType = pcBuildingKnowledge.buildTypes[0]; // Default to budget gaming
+//       }
       
-      return {
-        buildType: relevantBuildType.title,
-        recommendations: relevantBuildType.content,
-        requirements: {
-          budget,
-          purpose,
-          performance,
-          preferences
-        },
-        message: "This is a recommendation based on your requirements. For actual components, please use the component selection interface."
-      };
-    } catch (error) {
-      console.error('Error generating build:', error);
-      throw error;
-    }
-  }
+//       return {
+//         buildType: relevantBuildType.title,
+//         recommendations: relevantBuildType.content,
+//         requirements: {
+//           budget,
+//           purpose,
+//           performance,
+//           preferences
+//         },
+//         message: "This is a recommendation based on your requirements. For actual components, please use the component selection interface."
+//       };
+//     } catch (error) {
+//       console.error('Error generating build:', error);
+//       throw error;
+//     }
+//   }
 };
 
 module.exports = ragService; 

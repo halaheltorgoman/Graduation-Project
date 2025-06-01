@@ -242,6 +242,18 @@ exports.login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
+    // If there's an existing session then associate it with the user
+    const sessionId = req.cookies.sessionId;
+    if (sessionId) {
+      try {
+        const ragService = require("../services/ragService");
+        await ragService.associateSessionWithUser(sessionId, user._id);
+      } catch (error) {
+        console.error("Error associating session:", error);
+        // Don't fail the login if session association fails
+      }
+    }
+
     res.json({
       success: true,
       message: "Logged in successfully",
