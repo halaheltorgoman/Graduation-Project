@@ -1,20 +1,25 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import { FaRegHeart, FaHeart, FaStar } from "react-icons/fa";
 import { MdArrowOutward } from "react-icons/md";
 import ComponentShimmer from "../ComponentShimmer/ComponentShimmer";
-import TransparentImage from "../TransparentImage/TransparentImage";
+import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 
 const BrowseComponentList = ({
   components,
-
   compareList,
   toggleCompare,
   isLoading,
   onComponentClick,
 }) => {
-  const [favorites, setfavorites] = useState("false");
+  const { favorites, toggleFavorite } = useContext(SavedComponentsContext);
+
   const handleCardClick = (component) => {
     onComponentClick(component);
+  };
+
+  const handleFavoriteClick = (e, component) => {
+    e.stopPropagation();
+    toggleFavorite(component);
   };
 
   const handleCompareClick = (e, componentId) => {
@@ -45,6 +50,7 @@ const BrowseComponentList = ({
                   className={`favorite-icon ${
                     favorites.includes(component._id) ? "favorited" : ""
                   }`}
+                  onClick={(e) => handleFavoriteClick(e, component)}
                 >
                   {favorites.includes(component._id) ? (
                     <FaHeart className="favorited" />
@@ -54,10 +60,10 @@ const BrowseComponentList = ({
                 </span>
               </div>
               <div className="componentCard_secondSec">
-                <TransparentImage
-                  src={component.image_source}
-                  alt={component.name}
+                <img
                   className="component_image"
+                  src={component.image_source}
+                  alt={component.title}
                 />
                 <p className="component_title">{component.title}</p>
                 <p className="component_price">

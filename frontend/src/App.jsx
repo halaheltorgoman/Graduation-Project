@@ -54,11 +54,13 @@ const router = createBrowserRouter([
   },
   { path: "login", element: <Login /> },
   { path: "signup", element: <Signup /> },
-  { path: "forgot-password", element: <Forgotpassword /> },
-  { path: "verify-forgot-password", element: <VerifyForgotPassword /> },
+
   { path: "home", element: <Home /> },
   { path: "signup-verification", element: <Signupverification /> },
   { path: "verify-signup-email", element: <Verifysignupemail /> },
+  { path: "forgot-password", element: <Forgotpassword /> },
+  { path: "verify-forgot-password", element: <VerifyForgotPassword /> },
+  { path: "forgot-password-email", element: <ForgotPasswordEmail /> },
 ]);
 
 function App() {

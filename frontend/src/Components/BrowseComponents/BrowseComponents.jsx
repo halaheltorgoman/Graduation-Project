@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Pagination, Alert } from "antd";
 import NestedNavBar from "../NestedNavBar/NestedNavBar";
-import Filters from "../Filters/Filters";
+import Filters from "../Filters/BrowseFilters";
 import axios from "axios";
 import "./BrowseComponents.css";
-
+import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 import ComponentList from "../BrowseComponentList/BrowseComponentList";
-import ComparisonModal from "../ComparisonModal/ComparisonModal.jsx";
+import ComparsionModal from "../ComparsionModal/ComparsionModal.jsx";
 
 function BrowseComponents() {
   const { type = "all" } = useParams();
@@ -15,7 +15,6 @@ function BrowseComponents() {
   const navigate = useNavigate();
 
   const [components, setComponents] = useState([]);
-  const [favorites, setFavorites] = useState([]);
   const [compareList, setCompareList] = useState([]);
   const [sortBy, setSortBy] = useState(null);
   const [filters, setFilters] = useState({});
@@ -23,6 +22,7 @@ function BrowseComponents() {
   const [showComparison, setShowComparison] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [productsToCompare, setProductsToCompare] = useState([]);
+  const { savedComponents } = useContext(SavedComponentsContext);
 
   const pageSize = 15;
   const currentPage = parseInt(searchParams.get("page")) || 1;
@@ -190,7 +190,7 @@ function BrowseComponents() {
       </div>
 
       {showComparison && (
-        <ComparisonModal
+        <ComparsionModal
           products={productsToCompare}
           onClose={closeComparisonModal}
         />
