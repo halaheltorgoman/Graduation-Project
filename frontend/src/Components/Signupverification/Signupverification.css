@@ -191,3 +191,28 @@
   position: relative; /* Add this to make logo positioning relative to container */
   /* ... keep your existing container styles ... */
 }
+
+.signupverification-timer {
+  text-align: center;
+  margin-top: 1.2rem;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.signupverification-code-input.signupverification-input-error {
+  border-color: #ff4d4f !important;
+  background-color: #fff1f0 !important;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.signupverification-error {
+  color: #ff4d4f;
+  margin-bottom: 16px;
+  text-align: center;
+}

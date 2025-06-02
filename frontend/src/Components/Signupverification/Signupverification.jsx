@@ -14,6 +14,7 @@ const SignupVerification = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
+  const [inputError, setInputError] = useState(false);
   const inputRefs = useRef([]);
 
   useEffect(() => {
@@ -55,6 +56,11 @@ const SignupVerification = () => {
   }, [location, navigate]);
 
   const handleCodeChange = (index, value) => {
+    if (inputError) {
+      setInputError(false);
+      setError("");
+    }
+    
     const newCode = [...code];
     if (value.length > 1) {
       const pastedCode = value.slice(0, 6).split("");
@@ -91,11 +97,13 @@ const SignupVerification = () => {
 
     if (verificationCode.length !== 6) {
       setError("Please enter a 6-digit code");
+      setInputError(true);
       return;
     }
 
     setIsSubmitting(true);
     setError("");
+    setInputError(false);
 
     try {
       const response = await axios.post(
@@ -123,6 +131,7 @@ const SignupVerification = () => {
 
   const handleResendCode = async () => {
     setError("");
+    setInputError(false);
     const { state } = location;
 
     if (!state?.userId) {
@@ -192,7 +201,9 @@ const SignupVerification = () => {
                   key={index}
                   id={`code-input-${index}`}
                   ref={(el) => (inputRefs.current[index] = el)}
-                  className="signupverification-code-input"
+                  className={`signupverification-code-input ${
+                    inputError ? "signupverification-input-error" : ""
+                  }`}
                   maxLength={1}
                   value={code[index]}
                   onChange={(e) => handleCodeChange(index, e.target.value)}
