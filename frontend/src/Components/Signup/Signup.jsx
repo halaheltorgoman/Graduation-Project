@@ -1,14 +1,15 @@
-import { Button, Checkbox, Input, message, Alert } from "antd";
+import React, { useState } from "react";
+import { Button, Checkbox, Input, Alert } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import "./Signup.css";
 import logo from "../../assets/images/logo.svg";
-import React, { useState } from "react";
 import axios from "axios";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [apiError, setApiError] = useState("");
+  const [apiError, setApiError] = useState({ message: "", type: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -21,6 +22,14 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+
+  const showAlertMessage = (message, type = "error") => {
+    setApiError({ message, type });
+    setShowAlert(true);
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 5000);
+  };
 
   const validateField = (name, value) => {
     const newErrors = { ...errors };
@@ -77,27 +86,33 @@ const Signup = () => {
   const onFinish = async () => {
     try {
       setIsLoading(true);
+      setApiError({ message: "", type: "" });
+
       const response = await axios.post(
-        `http://localhost:4000/api/auth/signup`,
+        "http://localhost:4000/api/auth/signup",
         formData,
         { withCredentials: true }
       );
 
       if (response.data.success) {
-        message.success("Account created successfully! Redirecting...");
-        navigate("/signup-verification", {
-          state: {
-            userId: response.data.userId,
-            userEmail: response.data.userEmail,
-          },
-        });
+        showAlertMessage(
+          "Account created successfully! Redirecting...",
+          "success"
+        );
+        setTimeout(() => {
+          navigate("/signup-verification", {
+            state: {
+              userId: response.data.userId,
+              userEmail: response.data.userEmail,
+            },
+          });
+        }, 1500);
       }
     } catch (error) {
-      setApiError(error?.response?.data?.message);
-      message.error(
+      const errorMessage =
         error?.response?.data?.message ||
-          "Signup failed. Please check your information."
-      );
+        "Signup failed. Please check your information.";
+      showAlertMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -121,6 +136,24 @@ const Signup = () => {
 
   return (
     <div className="signup-container">
+      {showAlert && (
+        <div className="alert-top">
+          <Alert
+            message={apiError.message}
+            type={apiError.type}
+            showIcon
+            closable
+            onClose={() => setShowAlert(false)}
+            style={{
+              position: "relative",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              minWidth: "300px",
+            }}
+          />
+          <div className="alert-progress" />
+        </div>
+      )}
+
       <Link to="/">
         <img
           src={logo}
@@ -128,19 +161,12 @@ const Signup = () => {
           className="verifyforgotpassword-logo"
         />
       </Link>
+
       <div className="signup-title-container">
         <h1 className="signup-title">Create Account</h1>
       </div>
 
       <div className="signup-form-container">
-        {apiError && (
-          <Alert
-            message={apiError}
-            type="error"
-            showIcon
-            style={{ marginBottom: 24 }}
-          />
-        )}
         <form onSubmit={handleSubmit} className="signup-form">
           {/* Username Field */}
           <div className="ant-form-item">

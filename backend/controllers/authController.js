@@ -47,7 +47,6 @@ const setAuthCookie = (res, user) => {
     maxAge: 24 * 60 * 60 * 1000, // 1 day
   });
 };
-
 exports.register = async (req, res) => {
   try {
     const { username, email, password, confirmPassword } = req.body;
@@ -87,7 +86,7 @@ exports.register = async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user (without OTP initially)
+    // Create user with OTP fields
     const user = new User({
       username,
       email,
@@ -95,17 +94,40 @@ exports.register = async (req, res) => {
       isAccountVerified: false,
     });
 
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 1 * 60 * 1000); // 5 minutes
+
+    user.verifyOtp = otp;
+    user.verifyOtpExpireAt = otpExpiry;
+
     await user.save();
 
-    // Send welcome email only
-    await sendEmail(email, "🎉 Welcome to Our Service!", "welcomeEmail.html", {
-      username,
-      email,
-    });
+    // Send both emails in parallel
+    const [otpSent, welcomeSent] = await Promise.all([
+      sendOTPEmail(user.email, otp),
+      sendEmail(email, "🎉 Welcome to Our Service!", "welcomeEmail.html", {
+        username,
+        email,
+      }),
+    ]);
+
+    if (!otpSent) {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email",
+      });
+    }
+
+    if (!welcomeSent) {
+      console.error("Failed to send welcome email");
+      // We don't return here because the OTP was sent successfully
+      // The registration can still proceed without the welcome email
+    }
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully. Welcome email sent.",
+      message: "User registered successfully. OTP and welcome email sent.",
       userId: user._id,
       userEmail: user.email,
     });
@@ -117,6 +139,154 @@ exports.register = async (req, res) => {
     });
   }
 };
+// exports.register = async (req, res) => {
+//   try {
+//     const { username, email, password, confirmPassword } = req.body;
+
+//     // Validation checks (keep existing validation)
+//     if (!username || !email || !password || !confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     if (password !== confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Passwords do not match",
+//       });
+//     }
+
+//     // Check if user exists (keep existing checks)
+//     const existingEmail = await User.findOne({ email });
+//     if (existingEmail) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email already in use",
+//       });
+//     }
+
+//     const existingUsername = await User.findOne({ username });
+//     if (existingUsername) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Username already in use",
+//       });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user with OTP fields
+//     const user = new User({
+//       username,
+//       email,
+//       password: hashedPassword,
+//       isAccountVerified: false,
+//     });
+
+//     // Generate OTP
+//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+//     const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+//     user.verifyOtp = otp;
+//     user.verifyOtpExpireAt = otpExpiry;
+
+//     await user.save();
+
+//     // Send OTP email instead of welcome email
+//     const otpSent = await sendOTPEmail(user.email, otp);
+//     if (!otpSent) {
+//       return res.status(500).json({
+//         success: false,
+//         message: "Failed to send OTP email",
+//       });
+//     }
+
+//     res.status(201).json({
+//       success: true,
+//       message: "User registered successfully. OTP sent to email.",
+//       userId: user._id,
+//       userEmail: user.email,
+//     });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
+// exports.register = async (req, res) => {
+//   try {
+//     const { username, email, password, confirmPassword } = req.body;
+
+//     // Validation checks
+//     if (!username || !email || !password || !confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "All fields are required",
+//       });
+//     }
+
+//     if (password !== confirmPassword) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Passwords do not match",
+//       });
+//     }
+
+//     // Check if user exists
+//     const existingEmail = await User.findOne({ email });
+//     if (existingEmail) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email already in use",
+//       });
+//     }
+
+//     const existingUsername = await User.findOne({ username });
+//     if (existingUsername) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Username already in use",
+//       });
+//     }
+
+//     // Hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+
+//     // Create user (without OTP initially)
+//     const user = new User({
+//       username,
+//       email,
+//       password: hashedPassword,
+//       isAccountVerified: false,
+//     });
+
+//     await user.save();
+
+//     // Send welcome email only
+//     await sendEmail(email, "🎉 Welcome to Our Service!", "welcomeEmail.html", {
+//       username,
+//       email,
+//     });
+
+//     res.status(201).json({
+//       success: true,
+//       message: "User registered successfully. Welcome email sent.",
+//       userId: user._id,
+//       userEmail: user.email,
+//     });
+//   } catch (error) {
+//     console.error("Registration error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//     });
+//   }
+// };
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   //missing email or password

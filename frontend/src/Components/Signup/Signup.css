@@ -5,7 +5,8 @@
   justify-content: space-between;
   align-items: center;
   min-height: 100vh;
-  padding: 0 5%;
+
+  padding-top: 1rem;
   background-image: linear-gradient(135deg, #302064 0%, transparent 20%),
     linear-gradient(45deg, #621c74 0%, transparent 15%),
     linear-gradient(315deg, #44255a 0%, transparent 25%),
@@ -16,6 +17,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
 }
 
 .signup-title {
@@ -88,7 +90,7 @@
 
 .signup-form .ant-input::placeholder,
 .ant-input-password .ant-input-password-icon {
-  color: white !important;
+  color: gray !important;
 }
 
 /* Password field specific styles */
@@ -267,4 +269,55 @@
   color: #ff4d4f !important;
   font-size: 14px !important;
   margin-top: 4px !important;
+}
+/* Alert styles */
+.alert-top {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: auto;
+  max-width: 80%;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.alert-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background-color: #1890ff;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+    opacity: 0;
+  }
+}
+
+/* Logo styling */
+.verifyforgotpassword-logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  height: 40px;
+  width: auto;
+  z-index: 10;
 }
