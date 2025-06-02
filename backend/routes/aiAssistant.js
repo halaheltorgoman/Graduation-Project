@@ -1,13 +1,13 @@
 const express = require("express");
 const aiController = require("../controllers/aiController");
-const userAuth = require("../middleware/authMiddleware");
+// const userAuth = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Route for asking the AI assistant a question
-router.post("/ask", userAuth, aiController.askAI);
+router.post("/ask", aiController.askAI);
 
 // Route for generating a PC build based on requirements
-router.post("/generate-build", aiController.generateBuild);
+// router.post("/generate-build", aiController.generateBuild);
 
 module.exports = router;

@@ -717,7 +717,6 @@ const ragService = {
         - Ensure recommended components are compatible with each other
         - For general questions about PC building, use the relevant knowledge
         - Always be helpful, accurate, and concise
-        - If you're referencing previous context, make it clear in your response
         - When recommending components, explain why they're good choices based on:
           * The user's preferences and requirements
           * The component's specifications and ratings
