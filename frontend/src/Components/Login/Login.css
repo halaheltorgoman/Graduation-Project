@@ -6,9 +6,8 @@
   align-items: center;
   min-height: 100vh;
   padding: 0 5%;
-    background-image: 
-    linear-gradient(135deg, #302064 0%, transparent 20%),
-    linear-gradient(45deg, #621C74 0%, transparent 15%),
+  background-image: linear-gradient(135deg, #302064 0%, transparent 20%),
+    linear-gradient(45deg, #621c74 0%, transparent 15%),
     linear-gradient(315deg, #44255a 0%, transparent 25%),
     linear-gradient(225deg, #0000007e 0%, transparent 30%);
 }
@@ -110,8 +109,12 @@
 }
 
 /* Error states */
-.login-form .ant-form-item-has-error .ant-input
-.login-form .ant-form-item-has-error .ant-input-password {
+.login-form
+  .ant-form-item-has-error
+  .ant-input
+  .login-form
+  .ant-form-item-has-error
+  .ant-input-password {
   background-color: rgba(255, 255, 255, 0.1) !important;
   box-shadow: none !important;
 }
@@ -132,7 +135,7 @@
   width: 100%;
   padding: 0.9rem 1.2rem;
   border-radius: 25px !important;
-  background-color: #621C74 !important;
+  background-color: #621c74 !important;
   border: none !important;
   color: white !important;
   font-size: 1rem;
@@ -203,8 +206,8 @@
 }
 
 .login-form .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #621C74;
-  border-color: #621C74;
+  background-color: #621c74;
+  border-color: #621c74;
 }
 
 .login-form .ant-form-item {

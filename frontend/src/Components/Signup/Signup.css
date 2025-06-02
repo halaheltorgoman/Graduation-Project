@@ -270,3 +270,54 @@
   font-size: 14px !important;
   margin-top: 4px !important;
 }
+/* Alert styles */
+.alert-top {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  width: auto;
+  max-width: 80%;
+  animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-50%) translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.alert-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 4px;
+  background-color: #1890ff;
+  animation: progress 5s linear forwards;
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+    opacity: 0;
+  }
+}
+
+/* Logo styling */
+.verifyforgotpassword-logo {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  height: 40px;
+  width: auto;
+  z-index: 10;
+}
