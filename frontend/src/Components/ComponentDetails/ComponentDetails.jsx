@@ -242,7 +242,17 @@ const ComponentDetails = () => {
   const handleBackClick = () => {
     const searchParams = new URLSearchParams(location.search);
     const page = searchParams.get("page") || 1;
-    navigate(`/browsecomponents/${type}?page=${page}`);
+    
+    // Get the saved state from sessionStorage
+    const savedState = sessionStorage.getItem(`browseState-${type}`);
+    const state = savedState ? JSON.parse(savedState) : {};
+    
+    navigate(`/browsecomponents/${type}?page=${page}`, {
+      state: {
+        filters: state.filters || {},
+        sortBy: state.sortBy || null,
+      }
+    });
   };
 
   if (isLoading) return <div className="loading-message">Loading...</div>;

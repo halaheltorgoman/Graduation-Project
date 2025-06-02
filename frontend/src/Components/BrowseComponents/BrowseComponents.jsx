@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  useParams,
+  useSearchParams,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { Pagination, Alert } from "antd";
 import NestedNavBar from "../NestedNavBar/NestedNavBar";
 import Filters from "../Filters/BrowseFilters";
@@ -13,6 +18,7 @@ function BrowseComponents() {
   const { type = "all" } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [components, setComponents] = useState([]);
   const [compareList, setCompareList] = useState([]);
@@ -38,16 +44,35 @@ function BrowseComponents() {
     return () => clearTimeout(timer);
   }, [showAlert]);
 
+  // Save state when unmounting
+  useEffect(() => {
+    return () => {
+      sessionStorage.setItem(
+        `browseState-${type}`,
+        JSON.stringify({ filters, sortBy, currentPage })
+      );
+    };
+  }, [type, filters, sortBy, currentPage]);
+
   const getComponents = useCallback(
     async (componentType) => {
       setIsLoading(true);
       try {
+        // Check for saved state
+        const savedState = sessionStorage.getItem(
+          `browseState-${componentType}`
+        );
+        const state = savedState ? JSON.parse(savedState) : {};
+
         const params = {
-          page: currentPage,
+          page: state.currentPage || currentPage,
           pageSize,
-          ...filters,
+          ...(state.filters || filters),
         };
-        if (sortBy) params.sortBy = sortBy;
+
+        if (state.sortBy || sortBy) {
+          params.sortBy = state.sortBy || sortBy;
+        }
 
         const { data } = await axios.get(
           `http://localhost:4000/api/components/${componentType}`,
@@ -88,7 +113,6 @@ function BrowseComponents() {
           setShowAlert(false);
         } else {
           newList = [...prev, id];
-
           if (newList.length === 1) {
             setShowAlert(true);
           } else {
@@ -127,13 +151,16 @@ function BrowseComponents() {
   const handleComponentClick = useCallback(
     (component) => {
       navigate(
-        `/browsecomponents/${type}/${component._id}?page=${currentPage}`
+        `/browsecomponents/${type}/${component._id}?page=${currentPage}`,
+        { state: { filters, sortBy } }
       );
     },
-    [navigate, type, currentPage]
+    [navigate, type, currentPage, filters, sortBy]
   );
 
   useEffect(() => {
+    // Clear saved state when type changes
+    sessionStorage.removeItem(`browseState-${type}`);
     setFilters({});
     setSortBy(null);
     navigate(`/browsecomponents/${type}?page=1`);
@@ -141,7 +168,7 @@ function BrowseComponents() {
 
   useEffect(() => {
     getComponents(type);
-  }, [type, getComponents]);
+  }, [type, getComponents, location.state]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });

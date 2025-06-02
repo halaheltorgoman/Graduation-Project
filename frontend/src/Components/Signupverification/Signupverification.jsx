@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Input, Alert } from "antd";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import "./SignupVerification.css";
+import "./Signupverification.css";
 import logo from "../../assets/images/logo.svg";
 import axios from "axios";
 
@@ -13,7 +13,8 @@ const Signupverification = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
-  const [showAlert, setShowAlert] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const [showAlert, setShowAlert] = useState(false); // Added this line
   const inputRefs = useRef([]);
   const timerRef = useRef(null);
 
@@ -76,6 +77,11 @@ const Signupverification = () => {
   };
 
   const handleCodeChange = (index, value) => {
+    if (inputError) {
+      setInputError(false);
+      setError("");
+    }
+    
     const newCode = [...code];
     if (value.length > 1) {
       const pastedCode = value.slice(0, 6).split("");
@@ -112,11 +118,13 @@ const Signupverification = () => {
 
     if (verificationCode.length !== 6) {
       setError("Please enter a 6-digit code");
+      setInputError(true);
       return;
     }
 
     setIsSubmitting(true);
     setError("");
+    setInputError(false);
 
     try {
       const response = await axios.post(
@@ -146,8 +154,9 @@ const Signupverification = () => {
   };
 
   const handleResendCode = async () => {
-    const { state } = location;
     setError("");
+    setInputError(false);
+    const { state } = location;
 
     if (!state?.userId) {
       showAlertMessage("User ID not found. Please sign up again.");
@@ -232,20 +241,21 @@ const Signupverification = () => {
           )}
 
           <div className="signupverification-code-container">
-            {code.map((digit, index) => (
+            {[0, 1, 2, 3, 4, 5].map((index) => (
               <Input
                 key={index}
+                id={`code-input-${index}`}
                 ref={(el) => (inputRefs.current[index] = el)}
-                className="signupverification-code-input"
+                className={`signupverification-code-input ${
+                  inputError ? "signupverification-input-error" : ""
+                }`}
                 maxLength={1}
-                value={digit}
+                value={code[index]}
                 onChange={(e) => handleCodeChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onFocus={(e) => e.target.select()}
                 disabled={isSubmitting}
                 autoFocus={index === 0}
-                inputMode="numeric"
-                pattern="[0-9]*"
               />
             ))}
           </div>
