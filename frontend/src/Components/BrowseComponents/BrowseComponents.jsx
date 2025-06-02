@@ -1,10 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  useParams,
-  useSearchParams,
-  useNavigate,
-  useLocation,
-} from "react-router-dom";
+import React, { useState, useEffect, useContext, useCallback } from "react";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Pagination, Alert } from "antd";
 import NestedNavBar from "../NestedNavBar/NestedNavBar";
 import Filters from "../Filters/BrowseFilters";
@@ -12,13 +7,12 @@ import axios from "axios";
 import "./BrowseComponents.css";
 import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 import ComponentList from "../BrowseComponentList/BrowseComponentList";
-import ComparsionModal from "../ComparsionModal/ComparsionModal.jsx";
+import ComparsionModal from "../ComparisonModal/ComparisonModal.jsx";
 
 function BrowseComponents() {
   const { type = "all" } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [components, setComponents] = useState([]);
   const [compareList, setCompareList] = useState([]);
@@ -44,35 +38,16 @@ function BrowseComponents() {
     return () => clearTimeout(timer);
   }, [showAlert]);
 
-  // Save state when unmounting
-  useEffect(() => {
-    return () => {
-      sessionStorage.setItem(
-        `browseState-${type}`,
-        JSON.stringify({ filters, sortBy, currentPage })
-      );
-    };
-  }, [type, filters, sortBy, currentPage]);
-
   const getComponents = useCallback(
     async (componentType) => {
       setIsLoading(true);
       try {
-        // Check for saved state
-        const savedState = sessionStorage.getItem(
-          `browseState-${componentType}`
-        );
-        const state = savedState ? JSON.parse(savedState) : {};
-
         const params = {
-          page: state.currentPage || currentPage,
+          page: currentPage,
           pageSize,
-          ...(state.filters || filters),
+          ...filters,
         };
-
-        if (state.sortBy || sortBy) {
-          params.sortBy = state.sortBy || sortBy;
-        }
+        if (sortBy) params.sortBy = sortBy;
 
         const { data } = await axios.get(
           `http://localhost:4000/api/components/${componentType}`,
@@ -113,6 +88,7 @@ function BrowseComponents() {
           setShowAlert(false);
         } else {
           newList = [...prev, id];
+
           if (newList.length === 1) {
             setShowAlert(true);
           } else {
@@ -151,16 +127,13 @@ function BrowseComponents() {
   const handleComponentClick = useCallback(
     (component) => {
       navigate(
-        `/browsecomponents/${type}/${component._id}?page=${currentPage}`,
-        { state: { filters, sortBy } }
+        `/browsecomponents/${type}/${component._id}?page=${currentPage}`
       );
     },
-    [navigate, type, currentPage, filters, sortBy]
+    [navigate, type, currentPage]
   );
 
   useEffect(() => {
-    // Clear saved state when type changes
-    sessionStorage.removeItem(`browseState-${type}`);
     setFilters({});
     setSortBy(null);
     navigate(`/browsecomponents/${type}?page=1`);
@@ -168,7 +141,7 @@ function BrowseComponents() {
 
   useEffect(() => {
     getComponents(type);
-  }, [type, getComponents, location.state]);
+  }, [type, getComponents]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });

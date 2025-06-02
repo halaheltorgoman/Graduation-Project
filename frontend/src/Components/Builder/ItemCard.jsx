@@ -4,6 +4,7 @@ import logo from "../../assets/images/logo.svg";
 import { FaStar } from "react-icons/fa";
 import { MdArrowOutward } from "react-icons/md";
 import { FaShare } from "react-icons/fa";
+import TransparentImage from "../TransparentImage/TransparentImage";
 
 const specTemplates = {
   cpu: [
@@ -145,7 +146,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
                   index === activeImage ? "border-b-2 border-purple-500" : ""
                 } p-1 cursor-pointer`}
               >
-                <img
+                <TransparentImage
                   className="w-12 h-12 object-contain"
                   src={image}
                   alt={item.name}
@@ -158,7 +159,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
               {/* <Heart className="w-6 h-6 text-primary" /> */}
             </button>
             <div className="px-8 py-16 border-b">
-              <img
+              <TransparentImage
                 className="w-full h-full object-contain"
                 src={images[activeImage]}
                 alt={item.name}

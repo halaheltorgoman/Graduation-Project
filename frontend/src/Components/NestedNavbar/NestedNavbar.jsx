@@ -61,7 +61,7 @@ function NestedNavBar() {
           </li>
           <li className="hover:text-white">
             <NavLink
-              to="/browsecomponents/cooling"
+              to="/browsecomponents/cooler"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"
               }
@@ -91,7 +91,7 @@ function NestedNavBar() {
           </li>
           <li className="hover:text-white ">
             <NavLink
-              to="/browsecomponents/power-supply"
+              to="/browsecomponents/psu"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"
               }

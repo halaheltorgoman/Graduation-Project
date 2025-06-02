@@ -365,7 +365,7 @@ function BrowseFilters({
           key: `${category}-${option}`,
           label: (
             <div
-              className={`sort-option ${isSelected ? "selected" : ""}`}
+              className={`sort-option${isSelected ? " selected" : ""}`}
               onClick={() => handleSortChange(category, option)}
             >
               {option}

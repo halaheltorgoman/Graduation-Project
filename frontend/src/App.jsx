@@ -23,6 +23,7 @@ import Verifysignupemail from "./Components/Verifysignupemail/Verifysignupemail"
 import Signupverification from "./Components/Signupverification/Signupverification";
 import { ContextProvider } from "./Context/ContextProvider";
 import { Routes, Route, useLocation } from "react-router-dom";
+import ForgotPasswordEmail from "./Components/ForgotPassword/ForgotPasswordEmail";	
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,13 @@ const router = createBrowserRouter([
       { path: "builder", element: <Builder /> },
       { path: "guides", element: <Guides /> },
       { path: "community", element: <Community /> },
+      {
+        path: "builder",
+        children: [
+          { index: true, element: <Navigate to="cpu" replace /> },
+          { path: ":type", element: <Builder /> },
+        ],
+      },
       {
         path: "browsecomponents",
         children: [
