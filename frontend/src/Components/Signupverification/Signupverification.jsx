@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button, Form, Input, Alert } from "antd";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import "./SignupVerification.css";
+import "./Signupverification.css";
 import logo from "../../assets/images/logo.svg";
 import axios from "axios";
 
@@ -14,6 +14,7 @@ const Signupverification = () => {
   const [error, setError] = useState("");
   const [email, setEmail] = useState("");
   const [inputError, setInputError] = useState(false);
+  const [showAlert, setShowAlert] = useState(false); // Added this line
   const inputRefs = useRef([]);
   const timerRef = useRef(null);
 
@@ -156,7 +157,6 @@ const Signupverification = () => {
     setError("");
     setInputError(false);
     const { state } = location;
-    setError("");
 
     if (!state?.userId) {
       showAlertMessage("User ID not found. Please sign up again.");
@@ -240,25 +240,25 @@ const Signupverification = () => {
             <div className="signupverification-error-message">{error}</div>
           )}
 
-            <div className="signupverification-code-container">
-              {[0, 1, 2, 3, 4, 5].map((index) => (
-                <Input
-                  key={index}
-                  id={`code-input-${index}`}
-                  ref={(el) => (inputRefs.current[index] = el)}
-                  className={`signupverification-code-input ${
-                    inputError ? "signupverification-input-error" : ""
-                  }`}
-                  maxLength={1}
-                  value={code[index]}
-                  onChange={(e) => handleCodeChange(index, e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(index, e)}
-                  onFocus={(e) => e.target.select()}
-                  disabled={isSubmitting}
-                  autoFocus={index === 0}
-                />
-              ))}
-            </div>
+          <div className="signupverification-code-container">
+            {[0, 1, 2, 3, 4, 5].map((index) => (
+              <Input
+                key={index}
+                id={`code-input-${index}`}
+                ref={(el) => (inputRefs.current[index] = el)}
+                className={`signupverification-code-input ${
+                  inputError ? "signupverification-input-error" : ""
+                }`}
+                maxLength={1}
+                value={code[index]}
+                onChange={(e) => handleCodeChange(index, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(index, e)}
+                onFocus={(e) => e.target.select()}
+                disabled={isSubmitting}
+                autoFocus={index === 0}
+              />
+            ))}
+          </div>
 
           <div className="signupverification-timer">
             {timeLeft > 0 ? (
@@ -304,4 +304,4 @@ const Signupverification = () => {
   );
 };
 
-export default SignupVerification;
+export default Signupverification;
