@@ -93,33 +93,61 @@ const initializeVectorStore = async () => {
 
     console.log(`Total documents to be added to vector store: ${documents.length}`);
 
-    try {
-      vectorStore = await Chroma.load({
-        collectionName: "pc_building_knowledge",
-        url: "http://localhost:8001",
-        apiVersion: "v2",
-        embeddings
-      });
+    // Add retry logic for ChromaDB connection
+    const maxRetries = 3;
+    let retryCount = 0;
+    let lastError = null;
 
-      const collection = await vectorStore.ensureCollection();
-      const count = await collection.count();
-      console.log(`Found existing collection with ${count} documents`);
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempt ${retryCount + 1} to connect to ChromaDB...`);
+        
+        // Try to load existing collection using the correct method
+        vectorStore = await Chroma.fromExistingCollection(embeddings, {
+          collectionName: "pc_building_knowledge",
+          url: "http://localhost:8001",
+          apiVersion: "v2"
+        });
 
-      if (count === 0) {
-        throw new Error('Empty collection, reinitializing...');
+        const collection = await vectorStore.ensureCollection();
+        const count = await collection.count();
+        console.log(`Found existing collection with ${count} documents`);
+
+        if (count === 0) {
+          console.log('Collection is empty, adding documents...');
+          await vectorStore.addDocuments(documents);
+          const newCount = await collection.count();
+          console.log(`Added ${newCount} documents to empty collection`);
+        } else {
+          console.log('Collection already has documents, skipping initialization');
+        }
+
+        // If we get here, everything worked
+        console.log('Vector store initialized successfully with ChromaDB');
+        return;
+      } catch (error) {
+        lastError = error;
+        console.log(`Attempt ${retryCount + 1} failed:`, error.message);
+        retryCount++;
+        
+        if (retryCount < maxRetries) {
+          console.log(`Waiting 5 seconds before retry...`);
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
       }
-    } catch (error) {
-      vectorStore = await Chroma.fromDocuments(documents, embeddings, {
-        collectionName: "pc_building_knowledge",
-        url: "http://localhost:8001",
-        apiVersion: "v2"
-      });
-
-      const collection = await vectorStore.ensureCollection();
-      const count = await collection.count();
-      console.log(`Vector store initialized with ${count} documents`);
     }
 
+    // If we get here, all retries failed
+    console.log('All retries failed, creating new collection...');
+    vectorStore = await Chroma.fromDocuments(documents, embeddings, {
+      collectionName: "pc_building_knowledge",
+      url: "http://localhost:8001",
+      apiVersion: "v2"
+    });
+
+    const collection = await vectorStore.ensureCollection();
+    const count = await collection.count();
+    console.log(`Created new collection with ${count} documents`);
     console.log('Vector store initialized successfully with ChromaDB');
   } catch (error) {
     console.error('Error initializing vector store:', error);
@@ -534,9 +562,22 @@ const ragService = {
     };
 
     try {
-      if (components.cpu && components.motherboard) {
-        const cpu = components.cpu[0];
-        const motherboard = components.motherboard[0];
+      // Skip compatibility check if no components are provided
+      if (!components || Object.keys(components).length === 0) {
+        return compatibilityResults;
+      }
+
+      if (components.cpu && components.cpu.length > 0 && components.motherboard && components.motherboard.length > 0) {
+        const cpu = {
+          ...components.cpu[0],
+          socket: components.cpu[0].socket,
+          MB_chipsets: components.cpu[0].MB_chipsets
+        };
+        const motherboard = {
+          ...components.motherboard[0],
+          MB_socket: components.motherboard[0].socket,
+          chipset: components.motherboard[0].chipset
+        };
         const check = buildService.checkCpuMotherboard(cpu, motherboard);
         compatibilityResults.checks.cpu_motherboard = check;
         if (!check.valid) {
@@ -545,9 +586,15 @@ const ragService = {
         }
       }
 
-      if (components.motherboard && components.case) {
-        const motherboard = components.motherboard[0];
-        const pcCase = components.case[0];
+      if (components.motherboard && components.motherboard.length > 0 && components.case && components.case.length > 0) {
+        const motherboard = {
+          ...components.motherboard[0],
+          MB_form: components.motherboard[0].formFactor
+        };
+        const pcCase = {
+          ...components.case[0],
+          supported_motherboards: components.case[0].supported_motherboards
+        };
         const check = buildService.checkMotherboardCase(motherboard, pcCase);
         compatibilityResults.checks.motherboard_case = check;
         if (!check.valid) {
@@ -556,9 +603,15 @@ const ragService = {
         }
       }
 
-      if (components.ram && components.motherboard) {
-        const memory = components.ram[0];
-        const motherboard = components.motherboard[0];
+      if (components.ram && components.ram.length > 0 && components.motherboard && components.motherboard.length > 0) {
+        const memory = {
+          ...components.ram[0],
+          DDR_generation: components.ram[0].type
+        };
+        const motherboard = {
+          ...components.motherboard[0],
+          supported_memory: components.motherboard[0].supported_memory
+        };
         const check = buildService.checkMemoryMotherboard(memory, motherboard);
         compatibilityResults.checks.memory_motherboard = check;
         if (!check.valid) {
@@ -567,9 +620,15 @@ const ragService = {
         }
       }
 
-      if (components.cpu && components.cooler) {
-        const cpu = components.cpu[0];
-        const cooler = components.cooler[0];
+      if (components.cpu && components.cpu.length > 0 && components.cooler && components.cooler.length > 0) {
+        const cpu = {
+          ...components.cpu[0],
+          socket: components.cpu[0].socket
+        };
+        const cooler = {
+          ...components.cooler[0],
+          compatible_cpu_sockets: components.cooler[0].compatible_sockets
+        };
         const check = buildService.checkCoolingCpu(cooler, cpu);
         compatibilityResults.checks.cooling_cpu = check;
         if (!check.valid) {
