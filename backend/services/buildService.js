@@ -431,7 +431,15 @@ const buildService = {
     const mbchipset = motherboard.chipset;
     const cpusocket = cpu.socket;
 
-    const isValid = cpusocket === mbsocket && cpuchipset.includes(mbchipset);
+    const socketCompatible = cpusocket === mbsocket;
+    
+    const chipsetCompatible = !cpuchipset || cpuchipset.length === 0 || cpuchipset.includes(mbchipset);
+
+    // Special case for AMD AM4 socket - all AM4 CPUs are compatible with AM4 motherboards
+    const isAM4Compatible = (cpusocket === 'AM4' && mbsocket === 'AM4');
+
+    const isValid = socketCompatible && (chipsetCompatible || isAM4Compatible);
+
     return {
       valid: isValid,
       message: isValid
@@ -486,13 +494,55 @@ const buildService = {
 
     const memoryGeneration = memory.DDR_generation;
     const motherboardMemory = motherboard.supported_memory;
-    const isValid = memoryGeneration === motherboardMemory;
+    // Normalize memory types for comparison
+    const normalizeMemoryType = (type) => {
+      if (!type) return '';
+      return type.toString().toUpperCase().trim();
+    };
+
+    const normalizedMemoryGen = normalizeMemoryType(memoryGeneration);
+    const normalizedMBMemory = normalizeMemoryType(motherboardMemory);
+
+    // Check for exact match
+    if (normalizedMemoryGen === normalizedMBMemory) {
+      return {
+        valid: true,
+        message: "Memory compatible with motherboard"
+      };
+    }
+
+    // Handle DDR4/DDR5 compatibility
+    // Some motherboards support both DDR4 and DDR5
+    if (Array.isArray(motherboardMemory)) {
+      const isCompatible = motherboardMemory.some(mbMem => 
+        normalizeMemoryType(mbMem) === normalizedMemoryGen
+      );
+      return {
+        valid: isCompatible,
+        message: isCompatible 
+          ? "Memory compatible with motherboard" 
+          : "Memory incompatible with motherboard"
+      };
+    }
+
+    // Handle backward compatibility cases
+    // Some motherboards support both DDR4 and DDR5
+    if (normalizedMBMemory.includes('DDR4') && normalizedMemoryGen === 'DDR4') {
+      return {
+        valid: true,
+        message: "Memory compatible with motherboard"
+      };
+    }
+    if (normalizedMBMemory.includes('DDR5') && normalizedMemoryGen === 'DDR5') {
+      return {
+        valid: true,
+        message: "Memory compatible with motherboard"
+      };
+    }
 
     return {
-      valid: isValid,
-      message: isValid
-        ? "Memory compatible with motherboard"
-        : "Memory incompatible with motherboard",
+      valid: false,
+      message: "Memory incompatible with motherboard"
     };
   },
 

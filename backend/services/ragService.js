@@ -627,7 +627,7 @@ const ragService = {
         };
         const cooler = {
           ...components.cooler[0],
-          compatible_cpu_sockets: components.cooler[0].compatible_sockets
+          compatible_cpu_sockets: components.cooler[0].compatible_cpu_sockets
         };
         const check = buildService.checkCoolingCpu(cooler, cpu);
         compatibilityResults.checks.cooling_cpu = check;
@@ -661,7 +661,6 @@ const ragService = {
       
       const relevantKnowledge = await ragService.getRelevantKnowledge(prompt);
       
-      const messageContext = extractMessageContext(prompt);
       const componentData = {};
 
       const componentTypes = Object.keys(componentModels);
@@ -682,6 +681,33 @@ const ragService = {
             filters.price = {
               $lte: maxBudget * (budgetAllocation[componentType] || 0.1)
             };
+          }
+
+          // Add compatibility-based filtering for CPU and motherboard
+          if (componentType === 'cpu' && componentData.motherboard?.length > 0) {
+            const selectedMB = componentData.motherboard[0];
+            filters.socket = selectedMB.MB_socket;
+          } else if (componentType === 'motherboard' && componentData.cpu?.length > 0) {
+            const selectedCPU = componentData.cpu[0];
+            filters.MB_socket = selectedCPU.socket;
+            if (selectedCPU.MB_chipsets && selectedCPU.MB_chipsets.length > 0) {
+              filters.chipset = { $in: selectedCPU.MB_chipsets };
+            }
+          } else if (componentType === 'ram' && componentData.motherboard?.length > 0) {
+            const selectedMB = componentData.motherboard[0];
+            if (selectedMB.supported_memory) {
+              // Handle both string and array types for supported_memory
+              const supportedMemory = Array.isArray(selectedMB.supported_memory) 
+                ? selectedMB.supported_memory 
+                : [selectedMB.supported_memory];
+              
+              filters.DDR_generation = { $in: supportedMemory };
+            }
+          } else if (componentType === 'motherboard' && componentData.ram?.length > 0) {
+            const selectedRAM = componentData.ram[0];
+            if (selectedRAM.DDR_generation) {
+              filters.supported_memory = selectedRAM.DDR_generation;
+            }
           }
 
           if (userContext.preferences?.preferredBrands?.length > 0) {
@@ -716,6 +742,10 @@ const ragService = {
               price: comp.price,
               rating: comp.rating,
               specifications: comp.specifications || {},
+              supported_motherboards: comp.supported_motherboards,
+              ...(componentType === 'cooler' && {
+                compatible_cpu_sockets: comp.compatible_cpu_sockets
+              }),
               ...(componentType === 'cpu' && {
                 cores: comp.cores,
                 threads: comp.threads,
@@ -747,41 +777,45 @@ const ragService = {
       
       // Construct a prompt with context, knowledge, and actual component data
       const enhancedPrompt = `
-        You are a PC building assistant. Use the following context, knowledge, and actual component data to answer the user's question:
-        
-        User Context:
+        You are a friendly and knowledgeable PC building assistant. Your goal is to help users with their PC building questions and needs.
+
+        Context:
         ${JSON.stringify(userContext)}
         
         Relevant Knowledge:
         ${JSON.stringify(relevantKnowledge)}
         
-        Available Components from Database:
+        Available Components:
         ${JSON.stringify(componentData)}
         
-        Component Compatibility Results:
+        Compatibility Status:
         ${JSON.stringify(compatibilityResults)}
         
         User Question: ${prompt}
-        
-        Please provide a helpful and accurate response based on:
-        1. The user's context and preferences
-        2. The relevant knowledge about PC building
-        3. The actual components available in our database
-        4. The compatibility between components
-        
-        Guidelines:
-        - Always use real components from our database when making recommendations
-        - Include specific prices, ratings, and specifications from our database
-        - Consider the user's preferences (budget, brands, use cases) when recommending components
-        - Ensure recommended components are compatible with each other
-        - For general questions about PC building, use the relevant knowledge
-        - Always be helpful, accurate, and concise
-        - When recommending components, explain why they're good choices based on:
-          * The user's preferences and requirements
-          * The component's specifications and ratings
-          * Price-to-performance ratio
-          * Compatibility with other components
-        - If there are compatibility issues, explain them clearly and suggest alternatives
+
+        Guidelines for your response:
+        1. Be conversational and natural - avoid robotic or overly formal language
+        2. Only recommend specific builds if the user explicitly asks for build recommendations
+        3. For general questions about PC building:
+           - Use the knowledge base to provide accurate information
+           - Explain concepts in simple terms
+           - Share practical tips and best practices
+        4. For component-specific questions:
+           - Focus on explaining the components and their features
+           - Only suggest specific components if asked
+           - Consider the user's preferences and budget when mentioned
+        5. For compatibility questions:
+           - Explain compatibility requirements clearly
+           - Suggest solutions for any compatibility issues
+           - Be helpful in finding alternatives if needed
+        6. Always:
+           - Be friendly and approachable
+           - Use natural language and avoid technical jargon unless necessary
+           - Provide context and explanations for your answers
+           - Ask clarifying questions if the user's request is unclear
+           - Focus on answering what was actually asked
+
+        Remember: You are having a conversation, not just providing information. Make your responses feel natural and engaging.
       `;
 
       const response = await axios.post(`${process.env.OLLAMA_URL}/api/generate`, {
@@ -808,56 +842,6 @@ const ragService = {
       throw error;
     }
   },
-
-//   /**
-//    * Generate a PC build based on user requirements
-//    * @param {Object} requirements - User requirements for the build
-//    * @returns {Promise<Object>} - The generated build
-//    */
-//   generateBuild: async (requirements) => {
-//     try {
-//       const { budget, purpose, performance, preferences = [] } = requirements;
-      
-//       // Find relevant build type based on requirements
-//       let relevantBuildType = null;
-      
-//       if (purpose === 'gaming') {
-//         if (budget <= 800) {
-//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-gaming');
-//         } else if (budget <= 1500) {
-//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'mid-range-gaming');
-//         } else {
-//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'high-end-gaming');
-//         }
-//       } else if (purpose === 'productivity') {
-//         if (budget <= 800) {
-//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'budget-productivity');
-//         } else {
-//           relevantBuildType = pcBuildingKnowledge.buildTypes.find(b => b.id === 'productivity');
-//         }
-//       }
-      
-//       // If no specific build type is found, use a default
-//       if (!relevantBuildType) {
-//         relevantBuildType = pcBuildingKnowledge.buildTypes[0]; // Default to budget gaming
-//       }
-      
-//       return {
-//         buildType: relevantBuildType.title,
-//         recommendations: relevantBuildType.content,
-//         requirements: {
-//           budget,
-//           purpose,
-//           performance,
-//           preferences
-//         },
-//         message: "This is a recommendation based on your requirements. For actual components, please use the component selection interface."
-//       };
-//     } catch (error) {
-//       console.error('Error generating build:', error);
-//       throw error;
-//     }
-//   }
 };
 
 module.exports = ragService; 
