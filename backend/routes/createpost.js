@@ -3,7 +3,7 @@ const router = express.Router();
 const { postStorage } = require("../config/cloudinary");
 const multer = require("multer");
 const postController = require("../controllers/postController");
-const userAuth = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const uploadPostImages = multer({
   storage: postStorage,
@@ -16,8 +16,11 @@ const uploadPostImages = multer({
   limits: { fileSize: 5 * 1024 * 1024, files: 5 },
 }).array("images", 5);
 
-router.post("/", userAuth, uploadPostImages, postController.createPost);
-
-router.get("/posts", postController.getAllPosts);
+router.post(
+  "/create",
+  authMiddleware,
+  uploadPostImages,
+  postController.createPost
+);
 
 module.exports = router;

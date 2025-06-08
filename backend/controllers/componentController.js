@@ -47,6 +47,11 @@ exports.getComponentsByType = async (req, res) => {
     const queryParams = req.query;
     console.log("Received API request with params:", queryParams);
 
+    // Pagination parameters
+    const page = parseInt(queryParams.page) || 1;
+    const pageSize = parseInt(queryParams.pageSize) || 15;
+    const skip = (page - 1) * pageSize;
+
     // Build base filter
     const filter = {};
 
@@ -92,8 +97,6 @@ exports.getComponentsByType = async (req, res) => {
     // Component-specific filters
     const componentType = type.toLowerCase();
     if (componentType === "cpu") {
-      // Manufacturer filter
-
       if (queryParams.socket) {
         filter.socket = {
           $in: Array.isArray(queryParams.socket)
@@ -101,7 +104,6 @@ exports.getComponentsByType = async (req, res) => {
             : [queryParams.socket],
         };
       }
-      // Updated cores filter (now accepts array of values)
       if (queryParams.cores) {
         filter.cores = {
           $in: Array.isArray(queryParams.cores)
@@ -109,8 +111,6 @@ exports.getComponentsByType = async (req, res) => {
             : [parseInt(queryParams.cores)],
         };
       }
-
-      // Updated threads filter (now accepts array of values)
       if (queryParams.threads) {
         filter.threads = {
           $in: Array.isArray(queryParams.threads)
@@ -143,7 +143,6 @@ exports.getComponentsByType = async (req, res) => {
         };
       }
     } else if (componentType === "motherboard") {
-      // Socket Type filter
       if (queryParams.MB_socket) {
         filter.MB_socket = {
           $in: Array.isArray(queryParams.MB_socket)
@@ -151,20 +150,14 @@ exports.getComponentsByType = async (req, res) => {
             : [queryParams.MB_socket],
         };
       }
-
-      // Supported Memory filter
       if (queryParams.supported_memory) {
-        // Note: lowercase from frontend conversion
         filter.supported_memory = {
           $in: Array.isArray(queryParams.supported_memory)
             ? queryParams.supported_memory
             : [queryParams.supported_memory],
         };
       }
-
-      // Form Factor filter
       if (queryParams.MB_form) {
-        // Option 1: Exact matching (best for consistent data)
         filter.MB_form = {
           $in: Array.isArray(queryParams.MB_form)
             ? queryParams.MB_form
@@ -219,36 +212,95 @@ exports.getComponentsByType = async (req, res) => {
         };
       }
     }
+
     console.log("Final filter object:", JSON.stringify(filter, null, 2));
 
     let components = [];
+    let totalCount = 0;
 
     if (componentType === "all") {
-      // Fetch from all component models
-      const promises = Object.keys(componentModels).map(async (key) => {
-        return await componentModels[key].find(filter);
+      // For 'all' type, handle cross-collection queries
+      const countPromises = Object.keys(componentModels).map(async (key) => {
+        return await componentModels[key].countDocuments(filter);
       });
-      const results = await Promise.all(promises);
-      components = results.flat();
+      const counts = await Promise.all(countPromises);
+      totalCount = counts.reduce((sum, count) => sum + count, 0);
+
+      // Get components from all collections
+      const dataPromises = Object.keys(componentModels).map(async (key) => {
+        let query = componentModels[key].find(filter);
+
+        // Apply sorting if specified
+        if (queryParams.sortBy) {
+          const [field, order] = queryParams.sortBy.split(":");
+          const sortOrder = order === "desc" ? -1 : 1;
+          query = query.sort({ [field]: sortOrder });
+        }
+
+        return await query.exec();
+      });
+
+      const results = await Promise.all(dataPromises);
+      let allComponents = results.flat();
+
+      // Sort the combined results if needed
+      if (queryParams.sortBy) {
+        const [field, order] = queryParams.sortBy.split(":");
+        allComponents.sort((a, b) => {
+          const aVal = a[field] || 0;
+          const bVal = b[field] || 0;
+          return order === "desc" ? bVal - aVal : aVal - bVal;
+        });
+      }
+
+      // Apply pagination AFTER sorting and combining
+      components = allComponents.slice(skip, skip + pageSize);
+
+      // Update totalCount based on actual filtered results
+      totalCount = allComponents.length;
     } else {
       // Fetch from a specific component type
       const Model = getComponentModel(componentType);
       if (!Model) {
         return res.status(400).json({ message: "Invalid component type" });
       }
-      components = await Model.find(filter);
+
+      // Get total count for pagination
+      totalCount = await Model.countDocuments(filter);
+
+      // Build the query
+      let query = Model.find(filter);
+
+      // Apply sorting if specified
+      if (queryParams.sortBy) {
+        const [field, order] = queryParams.sortBy.split(":");
+        const sortOrder = order === "desc" ? -1 : 1;
+        query = query.sort({ [field]: sortOrder });
+      }
+
+      // Apply pagination
+      components = await query.skip(skip).limit(pageSize);
     }
 
-    // Sorting
-    if (queryParams.sortBy) {
-      const [field, order] = queryParams.sortBy.split(":");
-      components.sort((a, b) =>
-        order === "desc" ? b[field] - a[field] : a[field] - b[field]
-      );
-    }
+    console.log(
+      `Returning ${components.length} components out of ${totalCount} total`
+    );
 
-    console.log(`Returning ${components.length} components`);
-    res.json(components);
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    // Return paginated response with metadata
+    res.json({
+      components,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalCount,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (err) {
     console.error("Error in getComponentsByType:", err);
     res.status(500).json({ message: "Server error", error: err.message });

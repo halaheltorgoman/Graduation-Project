@@ -13,6 +13,7 @@ authRouter.post("/verify-account", authController.verifyAccount);
 authRouter.get("/user-info", authController.getUserInfo);
 authRouter.post("/is-auth", authMiddleware, authController.isAuthenticated);
 authRouter.post("/send-reset-otp", authController.sendResetOtp);
+authRouter.post("/verify-reset-otp", authController.verifyResetOtp);
 authRouter.post("/reset-password", authController.resetPassword);
 authRouter.get("/me", authMiddleware, authController.getMe);
 
