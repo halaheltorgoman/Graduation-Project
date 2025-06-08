@@ -1,124 +1,15 @@
-// import React, { useEffect, useState } from "react";
-// import { Button } from "../ui/button";
-// import logo from "../../assets/images/logo.svg";
-// import axios from "axios";
-// import "./FullBuildSummary.css";
-
-// const FullBuildSummary = ({ fullBuild, loading }) => {
-//   const [totalPrice, setTotalPrice] = useState(null);
-//   const [priceLoading, setPriceLoading] = useState(false);
-
-//   // Get buildId from fullBuild object
-//   const buildId = fullBuild?._id;
-
-//   useEffect(() => {
-//     const fetchTotalPrice = async () => {
-//       if (!buildId) return;
-//       setPriceLoading(true);
-//       try {
-//         const { data } = await axios.get(
-//           `http://localhost:4000/api/build/${buildId}/price`,
-//           { withCredentials: true }
-//         );
-//         setTotalPrice(data.totalPrice);
-//       } catch (err) {
-//         setTotalPrice(null);
-//       } finally {
-//         setPriceLoading(false);
-//       }
-//     };
-//     fetchTotalPrice();
-//   }, [buildId]);
-
-//   if (loading) {
-//     return (
-//       <div className="fullbuild-loading">
-//         <span className="loader"></span>
-//       </div>
-//     );
-//   }
-//   if (!fullBuild) {
-//     return (
-//       <div className="fullbuild-empty">
-//         <div className="fullbuild-empty-message">
-//           Full build view coming soon!
-//         </div>
-//         <div className="fullbuild-share">
-//           <Button variant="link" className="fullbuild-share-btn">
-//             <img src={logo} alt="share" className="fullbuild-share-icon" />
-//             Share
-//           </Button>
-//         </div>
-//       </div>
-//     );
-//   }
-//   return (
-//     <div className="fullbuild-container">
-//       <h2 className="fullbuild-title">Your Build Summary</h2>
-//       <div className="fullbuild-table">
-//         <div className="fullbuild-row fullbuild-header">
-//           <div className="fullbuild-col type">Type</div>
-//           <div className="fullbuild-col image">Image</div>
-//           <div className="fullbuild-col name">Name</div>
-//           <div className="fullbuild-col brand">Brand</div>
-//           <div className="fullbuild-col price">Price</div>
-//         </div>
-//         {Object.entries(fullBuild.components).map(([compType, comp]) => (
-//           <div className="fullbuild-row" key={compType}>
-//             <div className="fullbuild-col type">{compType.toUpperCase()}</div>
-//             <div className="fullbuild-col image">
-//               {comp?.image_source && (
-//                 <img
-//                   src={comp.image_source}
-//                   alt={comp.title || comp.product_name}
-//                   className="fullbuild-img"
-//                 />
-//               )}
-//             </div>
-//             <div className="fullbuild-col name">
-//               {comp?.title || comp?.product_name}
-//             </div>
-//             <div className="fullbuild-col brand">
-//               {comp?.manufacturer || comp?.brand}
-//             </div>
-//             <div className="fullbuild-col price_val">
-//               {comp?.price !== undefined
-//                 ? `$${comp.price.toLocaleString()}`
-//                 : "--"}
-//             </div>
-//           </div>
-//         ))}
-//       </div>
-//       <div className="fullbuild-total">
-//         <span>Total Price:</span>
-//         <span className="fullbuild-total-value">
-//           {priceLoading
-//             ? "Calculating..."
-//             : totalPrice !== null
-//             ? `$${totalPrice.toLocaleString()}`
-//             : "--"}
-//         </span>
-//       </div>
-//       <div className="fullbuild-share">
-//         <Button variant="link" className="fullbuild-share-btn">
-//           <img src={logo} alt="share" className="fullbuild-share-icon" />
-//           Share
-//         </Button>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FullBuildSummary;
 import React, { useEffect, useState } from "react";
 import { Button, Modal, Input, message } from "antd";
 import logo from "../../assets/images/logo.svg";
 import axios from "axios";
+import { FiRefreshCw } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import "./FullBuildSummary.css";
 
 const FullBuildSummary = ({ fullBuild, loading }) => {
   const [totalPrice, setTotalPrice] = useState(null);
   const [priceLoading, setPriceLoading] = useState(false);
+  const navigate = useNavigate();
 
   // For Complete Build popup
   const [showModal, setShowModal] = useState(false);
@@ -148,6 +39,11 @@ const FullBuildSummary = ({ fullBuild, loading }) => {
     fetchTotalPrice();
   }, [buildId]);
 
+  // Handle refresh button click - navigate to builder page for the component type
+  const handleRefreshClick = (componentType) => {
+    navigate(`/builder/${componentType}?fromBuild=${buildId}`);
+  };
+
   // Handle Complete Build
   const handleCompleteBuild = async () => {
     setSaving(true);
@@ -157,7 +53,7 @@ const FullBuildSummary = ({ fullBuild, loading }) => {
         {
           title: buildTitle,
           description: buildDescription,
-          shareToCommunity: false, // or true if you want to share
+          shareToCommunity: false,
         },
         { withCredentials: true }
       );
@@ -165,7 +61,6 @@ const FullBuildSummary = ({ fullBuild, loading }) => {
       setShowModal(false);
       setBuildTitle("");
       setBuildDescription("");
-      // Optionally: trigger a refresh or redirect to profile
     } catch (err) {
       message.error(err.response?.data?.message || "Failed to complete build.");
     } finally {
@@ -195,17 +90,21 @@ const FullBuildSummary = ({ fullBuild, loading }) => {
       </div>
     );
   }
+
   return (
     <div className="fullbuild-container">
       <h2 className="fullbuild-title">Your Build Summary</h2>
       <div className="fullbuild-table">
-        <div className="fullbuild-row fullbuild-header">
-          <div className="fullbuild-col type">Type</div>
-          <div className="fullbuild-col image">Image</div>
-          <div className="fullbuild-col name">Name</div>
-          <div className="fullbuild-col brand">Brand</div>
-          <div className="fullbuild-col price">Price</div>
-        </div>
+      <div className="fullbuild-row fullbuild-header">
+  <div className="fullbuild-col type">Type</div>
+  <div className="fullbuild-col image">Image</div>
+  <div className="fullbuild-col name">Name</div>
+  <div className="fullbuild-col brand">Brand</div>
+  <div className="fullbuild-col price">Price</div>
+  <div className="fullbuild-col refresh">
+    <span className="refresh-text">Replace</span>
+  </div>
+</div>
         {Object.entries(fullBuild.components).map(([compType, comp]) => (
           <div className="fullbuild-row" key={compType}>
             <div className="fullbuild-col type">{compType.toUpperCase()}</div>
@@ -228,6 +127,15 @@ const FullBuildSummary = ({ fullBuild, loading }) => {
               {comp?.price !== undefined
                 ? `$${comp.price.toLocaleString()}`
                 : "--"}
+            </div>
+            <div className="fullbuild-col refresh">
+              <button 
+                className="fullbuild-refresh-btn"
+                onClick={() => handleRefreshClick(compType)}
+                aria-label={`Replace ${compType}`}
+              >
+                <FiRefreshCw />
+              </button>
             </div>
           </div>
         ))}

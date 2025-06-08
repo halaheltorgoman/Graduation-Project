@@ -1,38 +1,54 @@
-import React, { useState } from "react";
-import BuildDummy from "../../assets/images/build_dummy.svg";
-import ProfileBuildDetails from "./ProfileBuildDetails";
-import "./ProfileBuildCard.css";
+import React from "react";
+import CompletedBuildCard from "./CompleteBuildCard";
+import SavedPostCard from "./SavedPostCard";
+import SavedComponentCard from "./SavedComponentCard";
 
-function ProfileBuildCard({ build, onDeleteBuild }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [title, setTitle] = useState(build.title);
+function ProfileBuildCard({
+  build,
+  onDeleteBuild,
+  onRefreshComponent,
+  onSaveChanges,
+  onUseComponent,
+  type = "build", // "build", "post", or "component"
+}) {
+  // Determine the type if not explicitly provided
+  const getCardType = () => {
+    if (type !== "build") return type;
+    if (build.isPost) return "post";
+    if (build.type === "component" || build.category) return "component";
+    return "build";
+  };
 
-  const toggleDetails = () => setIsExpanded(!isExpanded);
+  const cardType = getCardType();
 
-  return (
-    <div className="profile_buildCard">
-      <div className="profile_buildCard_main">
-        <div className="profile_buildCard_info">
-          <img src={build.image_source || BuildDummy} width={120} alt="Build" />
-          <h3 className="profile_buildCard_title">{build.title}</h3>
-        </div>
-        <div className="profile_buildCard_buttons">
-          <button className="profile_buildCard_Edit" onClick={toggleDetails}>
-            {isExpanded ? "Close" : "Edit"}
-          </button>
-          <button className="profile_buildCard_Share">Share</button>
-        </div>
-      </div>
-      {isExpanded && (
-        <ProfileBuildDetails
-          title={title}
-          setTitle={setTitle}
+  switch (cardType) {
+    case "post":
+      return (
+        <SavedPostCard
+          build={build}
           onDeleteBuild={onDeleteBuild}
-          build={build} // Pass the full build object
+          onRefreshComponent={onRefreshComponent}
         />
-      )}
-    </div>
-  );
+      );
+    case "component":
+      return (
+        <SavedComponentCard
+          component={build}
+          onDeleteComponent={onDeleteBuild}
+          onUseComponent={onUseComponent}
+        />
+      );
+    case "build":
+    default:
+      return (
+        <CompletedBuildCard
+          build={build}
+          onDeleteBuild={onDeleteBuild}
+          onRefreshComponent={onRefreshComponent}
+          onSaveChanges={onSaveChanges}
+        />
+      );
+  }
 }
 
 export default ProfileBuildCard;

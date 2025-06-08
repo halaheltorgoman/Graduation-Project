@@ -26,6 +26,8 @@ const COMPONENT_FILTERS = {
   },
   gpu: {
     Manufacturer: ["NVIDIA", "AMD", "Intel"],
+
+    // "Memory Type": ["GDDR5", "GDDR6", "GDDR6X"],
     Brand: [
       "MSI",
       "SAPPHIRE",
@@ -38,12 +40,14 @@ const COMPONENT_FILTERS = {
       "PNY",
     ],
   },
+
   motherboard: {
     Brand: ["MSI", "ASUS", "Gigabyte"],
     "Supported Socket": ["LGA 1700", "AM5", "LGA 1200", "AM4"],
     "Supported Memory": ["DDR4", "DDR5"],
     "Form Factor": ["ATX", "Micro-ATX", "Extended-ATX"],
   },
+
   case: {
     Brand: [
       "NZXT",
@@ -146,7 +150,7 @@ const sortingCategories = {
   Rating: ["Low to High", "High to Low"],
 };
 
-function BrowseFilters({
+function GuidesFilters({
   onSortChange,
   onFilterChange,
   initialFilters = {},
@@ -166,153 +170,15 @@ function BrowseFilters({
       const { data } = await axios.get(
         `http://localhost:4000/api/components/${type}/max-price`
       );
-      const fetchedMaxPrice = data.maxPrice || 1000;
-      setMaxPrice(fetchedMaxPrice);
-
-      // If no initial price filters, set to full range
-      if (!initialFilters.minPrice && !initialFilters.maxPrice) {
-        setPriceRange([0, fetchedMaxPrice]);
-      }
+      setMaxPrice(data.maxPrice || 1000);
+      setPriceRange([0, data.maxPrice || 1000]);
     } catch (error) {
       message.error("Failed to fetch price range");
       console.error("Error fetching max price:", error);
     } finally {
       setLoading(false);
     }
-  }, [type, initialFilters.minPrice, initialFilters.maxPrice]);
-
-  // Convert API filters back to UI filter format
-  const convertAPIFiltersToUI = useCallback((apiFilters) => {
-    const uiFilters = [];
-
-    if (apiFilters.manufacturer) {
-      const manufacturers = Array.isArray(apiFilters.manufacturer)
-        ? apiFilters.manufacturer
-        : [apiFilters.manufacturer];
-      manufacturers.forEach((m) => {
-        uiFilters.push({ category: "Manufacturer", value: m });
-      });
-    }
-
-    if (apiFilters.brand) {
-      const brands = Array.isArray(apiFilters.brand)
-        ? apiFilters.brand
-        : [apiFilters.brand];
-      brands.forEach((b) => {
-        uiFilters.push({ category: "Brand", value: b });
-      });
-    }
-
-    if (apiFilters.socket) {
-      const sockets = Array.isArray(apiFilters.socket)
-        ? apiFilters.socket
-        : [apiFilters.socket];
-      sockets.forEach((s) => {
-        uiFilters.push({ category: "Socket Type", value: s });
-      });
-    }
-
-    if (apiFilters.cores) {
-      const cores = Array.isArray(apiFilters.cores)
-        ? apiFilters.cores
-        : [apiFilters.cores];
-      cores.forEach((c) => {
-        uiFilters.push({ category: "Number of Cores", value: c.toString() });
-      });
-    }
-
-    if (apiFilters.threads) {
-      const threads = Array.isArray(apiFilters.threads)
-        ? apiFilters.threads
-        : [apiFilters.threads];
-      threads.forEach((t) => {
-        uiFilters.push({ category: "Number of Threads", value: t.toString() });
-      });
-    }
-
-    if (apiFilters.MB_socket) {
-      const mbSockets = Array.isArray(apiFilters.MB_socket)
-        ? apiFilters.MB_socket
-        : [apiFilters.MB_socket];
-      mbSockets.forEach((s) => {
-        uiFilters.push({ category: "Supported Socket", value: s });
-      });
-    }
-
-    if (apiFilters.supported_memory) {
-      const memory = Array.isArray(apiFilters.supported_memory)
-        ? apiFilters.supported_memory
-        : [apiFilters.supported_memory];
-      memory.forEach((m) => {
-        uiFilters.push({ category: "Supported Memory", value: m });
-      });
-    }
-
-    if (apiFilters.MB_form) {
-      const forms = Array.isArray(apiFilters.MB_form)
-        ? apiFilters.MB_form
-        : [apiFilters.MB_form];
-      forms.forEach((f) => {
-        uiFilters.push({ category: "Form Factor", value: f });
-      });
-    }
-
-    if (apiFilters.case_type) {
-      const caseTypes = Array.isArray(apiFilters.case_type)
-        ? apiFilters.case_type
-        : [apiFilters.case_type];
-      caseTypes.forEach((c) => {
-        uiFilters.push({ category: "Case Size", value: c });
-      });
-    }
-
-    if (apiFilters.color) {
-      const colors = Array.isArray(apiFilters.color)
-        ? apiFilters.color
-        : [apiFilters.color];
-      colors.forEach((c) => {
-        uiFilters.push({ category: "Color", value: c });
-      });
-    }
-
-    if (apiFilters.cooling_method) {
-      const methods = Array.isArray(apiFilters.cooling_method)
-        ? apiFilters.cooling_method
-        : [apiFilters.cooling_method];
-      methods.forEach((m) => {
-        uiFilters.push({ category: "Type", value: m });
-      });
-    }
-
-    if (apiFilters.DDR_generation) {
-      const ddrTypes = Array.isArray(apiFilters.DDR_generation)
-        ? apiFilters.DDR_generation
-        : [apiFilters.DDR_generation];
-      ddrTypes.forEach((d) => {
-        uiFilters.push({ category: "Memory Type", value: d });
-      });
-    }
-
-    if (apiFilters.memory_size) {
-      const memorySizes = Array.isArray(apiFilters.memory_size)
-        ? apiFilters.memory_size
-        : [apiFilters.memory_size];
-      memorySizes.forEach((m) => {
-        uiFilters.push({ category: "Memory Size", value: m });
-      });
-    }
-
-    if (apiFilters.size) {
-      const sizes = Array.isArray(apiFilters.size)
-        ? apiFilters.size
-        : [apiFilters.size];
-      sizes.forEach((s) => {
-        uiFilters.push({ category: "Capacity", value: s });
-      });
-    }
-
-    return uiFilters;
-  }, []);
+  }, [type]);
 
   const clearAllFilters = useCallback(() => {
     setSelectedFilters([]);
@@ -353,6 +219,7 @@ function BrowseFilters({
           case "Supported Socket":
             apiParams.MB_socket = values;
             break;
+
           case "Supported Memory":
             apiParams.supported_memory = values;
             break;
@@ -376,7 +243,6 @@ function BrowseFilters({
             break;
           case "Capacity":
             apiParams.size = values;
-            break;
         }
       });
 
@@ -397,12 +263,7 @@ function BrowseFilters({
         const updated = checked
           ? [...prev, { category, value }]
           : prev.filter((f) => !(f.category === category && f.value === value));
-
-        // Use setTimeout to avoid setState during render
-        setTimeout(() => {
-          updateAPIFilters(updated, priceRange);
-        }, 0);
-
+        updateAPIFilters(updated, priceRange);
         return updated;
       });
     },
@@ -412,11 +273,7 @@ function BrowseFilters({
   const handlePriceSliderChange = useCallback(
     (range) => {
       setPriceRange(range);
-
-      // Use setTimeout to avoid setState during render
-      setTimeout(() => {
-        updateAPIFilters(selectedFilters, range);
-      }, 0);
+      updateAPIFilters(selectedFilters, range);
     },
     [selectedFilters, updateAPIFilters]
   );
@@ -430,11 +287,7 @@ function BrowseFilters({
 
   const handleRemovePriceFilter = useCallback(() => {
     setPriceRange([0, maxPrice]);
-
-    // Use setTimeout to avoid setState during render
-    setTimeout(() => {
-      updateAPIFilters(selectedFilters, [0, maxPrice]);
-    }, 0);
+    updateAPIFilters(selectedFilters, [0, maxPrice]);
   }, [maxPrice, selectedFilters, updateAPIFilters]);
 
   const handleSortChange = useCallback(
@@ -450,7 +303,12 @@ function BrowseFilters({
     [onSortChange]
   );
 
-  // Set filter categories based on component type
+  useEffect(() => {
+    if (type && type !== "all") {
+      fetchMaxPrice();
+    }
+  }, [type, fetchMaxPrice]);
+
   useEffect(() => {
     const componentType = type?.toLowerCase();
     if (componentType === "all") {
@@ -458,38 +316,18 @@ function BrowseFilters({
     } else {
       setFilterCategories(COMPONENT_FILTERS[componentType] || {});
     }
-  }, [type]);
+    clearAllFilters();
+  }, [type, clearAllFilters]);
 
-  // Fetch max price when type changes
   useEffect(() => {
-    if (type && type !== "all") {
-      fetchMaxPrice();
-    }
-  }, [type, fetchMaxPrice]);
-
-  // Initialize/update filters when initialFilters change
-  useEffect(() => {
-    const uiFilters = convertAPIFiltersToUI(initialFilters);
-    setSelectedFilters(uiFilters);
-
-    // Set price range if specified in initial filters
-    if (
-      initialFilters.minPrice !== undefined ||
-      initialFilters.maxPrice !== undefined
-    ) {
-      const minPrice = initialFilters.minPrice || 0;
-      const maxPriceVal = initialFilters.maxPrice || maxPrice;
-      setPriceRange([minPrice, maxPriceVal]);
-    } else if (Object.keys(initialFilters).length === 0) {
-      // Reset price range when no filters
+    if (Object.keys(initialFilters).length === 0) {
+      setSelectedFilters([]);
       setPriceRange([0, maxPrice]);
     }
-  }, [initialFilters, convertAPIFiltersToUI, maxPrice]);
-
-  // Set initial sort
-  useEffect(() => {
-    setSelectedSort(initialSort);
-  }, [initialSort]);
+    if (!initialSort) {
+      setSelectedSort(null);
+    }
+  }, [initialFilters, initialSort, maxPrice]);
 
   const filterItems = Object.entries(filterCategories).map(
     ([category, options]) => ({
@@ -527,7 +365,7 @@ function BrowseFilters({
           key: `${category}-${option}`,
           label: (
             <div
-              className={`sort-option${isSelected ? " selected" : ""}`}
+              className={`sort-option ${isSelected ? "selected" : ""}`}
               onClick={() => handleSortChange(category, option)}
             >
               {option}
@@ -627,4 +465,4 @@ function BrowseFilters({
   );
 }
 
-export default BrowseFilters;
+export default GuidesFilters;

@@ -1,7 +1,9 @@
-import React from "react";
+import React from 'react'
 
 function ProfileComponentCard() {
-  return <div>ProfileComponentCard</div>;
+  return (
+    <div>ProfileComponentCard</div>
+  )
 }
 
-export default ProfileComponentCard;
+export default ProfileComponentCard

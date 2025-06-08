@@ -1,0 +1,220 @@
+.community_post {
+  background-color: rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  padding: 20px;
+  border-radius: 15px;
+  border-left: 4px solid rgba(128, 0, 128, 0.134);
+  transition: transform 0.2s ease;
+  margin-bottom: 2em;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.community_post:hover {
+  transform: translateY(-3px);
+}
+
+/* Post header */
+.community_post_header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.postHeader_userInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5em;
+}
+.postHeader_userInfo_firstpart {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  width: 100%; /* Take full width */
+}
+
+.post_username {
+  font-size: 14px;
+  align-self: center;
+  font-weight: bold;
+
+  color: var(--purple);
+}
+
+.post_timeposted {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.post_username,
+.post_timeposted {
+  color: var(--text-dark-muted);
+  white-space: nowrap;
+}
+.community_default-avatar-icon {
+  font-size: 0.8rem;
+  background-color: rgba(191, 48, 217, 1);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  padding: 10px;
+}
+
+/* Post description */
+.postHeader_desc p {
+  margin-top: 0.5em;
+  color: white;
+  font-size: 14px;
+  font-weight: 200;
+}
+
+.post_buildImage {
+  width: 50%; /* Takes 50% of parent width */
+  height: auto; /* Maintain aspect ratio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; /* Ensures image doesn't overflow its container */
+}
+.community_post_info_sec {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  width: 100%;
+}
+.post_averageRating {
+  align-self: flex-end;
+}
+.post_buildImage img {
+  width: 100%; /* Makes image fill its container */
+  height: 100%; /* Makes image fill its container */
+  object-fit: cover; /* Ensures image covers the area without distortion */
+}
+
+.post_buildContent {
+  width: 100%; /* Takes the other 50% of parent width */
+  padding: 1em; /* Reduced from 5em for better proportions */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.post_buildTitle {
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  align-self: flex-start;
+}
+.post_buildDesc {
+  font-size: 16px;
+  color: white;
+}
+.post_buildUser_Rate {
+  display: flex;
+  align-content: center;
+  align-self: flex-end;
+}
+.post_buildUser_Rate p {
+  font-size: 13px;
+  margin: 0;
+  align-self: center;
+  font-weight: 200;
+  padding-top: 6px; /* or margin-top: 2px */
+}
+.post_rate_stars {
+  align-self: center;
+  font-size: 16px;
+}
+.post_rate_stars .ant-rate-star {
+  font-size: 16px; /* size */
+  color: #bf30d9;
+  margin-right: 2px;
+}
+.post_rate_stars .ant-rate-star-full {
+  color: #bf30d9;
+}
+
+/* HALF-FILLED star (left side visible) */
+.post_rate_stars .ant-rate-star-half .ant-rate-star-first .anticon {
+  color: #bf30d9;
+}
+
+/* EMPTY or unfilled (right side or whole) */
+.post_rate_stars .ant-rate-star-zero .anticon,
+.post_rate_stars .ant-rate-star-half .ant-rate-star-second .anticon {
+  color: #d9d9d9;
+}
+
+.post_rate_stars .ant-rate-star-half .ant-rate-star-first {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-zero .ant-rate-star-second {
+  color: #d9d9d9;
+}
+
+.post_rate_stars .ant-rate-star-full .ant-rate-star-second {
+  color: #bf30d9;
+}
+
+.community_post_footer {
+  display: flex;
+  justify-content: flex-end;
+}
+.community_post_icons {
+  display: flex;
+  justify-content: space-between;
+  gap: 2em;
+}
+/* Post content and footer (placeholders) */
+.community_post_content,
+.community_post_footer,
+.community_comment {
+  margin-top: 1em;
+}
+
+.community_post_content {
+  background-color: rgba(0, 0, 0, 0.15);
+  width: 100%;
+  display: flex;
+}
+
+.community_spin .ant-spin-dot-item {
+  background-color: white !important; /* change to your desired color (blue here) */
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 200px;
+  gap: 1rem;
+}
+
+.loading-container p {
+  font-size: 1rem;
+  color: #666;
+}
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adjust this value as needed */
+}
+
+/* Ensure the time stays inline with username */
+.user-info-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.post_userName,
+.post_timeposted {
+  white-space: nowrap;
+}

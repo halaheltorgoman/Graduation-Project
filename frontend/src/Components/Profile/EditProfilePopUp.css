@@ -1,6 +1,6 @@
 .editProfile {
   background: rgba(83, 87, 99, 0.39);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -13,22 +13,24 @@
   max-width: 500px;
   padding: 2em;
   border-radius: 12px;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 4px 5px rgba(183, 116, 219, 0.547);
   gap: 2em;
   font-size: 14px;
   font-weight: 400;
   transition: all 0.3s ease-in-out;
 }
+
 .profile-container {
   display: flex;
   flex-direction: column;
   width: 100%;
   gap: 0.8em;
 }
+
 .profile_error {
   color: red;
 }
-/* Profile Section: Aligning Image & Edit Icon */
+
 .editProfile_main {
   display: flex;
   align-items: center;
@@ -36,12 +38,11 @@
   gap: 1em;
   width: 100%;
 }
-/* Profile Image Circle */
+
 .profile-avatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background-color: #f0f0f0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,14 +56,12 @@
   object-fit: cover;
 }
 
-/* Avatar Icon */
 .default-avatar-icon,
 .loading-avatar-icon {
   font-size: 36px;
-  color: #999;
+  color: #e8e5e9;
 }
 
-/* Edit Icon Beside Profile */
 .edit-icon {
   background: transparent;
   color: white;
@@ -74,6 +73,7 @@
   font-weight: 900;
   text-decoration: underline;
 }
+
 .edit-icon button {
   display: flex;
   white-space: nowrap;
@@ -81,22 +81,26 @@
   border-radius: 12px;
   padding: 5px 8px;
   gap: 0.3em;
+  transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
-.edit-icon button:hover {
-  /* color: white;
-      border: white solid 1px; */
 
-  border-color: rgba(255, 255, 255, 0.6); /* Brighter border */
+.edit-icon button:hover {
+  transform: translateY(-2px) scale(1.05);
 }
 
 .user_form {
   width: 100%;
   align-self: center;
 }
+
 .user_form form {
   display: flex;
   flex-direction: column;
-  height: 30vh;
+  height: 20vh;
   justify-content: space-between;
 }
 
@@ -108,38 +112,101 @@
   width: 100%;
 }
 
+/* Username field styles */
+.username-field-container {
+  position: relative;
+  width: 90%;
+}
+
+.username-textarea {
+  width: 100%;
+  /* padding: 0.9rem 1.2rem; */
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 25px !important;
+  font-size: 1rem;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.945) !important;
+  transition: all 0.3s ease;
+}
+
+.username-textarea:not(.editing) {
+  border: 2px solid #b5b2b5 !important;
+  background: transparent !important;
+  cursor: default;
+
+}
+
+.username-edit-icon {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.username-edit-icon:hover {
+  transform: scale(1.1);
+}
+
+/* Buttons section */
 .editProfile_btns {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.editProfile_btns .change-password {
-  font-size: 12px;
-  border: white solid 1px;
-  padding: 0.7em 2em;
-  border-radius: 1em;
+
+.change-password {
+  font-size: 14px;
+  padding: 0.5em 1em;
+  border-radius: 25px;
   cursor: pointer;
-}
-.change-password:hover {
   background-color: #621c74;
+  border: none;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.change-password:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #7d2496;
 }
 
 .editProfile_submission_btns {
   display: flex;
   width: 50%;
-  justify-content: space-around;
+  justify-content: flex-end;
+  gap: 1em;
 }
 
 .editProfile_submission_btns button {
-  font-size: 12px;
   border: white solid 1px;
-  padding: 0.7em 2em;
-  border-radius: 1em;
+  border-radius: 25px;
   cursor: pointer;
+  font-size: 14px;
+  padding: 0.5em 1em;
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  background: transparent;
 }
+
 .editProfile_cancelBtn:hover {
   background-color: red;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(226, 124, 124, 0.756);
 }
-.editProfile_saveBtn:hover {
+
+.editProfile_saveBtn {
   background-color: #621c74;
+}
+
+.editProfile_saveBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #7d2496;
 }

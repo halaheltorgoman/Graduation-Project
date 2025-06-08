@@ -233,6 +233,7 @@
   border-radius: 12px !important;
 }
 .filter_secondary {
+  margin-top: 1rem;
   overflow: visible !important;
 }
 .sort-option {

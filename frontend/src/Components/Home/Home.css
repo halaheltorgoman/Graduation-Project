@@ -4,23 +4,19 @@
 }
 
 .home-page::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: #100918;
-  background-image: 
-    linear-gradient(135deg, #412A8C 0%, transparent 20%),
-    linear-gradient(45deg, #621C74 0%, transparent 15%),
+  background-image: linear-gradient(135deg, #412a8c 0%, transparent 20%),
+    linear-gradient(45deg, #621c74 0%, transparent 15%),
     linear-gradient(315deg, #44255a 0%, transparent 25%),
     linear-gradient(225deg, #0000007e 0%, transparent 30%);
   z-index: -2;
 }
-
-
-
 
 /* Hero Carousel */
 .hero-carousel {
@@ -33,19 +29,30 @@
 }
 
 .herobackground-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  pointer-events: none;
 }
 
 .herobackground-image {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1);
-  will-change: transform;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  z-index: -2;
+}
+
+.herobackground-img-tag {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
 }
 
 .herodim-overlay {
@@ -172,13 +179,6 @@
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-
-
-
-
-
-
-
 /* Vertical Card Carousel Styles (Unchanged) */
 .vertical-carousel-container {
   max-width: 1200px;
@@ -196,7 +196,7 @@
 .prebuiltsection-title {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(to right, #ffffff, #977DFF);
+  background: linear-gradient(to right, #ffffff, #977dff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -239,8 +239,7 @@
   flex-direction: column;
   backdrop-filter: blur(10px);
   cursor: pointer;
-  transition: 
-    transform 0.6s ease-in-out; 
+  transition: transform 0.6s ease-in-out;
   will-change: transform, opacity, filter;
 }
 
@@ -286,7 +285,7 @@
 }
 
 .prebuiltcard-specs {
-  color: #621C74;
+  color: #621c74;
   font-size: 0.85rem;
   font-weight: bold;
   margin-bottom: 20px;
@@ -347,13 +346,6 @@
   transform: scale(1.3);
 }
 
-
-
-
-
-
-
-
 /* Featured Builds Carousel Styles */
 .featured-builds-container {
   max-width: 1200px;
@@ -371,7 +363,7 @@
 .featuredBuildssection-title {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(to right, #ffffff, #977DFF);
+  background: linear-gradient(to right, #ffffff, #977dff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -477,7 +469,7 @@
 
 .featuredBuildsguidebuild-rating {
   position: absolute;
-  color: #FFD700;
+  color: #ffd700;
   padding: 6px 12px;
   border-radius: 20px;
   font-weight: bold;
@@ -499,7 +491,7 @@
 
 .featuredBuildsguidebuild-title {
   font-size: 1.4rem;
-  color: #BF30D9;
+  color: #bf30d9;
   font-weight: 600;
   line-height: 1.3;
   margin-top: 20px;
@@ -541,15 +533,15 @@
   .featured-builds-container {
     padding: 0 40px;
   }
-  
+
   .featured-build-card {
     width: 240px;
   }
-  
+
   .build-content {
     height: 180px;
   }
-  
+
   .build-title {
     font-size: 1.2rem;
   }
@@ -559,33 +551,33 @@
   .section-title {
     font-size: 2rem;
   }
-  
+
   .section-subtitle {
     font-size: 1rem;
   }
-  
+
   .carousel-arrow {
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
   }
-  
+
   .carousel-arrow.left {
     left: -15px;
   }
-  
+
   .carousel-arrow.right {
     right: -15px;
   }
-  
+
   .featured-build-card {
     width: 220px;
   }
-  
+
   .build-image-container {
     height: 180px;
   }
-  
+
   .build-content {
     height: 160px;
     padding: 15px;
@@ -596,25 +588,19 @@
   .featured-builds-container {
     padding: 0 20px;
   }
-  
+
   .featured-build-card {
     width: 200px;
   }
-  
+
   .build-title {
     font-size: 1.1rem;
   }
-  
+
   .build-specs {
     font-size: 0.85rem;
   }
 }
-
-
-
-
-
-
 
 /* Community Post Section Styles */
 .community-section {
@@ -633,7 +619,7 @@
 .commsection-title {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(to right, #ffffff, #977DFF);
+  background: linear-gradient(to right, #ffffff, #977dff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -677,7 +663,6 @@
   font-weight: 600;
   margin-bottom: 2px;
   font-size: 1.1rem;
-  
 }
 
 .commuser-username1 {
@@ -715,7 +700,7 @@
 }
 
 .commpost-action:hover {
-  color: #BF30D9;
+  color: #bf30d9;
 }
 
 .commpost-action-icon {
@@ -732,11 +717,9 @@
   transition: transform 0.3s ease;
 }
 
-
 .community-post-content:hover {
   transform: translateY(-5px);
 }
-
 
 .commpost-image-container {
   width: 50%;
@@ -766,7 +749,6 @@
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.9rem;
   line-height: 1.5;
-  
 }
 
 .commbuild-meta {
@@ -780,7 +762,6 @@
   height: 20px;
   border-radius: 50%;
   margin-top: 80px;
-  
 }
 
 .commuser-name {
@@ -790,20 +771,18 @@
   margin-top: 80px;
 }
 
-
 .commbuild-rating {
- display: flex;
- align-items: center;
- gap: 5px;
- margin-left: 170px;
- margin-top:75px ;
- color: #FFD700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 170px;
+  margin-top: 75px;
+  color: #ffd700;
 }
 
 .commbuild-spec {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.85rem;
-
 }
 
 /* Responsive Styles */
@@ -811,8 +790,9 @@
   .community-post-content {
     flex-direction: column;
   }
-  
-  .post-image-container, .post-details {
+
+  .post-image-container,
+  .post-details {
     width: 100%;
     max-width: none;
   }
@@ -821,22 +801,16 @@
   .post-content {
     flex-direction: column;
   }
-  
-  .post-image, .post-text {
+
+  .post-image,
+  .post-text {
     width: 100%;
   }
-  
+
   .post-text {
     margin-top: 15px;
   }
 }
-
-
-
-
-
-
-
 
 /* AI Builder Section Styles */
 .ai-builder-section {
@@ -854,7 +828,7 @@
 .ai-section-title {
   font-size: 2.7rem;
   font-weight: 700;
-  background: linear-gradient(to right, #ffffff, #977DFF);
+  background: linear-gradient(to right, #ffffff, #977dff);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -879,7 +853,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  background-color: #621C74 !important;
+  background-color: #621c74 !important;
 }
 
 .ai-builder-button:hover {
@@ -889,7 +863,7 @@
 
 .ai-assistant-panel {
   width: 200px;
-  height:300px;
+  height: 300px;
   background: rgba(255, 255, 255, 0.051);
   border-radius: 16px;
   padding: 30px;
@@ -939,11 +913,11 @@
   .herocontent-panel {
     width: 45%;
   }
-  
+
   .herocarousel-items-container {
     left: 65%;
   }
-  
+
   .featured-build-card {
     width: 280px;
   }
@@ -955,46 +929,46 @@
     width: 55%;
     left: 5%;
   }
-  
+
   .herocarousel-items-container {
     left: 60%;
     bottom: 10%;
   }
-  
+
   .herocarousel-item {
     width: 180px;
     height: 220px;
   }
-  
+
   .herocarousel-item.active {
     width: 280px;
     height: 350px;
   }
-  
+
   .featured-builds-container,
   .vertical-carousel-container,
   .community-section {
     padding: 0 40px;
   }
-  
+
   .featured-build-card {
     width: 240px;
   }
-  
+
   .ai-builder-section {
     flex-direction: column;
     gap: 30px;
   }
-  
+
   .ai-builder-content {
     text-align: center;
   }
-  
+
   .ai-section-title,
   .ai-section-subtitle {
     text-align: center;
   }
-  
+
   .ai-assistant-panel {
     width: 100%;
     max-width: 400px;
@@ -1007,71 +981,71 @@
     height: 90vh;
     margin-bottom: 100px;
   }
-  
+
   .herocontent-panel {
     width: 80%;
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
   }
-  
+
   .herocarousel-title {
     font-size: 48px;
   }
-  
+
   .herocarousel-items-container {
     display: none; /* Hide horizontal carousel on smaller screens */
   }
-  
+
   .herocarousel-dots {
     bottom: 10%;
   }
-  
+
   .prebuiltsection-title,
   .featuredBuildssection-title,
   .commsection-title,
   .ai-section-title {
     font-size: 2rem;
   }
-  
+
   .featuredBuildscarousel-arrow {
     width: 40px;
     height: 40px;
     font-size: 1.2rem;
   }
-  
+
   .featuredBuildscarousel-arrow.left {
     left: -15px;
   }
-  
+
   .featuredBuildscarousel-arrow.right {
     right: -15px;
   }
-  
+
   .community-post-content {
     flex-direction: column;
   }
-  
+
   .commpost-image-container,
   .commpost-details {
     width: 100%;
   }
-  
+
   .commpost-footer {
     margin-left: 0;
     justify-content: flex-start;
   }
-  
+
   .commuser-name,
   .commuser-icon {
     margin-top: 20px;
   }
-  
+
   .commbuild-rating {
     margin-left: auto;
     margin-top: 20px;
   }
-  
+
   .vertical-carousel-container,
   .featured-builds-container,
   .community-section {
@@ -1085,68 +1059,68 @@
     height: 80vh;
     margin-bottom: 80px;
   }
-  
+
   .herocontent-panel {
     width: 90%;
     padding: 1rem;
   }
-  
+
   .herocarousel-title {
     font-size: 36px;
   }
-  
+
   .herocarousel-description {
     font-size: 14px;
   }
-  
+
   .herocarousel-button {
     width: 60%;
   }
-  
+
   .prebuiltsection-title,
   .featuredBuildssection-title,
   .commsection-title,
   .ai-section-title {
     font-size: 1.8rem;
   }
-  
+
   .prebuiltsection-subtitle,
   .featuredBuildssection-subtitle,
   .commsection-subtitle,
   .ai-section-subtitle {
     font-size: 1rem;
   }
-  
+
   .featured-builds-container,
   .vertical-carousel-container,
   .community-section {
     padding: 0 20px;
   }
-  
+
   .featured-build-card {
     width: 220px;
   }
-  
+
   .featuredBuildsguidebuild-title {
     font-size: 1.2rem;
   }
-  
+
   .commpost-header {
     flex-wrap: wrap;
   }
-  
+
   .commpost-time {
     margin-left: auto;
   }
-  
+
   .commpost-image {
     height: 180px;
   }
-  
+
   .ai-section-title {
     font-size: 1.8rem;
   }
-  
+
   .ai-builder-button {
     padding: 15px 25px;
   }
@@ -1157,20 +1131,20 @@
   .herocarousel-title {
     font-size: 32px;
   }
-  
+
   .herocarousel-button {
     width: 80%;
   }
-  
+
   .prebuiltvertical-card,
   .featured-build-card {
     width: 280px;
   }
-  
+
   .featured-builds-track {
     gap: 15px;
   }
-  
+
   .commpost-actions {
     gap: 15px;
   }

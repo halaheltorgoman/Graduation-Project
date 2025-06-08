@@ -307,9 +307,9 @@
 
 .no-builds-message {
   text-align: center;
-  color: #aaa;
+  color: red;
   padding: 15px;
-  background: #18181b;
+
   border-radius: 12px;
 }
 

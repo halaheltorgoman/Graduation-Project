@@ -4,36 +4,36 @@ import { MdAddCircle } from "react-icons/md";
 import ProfileBuildCard from "./ProfileBuildCard";
 
 const TabContent = ({
+  handleDeleteFolder,
+  setOpenPopUp,
+
   tabKey,
   folders,
   setFolders,
-  handleDeleteFolder,
-  setOpenPopUp,
+  loading,
+  onUnsavePost, // <-- new prop for tab 2
+  // ...other props
 }) => {
   const onDeleteBuild = (folderIndex, buildId) => {
-    console.log(
-      "Deleting build with ID:",
-      buildId,
-      "from folder:",
-      folderIndex
-    );
-    setFolders((prevFolders) => {
-      const updatedFolders = { ...prevFolders };
-      const builds = updatedFolders[tabKey]?.[folderIndex]?.profileBuilds || [];
-
-      updatedFolders[tabKey][folderIndex].profileBuilds = builds.filter(
-        (build) => build.id !== buildId
-      );
-
-      console.log("Updated folders after deleting build:", updatedFolders);
-      return updatedFolders;
-    });
+    if (tabKey === "2" && onUnsavePost) {
+      onUnsavePost(folderIndex, buildId);
+    } else {
+      setFolders((prevFolders) => {
+        const updatedFolders = { ...prevFolders };
+        const builds =
+          updatedFolders[tabKey]?.[folderIndex]?.profileBuilds || [];
+        updatedFolders[tabKey][folderIndex].profileBuilds = builds.filter(
+          (build) => build.id !== buildId
+        );
+        return updatedFolders;
+      });
+    }
   };
 
   return (
     <div className="profile_folders">
       <div className="profile_newFolder">
-        <button onClick={() => setOpenPopUp(true)}>
+        <button>
           <MdAddCircle size={20} />
           <p>New Folder</p>
         </button>
@@ -46,7 +46,9 @@ const TabContent = ({
             label: folder.name,
             children: (
               <div className="profile_folderContent">
-                {folder.profileBuilds.length > 0 ? (
+                {loading ? (
+                  <p>Loading...</p>
+                ) : folder.profileBuilds.length > 0 ? (
                   folder.profileBuilds.map((profileBuild) => (
                     <ProfileBuildCard
                       key={profileBuild._id || profileBuild.id}
@@ -57,10 +59,11 @@ const TabContent = ({
                           profileBuild._id || profileBuild.id
                         )
                       }
+                      isPost={profileBuild.isPost}
                     />
                   ))
                 ) : (
-                  <p>No builds in this folder</p>
+                  <p>No {tabKey === "2" ? "posts" : "builds"} in this folder</p>
                 )}
                 <button
                   className="profile_deleteFolderBtn"

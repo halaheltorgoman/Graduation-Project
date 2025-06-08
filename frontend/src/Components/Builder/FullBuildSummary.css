@@ -1,13 +1,14 @@
 .fullbuild-container {
   padding: 2rem;
   border-radius: 1.5rem;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(81, 56, 96, 0.26);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .fullbuild-title {
   font-size: 2rem;
+  font-weight: 500;
   color: #fff;
   margin-bottom: 1.5rem;
 }
@@ -18,19 +19,23 @@
 .fullbuild-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  /* border-bottom: 1px solid #e5e7eb; */
 }
 .fullbuild-header {
-  background: rgba(0, 0, 0, 0.4);
-  color: #bf30d9;
-  font-weight: bold;
+ 
+  color: #c365d4;
+  font-weight: 400;
   border-radius: 0.5rem 0.5rem 0 0;
+  font-size: 1.1rem;
 }
 .fullbuild-col {
   padding: 0.75rem 1rem;
   text-align: left;
   white-space: normal; /* allow wrapping */
   word-break: break-word; /* break long words if needed */
+  flex: space-between;
+  display: flex;	
 }
 .fullbuild-col.type {
   width: 20%;
@@ -49,24 +54,54 @@
   width: 20%;
   text-align: left;
   color: white;
-  font-weight: bold;
+  font-weight: bolder !important;	
 }
 .fullbuild-img {
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
   border-radius: 0.25rem;
-  background: #fff;
+  background: #ffffff;
 }
-.fullbuild-share {
-  margin-top: 2rem;
+
+.fullbuild-complete-btn {
+  margin-top: 29px;
+  font-size: 17px;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  background-color: #621c74;
+  border: none;
+  color: white;
+  font-weight: 400;
+  transition: all 0.3s ease;
 }
+
+.fullbuild-complete-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #7d2496;
+}
+
+
 .fullbuild-share-btn {
-  color: #fff;
+  color: #5d0d6d;
   font-size: 1rem;
   display: flex;
   align-items: center;
+  margin-top: 20px !important;
+  background-color: white;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-left: 15px;
 }
+
+.fullbuild-share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
+  background-color: #f3e8ff;
+}
+
 .fullbuild-share-icon {
   width: 20px;
   height: 20px;
@@ -122,3 +157,55 @@
   color: #bf30d9;
   font-size: 1.5rem;
 }
+
+
+
+
+.refresh-text {
+  margin-left: 85px; /* Pushes the text to the left */
+ /* Adds some space between text and icon */
+}
+
+.fullbuild-col.refresh {
+  /* display: flex; */
+  /* align-items: center; */
+  justify-content: flex-start;
+  /* width: 10%; */
+  /* text-align: left; */
+}
+
+
+.fullbuild-refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 50%;
+  margin-left: auto; /* Pushes the icon to the right */
+}
+
+.fullbuild-refresh-btn:hover {
+  transform: rotate(20deg) scale(1.2);
+  color: #8f45a1;
+}
+
+/* Adjust other column widths to accommodate the new column */
+.fullbuild-col.type {
+  width: 15%;
+}
+.fullbuild-col.image {
+  width: 15%;
+}
+.fullbuild-col.name {
+  width: 20%;
+}
+.fullbuild-col.brand {
+  width: 20%;
+}
+.fullbuild-col.price_val {
+  width: 15%;
+}
+

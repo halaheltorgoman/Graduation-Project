@@ -240,19 +240,66 @@ const ComponentDetails = () => {
   };
 
   const handleBackClick = () => {
-    const searchParams = new URLSearchParams(location.search);
-    const page = searchParams.get("page") || 1;
-    
-    // Get the saved state from sessionStorage
+    console.log("Back button clicked");
+    console.log("Location state:", location.state);
+
+    // First priority: Use the state passed when navigating here
+    const browseState = location.state?.browseState;
+    const fromPage = location.state?.fromPage;
+    const returnUrl = location.state?.returnUrl;
+
+    console.log("From navigation state - browseState:", browseState);
+    console.log("From navigation state - fromPage:", fromPage);
+    console.log("From navigation state - returnUrl:", returnUrl);
+
+    if (browseState && fromPage) {
+      // Navigate back with all the preserved state
+      navigate(`/browsecomponents/${type}?page=${fromPage}`, {
+        state: {
+          restoreState: browseState,
+        },
+        replace: false,
+      });
+      return;
+    }
+
+    // Second priority: Try to get from sessionStorage
     const savedState = sessionStorage.getItem(`browseState-${type}`);
-    const state = savedState ? JSON.parse(savedState) : {};
-    
-    navigate(`/browsecomponents/${type}?page=${page}`, {
-      state: {
-        filters: state.filters || {},
-        sortBy: state.sortBy || null,
+    console.log("From sessionStorage - savedState:", savedState);
+
+    if (savedState) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        const savedPage = parsedState.currentPage || 1;
+
+        console.log("Parsed saved state:", parsedState);
+        console.log("Saved page:", savedPage);
+
+        navigate(`/browsecomponents/${type}?page=${savedPage}`, {
+          state: {
+            restoreState: parsedState,
+          },
+          replace: false,
+        });
+        return;
+      } catch (error) {
+        console.error("Error parsing saved state:", error);
       }
-    });
+    }
+
+    // Third priority: Check URL params (if navigated directly)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageFromUrl = urlParams.get("page");
+
+    if (pageFromUrl) {
+      console.log("Using page from URL:", pageFromUrl);
+      navigate(`/browsecomponents/${type}?page=${pageFromUrl}`);
+      return;
+    }
+
+    // Final fallback: Go to page 1
+    console.log("Using fallback - going to page 1");
+    navigate(`/browsecomponents/${type}?page=1`);
   };
 
   if (isLoading) return <div className="loading-message">Loading...</div>;
@@ -265,7 +312,7 @@ const ComponentDetails = () => {
   return (
     <div className="component-details-container">
       <button onClick={handleBackClick} className="back-button">
-        &larr; Back to Components
+        &larr; Back to {type.charAt(0).toUpperCase() + type.slice(1)} Components
       </button>
 
       <div className="component_details_container">

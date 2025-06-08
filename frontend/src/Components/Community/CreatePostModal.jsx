@@ -120,7 +120,6 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
     setImagePreviews(newImagePreviews);
   };
 
-  // Only highlight build, don't clear images/text, don't close picker
   const handleSelectBuild = (build) => {
     setSelectedBuild(build);
   };
@@ -250,7 +249,7 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
                 </>
               ) : (
                 <div className="no-builds-message">
-                  <p>You don't have any completed builds yet.</p>
+                  <p>There's no completed builds in your library</p>
                 </div>
               )}
             </div>
@@ -261,7 +260,7 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
           <button
             className="Create_Post_choose-build-button"
             onClick={toggleBuildsList}
-            disabled={fetchingBuilds || savedBuilds.length === 0}
+            disabled={fetchingBuilds}
           >
             {showBuildsList
               ? "Post without a Build"

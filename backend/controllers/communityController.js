@@ -1,41 +1,57 @@
-const CommunityPost = require('../models/CommunityPost');
-const Build = require('../models/Build');
-const User = require('../models/User');
+const Post = require("../models/Post");
+const Build = require("../models/Build");
+const User = require("../models/User");
+const mongoose = require("mongoose");
 
 exports.getSharedBuilds = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    const posts = await CommunityPost.find()
-      .sort({ createdAt: -1 })
+    // Build query
+    const query = {};
+
+    // Handle sorting
+    let sort = { createdAt: -1 }; // Default: newest first
+    if (req.query.sortBy) {
+      if (req.query.sortBy === "createdAt") {
+        sort = { createdAt: 1 }; // Oldest first
+      } else if (req.query.sortBy === "-averageRating") {
+        sort = { averageRating: -1 }; // Highest rated
+      } else if (req.query.sortBy === "averageRating") {
+        sort = { averageRating: 1 }; // Lowest rated
+      }
+    }
+
+    const posts = await Post.find(query)
+      .sort(sort)
       .skip(skip)
       .limit(limit)
-      .populate('user', 'username')
+      .populate("user", "username avatar")
       .populate({
-        path: 'build',
+        path: "build",
         populate: {
-          path: 'components.cpu components.gpu components.motherboard'
-        }
+          path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
+        },
       })
-      .populate('ratings.user', 'username')
-      .populate('comments.user', 'username');
+      .populate("ratings.user", "username")
+      .populate("comments.user", "username");
 
-    const total = await CommunityPost.countDocuments();
+    const total = await Post.countDocuments(query);
 
     res.json({
       success: true,
       posts,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
-      totalPosts: total
+      totalPosts: total,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch community posts',
-      error: err.message
+      message: "Failed to fetch community posts",
+      error: err.message,
     });
   }
 };
@@ -46,34 +62,36 @@ exports.addComment = async (req, res) => {
     const { text } = req.body;
 
     if (!req.userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+      return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    const post = await CommunityPost.findById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
     }
 
     post.comments.push({
       user: req.userId,
       text,
-      createdAt: Date.now
+      createdAt: Date.now(),
     });
 
     await post.save();
-    const updatedPost = await CommunityPost.findById(postId)
-      .populate({
-        path: 'comments.user',
-        select: 'username avatar' // Include any other user fields you want
-      });
-      const newComment = updatedPost.comments.find(comment => 
-        comment._id.toString() === post.comments[post.comments.length - 1]._id.toString()
-      );
-  
+    const updatedPost = await Post.findById(postId).populate({
+      path: "comments.user",
+      select: "username avatar", // Include any other user fields you want
+    });
+    const newComment = updatedPost.comments.find(
+      (comment) =>
+        comment._id.toString() ===
+        post.comments[post.comments.length - 1]._id.toString()
+    );
 
     res.json({
       success: true,
-      message: 'Comment added successfully',
+      message: "Comment added successfully",
       comment: {
         _id: newComment._id,
         text: newComment.text,
@@ -81,15 +99,15 @@ exports.addComment = async (req, res) => {
         user: {
           _id: newComment.user._id,
           username: newComment.user.username,
-          avatar: newComment.user.avatar
-        }
-      }
+          avatar: newComment.user.avatar,
+        },
+      },
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to add comment',
-      error: err.message
+      message: "Failed to add comment",
+      error: err.message,
     });
   }
 };
@@ -97,66 +115,316 @@ exports.addComment = async (req, res) => {
 exports.getComments = async (req, res) => {
   try {
     const { postId } = req.params;
-    const { 
-      page = 1,    
-      limit = 10,    
-      sort = '-createdAt' 
-    } = req.query;
-
-    const postExists = await CommunityPost.exists({ _id: postId });
+    const postExists = await Post.exists({ _id: postId });
     if (!postExists) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Post not found' 
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
       });
     }
 
-    const post = await CommunityPost.findById(postId)
-      .populate({
-        path: 'comments.user',
-        select: 'username profile avatar'
-      })
-      .select('comments')
-      .slice('comments', [ 
-        (page - 1) * limit, 
-        parseInt(limit)
-      ]);
+    const post = await Post.findById(postId).populate({
+      path: "comments.user",
+      select: "username profile avatar",
+    });
 
-
-    const formattedComments = post.comments
-      .sort((a, b) => {
-        if (sort === '-createdAt') return b.createdAt - a.createdAt;
-        return a.createdAt - b.createdAt;
-      })
-      .map(comment => ({
-        _id: comment._id,
-        text: comment.text,
-        createdAt: comment.createdAt,
-        user: {
-          _id: comment.user._id,
-          username: comment.user.username,
-          avatar: comment.user.avatar,
-         
-        }
-      }));
-
-    const commentCount = (await CommunityPost.findById(postId)).comments.length;
+    // Sort comments: newest first
+    const sortedComments = post.comments.sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
 
     res.json({
       success: true,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(commentCount / limit),
-        totalComments: commentCount
-      },
-      comments: formattedComments
+      comments: sortedComments,
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch comments',
-      error: err.message
+      message: "Failed to get comments",
+      error: err.message,
+    });
+  }
+};
+
+//     const { postId } = req.params;
+
+//     if (!req.userId) {
+//       return res.status(401).json({ success: false, message: "Unauthorized" });
+//     }
+
+//     const [post, user] = await Promise.all([
+//       Post.findById(postId),
+//       User.findById(req.userId),
+//     ]);
+
+//     if (!post) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Post not found" });
+//     }
+
+//     const buildIndex = user.savedBuilds.indexOf(post.build);
+//     if (buildIndex === -1) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Build not found in your saved items",
+//       });
+//     }
+
+//     user.savedBuilds.splice(buildIndex, 1);
+//     await user.save();
+
+//     post.savesCount = await User.countDocuments({ savedBuilds: post.build });
+//     await post.save();
+
+//     res.json({
+//       success: true,
+//       message: "Build removed from saved items",
+//       totalSaves: post.savesCount,
+//       savedBuilds: user.savedBuilds,
+//     });
+//   } catch (err) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to remove saved build",
+//       error: err.message,
+//     });
+//   }
+// };
+// Completely revised save post controller
+
+exports.getSharedBuildDetails = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findById(postId)
+      .populate("user", "username")
+      .populate({
+        path: "build",
+        populate: {
+          path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
+        },
+      })
+      .populate("ratings.user", "username")
+      .populate("comments.user", "username");
+
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+    }
+
+    let userRating = null;
+    if (req.userId) {
+      const rating = post.ratings.find((r) => r.user._id.equals(req.userId));
+      if (rating) userRating = rating.value;
+    }
+
+    res.json({
+      success: true,
+      post,
+      userRating,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get post details",
+      error: err.message,
+    });
+  }
+};
+// In communityController.js
+
+// Updated savePost controller
+exports.savePost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Check if post is already saved
+    const alreadySaved = user.savedPosts.some(
+      (savedPostId) => savedPostId.toString() === postId.toString()
+    );
+
+    if (alreadySaved) {
+      return res.status(200).json({
+        success: true,
+        message: "Post already saved",
+        savesCount: post.savesCount || 0,
+      });
+    }
+
+    // Add post to user's SavedPosts
+    user.savedPosts.push(postId);
+    await user.save();
+
+    // Increment savesCount
+    post.savesCount = (post.savesCount || 0) + 1;
+    await post.save();
+
+    res.json({
+      success: true,
+      message: "Post saved successfully",
+      savesCount: post.savesCount,
+    });
+  } catch (err) {
+    console.error("Error saving post:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to save post",
+      error: err.message,
+    });
+  }
+};
+
+// Updated removeSavedPost controller
+exports.removeSavedPost = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Post not found" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    // Find and remove post from SavedPosts
+    const postIndex = user.savedPosts.findIndex(
+      (savedPostId) => savedPostId.toString() === postId.toString()
+    );
+
+    if (postIndex === -1) {
+      return res.status(200).json({
+        success: true,
+        message: "Post was not saved",
+        savesCount: post.savesCount || 0,
+      });
+    }
+
+    user.savedPosts.splice(postIndex, 1);
+    await user.save();
+
+    // Decrement savesCount (but not below 0)
+    post.savesCount = Math.max(0, (post.savesCount || 0) - 1);
+    await post.save();
+
+    res.json({
+      success: true,
+      message: "Post removed from saved",
+      savesCount: post.savesCount,
+    });
+  } catch (err) {
+    console.error("Error removing saved post:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to remove saved post",
+      error: err.message,
+    });
+  }
+};
+
+////working version
+// exports.getSavedPosts = async (req, res) => {
+//   try {
+//     // Use either req.user._id (recommended) or req.body.userId
+//     const userId = req.userId;
+
+//     if (!userId) {
+//       return res.status(401).json({
+//         success: false,
+//         message: "User ID not found in request",
+//       });
+//     }
+
+//     const user = await User.findById(userId).populate("savedPosts").exec();
+
+//     res.json({
+//       success: true,
+//       savedPosts: user.savedPosts || [],
+//     });
+//   } catch (error) {
+//     console.error("Error fetching saved posts:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch saved posts",
+//     });
+//   }
+// };
+// controllers/communityController.js
+exports.getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res
+        .status(401)
+        .json({ success: false, message: "User ID not found in request" });
+    }
+
+    const user = await User.findById(userId)
+      .populate({
+        path: "savedPosts",
+        populate: [
+          {
+            path: "build",
+            populate: {
+              path: "components",
+              populate: {
+                path: "cpu gpu motherboard case cooler memory storage psu",
+              },
+            },
+          },
+          { path: "user", select: "username avatar" },
+          {
+            path: "comments",
+            populate: { path: "user", select: "username" },
+          },
+        ],
+      })
+      .exec();
+
+    console.log(
+      "Populated savedPosts with components:",
+      JSON.stringify(user.savedPosts?.[0]?.build?.components, null, 2)
+    );
+
+    res.json({
+      success: true,
+      savedPosts: user.savedPosts || [],
+    });
+  } catch (error) {
+    console.error("Error fetching saved posts:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch saved posts",
     });
   }
 };
@@ -164,186 +432,65 @@ exports.getComments = async (req, res) => {
 exports.rateBuild = async (req, res) => {
   try {
     const { postId } = req.params;
-    const { value } = req.body;
+    let { value } = req.body;
 
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    // Validate and normalize the rating value
+    value = parseFloat(value);
+    if (isNaN(value) || value < 0.5 || value > 5) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be between 0.5 and 5",
+      });
     }
 
-    if (value < 1 || value > 5) {
-      return res.status(400).json({ success: false, message: 'Rating must be between 1 and 5' });
-    }
+    // Round to nearest 0.5
+    value = Math.round(value * 2) / 2;
 
-    const post = await CommunityPost.findById(postId);
+    const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
     }
 
-    const existingRating = post.ratings.find(r => r.user.equals(req.userId));
-    if (existingRating) {
-      existingRating.value = value;
+    // Check for existing rating
+    const existingRatingIndex = post.ratings.findIndex((r) =>
+      r.user.equals(req.userId)
+    );
+
+    if (existingRatingIndex >= 0) {
+      // Update existing rating
+      post.ratings[existingRatingIndex].value = value;
     } else {
+      // Add new rating
       post.ratings.push({
         user: req.userId,
-        value
+        value,
       });
     }
 
+    // Calculate new average
     const sum = post.ratings.reduce((acc, curr) => acc + curr.value, 0);
     post.averageRating = sum / post.ratings.length;
+    post.ratingsCount = post.ratings.length;
 
     await post.save();
 
     res.json({
       success: true,
-      message: 'Post rated successfully',
       averageRating: post.averageRating,
       userRating: value,
-      totalRatings: post.ratings.length 
-    });
+      ratingsCount: post.ratings.length,
 
+      ratings: post.ratings, // Send the updated ratings array
+    });
   } catch (err) {
+    console.error("Rating error:", err);
     res.status(500).json({
       success: false,
-      message: 'Failed to rate post',
-      error: err.message
+      message: "Failed to rate post",
+      error: err.message,
     });
   }
 };
-
-// Add these new controller functions
-
-exports.savePost = async (req, res) => {
-  try {
-    const { postId } = req.params;
-
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
-    const post = await CommunityPost.findById(postId);
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    const user = await User.findById(req.userId);
-    
-    // Check if post is already saved
-    if (user.savedPosts.includes(postId)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Post already saved' 
-      });
-    }
-
-    // Add post to savedPosts
-    user.savedPosts.push(postId);
-    await user.save();
-
-    // Update saves count on the post
-    post.savesCount = await User.countDocuments({ savedPosts: postId });
-    await post.save();
-
-    res.json({
-      success: true,
-      message: 'Post saved successfully',
-      totalSaves: post.savesCount
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to save post',
-      error: err.message
-    });
-  }
-};
-
-exports.unsavePost = async (req, res) => {
-  try {
-    const { postId } = req.params;
-
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-
-    const [post, user] = await Promise.all([
-      CommunityPost.findById(postId),
-      User.findById(req.userId)
-    ]);
-
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    // Remove post from savedPosts
-    const index = user.savedPosts.indexOf(postId);
-    if (index === -1) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Post not found in saved items' 
-      });
-    }
-
-    user.savedPosts.splice(index, 1);
-    await user.save();
-
-    // Update saves count on the post
-    post.savesCount = await User.countDocuments({ savedPosts: postId });
-    await post.save();
-
-    res.json({
-      success: true,
-      message: 'Post removed from saved items',
-      totalSaves: post.savesCount
-    });
-
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to unsave post',
-      error: err.message
-    });
-  }
-};
-
-
-exports.getSharedBuildDetails = async (req, res) => {
-  try {
-    const { postId } = req.params;
-
-    const post = await CommunityPost.findById(postId)
-      .populate('user', 'username')
-      .populate({
-        path: 'build',
-        populate: {
-          path: 'components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler'
-        }
-      })
-      .populate('ratings.user', 'username')
-      .populate('comments.user', 'username');
-
-    if (!post) {
-      return res.status(404).json({ success: false, message: 'Post not found' });
-    }
-
-    let userRating = null;
-    if (req.userId) {
-      const rating = post.ratings.find(r => r.user._id.equals(req.userId));
-      if (rating) userRating = rating.value;
-    }
-
-    res.json({
-      success: true,
-      post,
-      userRating
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: 'Failed to get post details',
-      error: err.message
-    });
-  }
-};
-

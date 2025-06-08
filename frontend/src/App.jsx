@@ -23,7 +23,7 @@ import Verifysignupemail from "./Components/Verifysignupemail/Verifysignupemail"
 import Signupverification from "./Components/Signupverification/Signupverification";
 import { ContextProvider } from "./Context/ContextProvider";
 import { Routes, Route, useLocation } from "react-router-dom";
-import ForgotPasswordEmail from "./Components/ForgotPassword/ForgotPasswordEmail";	
+import ForgotPasswordEmail from "./Components/ForgotPassword/ForgotPasswordEmail";
 
 const router = createBrowserRouter([
   {
@@ -32,7 +32,19 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "builder", element: <Builder /> },
-      { path: "guides", element: <Guides /> },
+      {
+        path: "guides",
+        children: [
+          {
+            index: true,
+            element: <Navigate to="all" replace />,
+          },
+          {
+            path: ":type",
+            element: <Guides />,
+          },
+        ],
+      },
       { path: "community", element: <Community /> },
       {
         path: "builder",
@@ -58,6 +70,7 @@ const router = createBrowserRouter([
       { path: "profile", element: <Profile /> },
       { path: "ai_assistant", element: <AIAssistant /> },
       { path: "*", element: <NotFound /> },
+      { path: "/components/:type/:componentId", element: <ComponentDetails /> },
     ],
   },
   { path: "login", element: <Login /> },

@@ -2,11 +2,11 @@ import React from "react";
 import { FaTimes } from "react-icons/fa";
 import { UserOutlined } from "@ant-design/icons";
 import { Spin, Input, Button } from "antd";
-import BuildCarousel from "../Community/BuildCarousel";
+import BuildCarousel from "./BuildCarousel";
 import postImage from "../../assets/images/postBuild_dummy.png"; // Make sure to import
-import BigImageSlider from "../Community/BigImageSlider";
+import BigImageSlider from "./BigImageSlider";
 const { TextArea } = Input;
-import "../Community/Community.css"; // Adjust the path as necessary
+import "./Comment.css"; // Adjust the path as necessary
 
 function CommentModal({
   visible,

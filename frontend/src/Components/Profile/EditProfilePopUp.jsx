@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Upload, message } from "antd";
-import { LoadingOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
+import { Upload, message, Input } from "antd";
+import { LoadingOutlined, EditOutlined, UserOutlined, CheckOutlined } from "@ant-design/icons";
 import "./EditProfilePopUp.css";
-import EditableTextField from "./EditableTextField";
+import { useNavigate } from "react-router-dom";
+
+const { TextArea } = Input;
 
 const EditProfilePopUp = ({
   setOpenEditProfilePopUp,
@@ -13,40 +15,39 @@ const EditProfilePopUp = ({
   setUserName,
   userName,
 }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-  const [localImageUrl, setLocalImageUrl] = useState(""); // Local preview
+  const [localImageUrl, setLocalImageUrl] = useState("");
   const [bioInput, setBioInput] = useState(userBio);
   const [userNameInput, setUserNameInput] = useState(userName);
+  const [isEditingName, setIsEditingName] = useState(false);
 
   useEffect(() => {
-    setLocalImageUrl(imageUrl); // ✅ Update when the popup opens
-    setBioInput(userBio); // ✅ Sync bio when popup opens
+    setLocalImageUrl(imageUrl);
+    setBioInput(userBio);
     setUserNameInput(userName);
   }, [imageUrl, userBio, userName]);
 
   const handleSave = () => {
-    setImageUrl(localImageUrl); // ✅ Update Profile avatar
-    setUserBio(bioInput); // ✅ Update Profile bio only on Save
+    setImageUrl(localImageUrl);
+    setUserBio(bioInput);
     setUserName(userNameInput);
-
-    setOpenEditProfilePopUp(false); // ✅ Close popup
+    setOpenEditProfilePopUp(false);
   };
 
   const beforeUpload = (file) => {
     if (!["image/jpeg", "image/png"].includes(file.type)) {
       setError("Only JPG/PNG files are allowed!");
       message.error("Only JPG/PNG files are allowed!");
-      return Upload.LIST_IGNORE; // Prevents upload
+      return Upload.LIST_IGNORE;
     }
     if (file.size / 1024 / 1024 >= 2) {
       setError("Image must be smaller than 2MB!");
       message.error("Image must be smaller than 2MB!");
       return Upload.LIST_IGNORE;
     }
-
-    setError(""); // Clear previous errors
+    setError("");
     return true;
   };
 
@@ -74,13 +75,14 @@ const EditProfilePopUp = ({
       }
       onSuccess("ok");
       handleChange({ file: { status: "done", originFileObj: file } });
-
-      // ✅ Reset file input so user can upload the same file again
-      const fileInput = document.querySelector(
-        ".ant-upload input[type='file']"
-      );
+      const fileInput = document.querySelector(".ant-upload input[type='file']");
       if (fileInput) fileInput.value = "";
     }, 1500);
+  };
+
+const handleChangePassword = () => {
+    setOpenEditProfilePopUp(false); // Close the popup
+    navigate('/forgot-password'); // Navigate to your change password page
   };
 
   return (
@@ -97,7 +99,6 @@ const EditProfilePopUp = ({
               <UserOutlined className="default-avatar-icon" />
             )}
           </div>
-          {/* Upload Button */}
           <Upload
             name="avatar"
             showUploadList={false}
@@ -110,41 +111,43 @@ const EditProfilePopUp = ({
                 <EditOutlined />
               </button>
             </div>
-          </Upload>{" "}
+          </Upload>
         </div>
         <div className="profile_error">
-          {/* 🔥 Display error messages below */}
           {error && <p className="error-message">{error}</p>}
         </div>
       </div>
 
-      {/* Editable Text Fields */}
+      {/* User Info Section - Now directly in the component */}
       <div className="user_form">
         <form>
           <div className="edit_userInfo">
-            <EditableTextField
-              value={userNameInput}
-              setValue={setUserNameInput}
-              placeholder="Enter Username"
-              onChange={(e) => setUserNameInput(e.target.value)}
-              fontSize="14px"
-              fontWeight="200"
-              width="90%"
-            />
-            <EditableTextField
-              value={bioInput}
-              setValue={setBioInput}
-              onChange={(e) => setUserBio(e.target.value)}
-              placeholder="Enter Bio"
-              fontSize="14px"
-              fontWeight="200"
-              width="90%"
-            />
+            <div className="username-field-container">
+              <TextArea
+                value={userNameInput}
+                onChange={(e) => setUserNameInput(e.target.value)}
+                placeholder="Enter Username"
+                autoSize={{ minRows: 1, maxRows: 2 }}
+                disabled={!isEditingName}
+                className={`username-textarea ${isEditingName ? "editing" : ""}`}
+              />
+              <div 
+                className="username-edit-icon" 
+                onClick={() => setIsEditingName(!isEditingName)}
+              >
+                {isEditingName ? <CheckOutlined /> : <EditOutlined />}
+              </div>
+            </div>
           </div>
 
           {/* Buttons Section */}
           <div className="editProfile_btns">
-            <button className="change-password">Change Password</button>
+            <button 
+              className="change-password" 
+              onClick={handleChangePassword} // Add onClick handler
+            >
+              Change Password
+            </button>
             <div className="editProfile_submission_btns">
               <button
                 className="editProfile_cancelBtn"

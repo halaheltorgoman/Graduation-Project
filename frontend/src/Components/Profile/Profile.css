@@ -12,8 +12,8 @@
 }
 .profile_image {
   border-radius: 100%;
-  width: 100px; /* Adjust size */
-  height: 100px; /* Make sure width and height are equal */
+  width: 80px; /* Adjust size */
+  height: 80px; /* Make sure width and height are equal */
   background-color: #621c74; /* Change color as needed */
   border-radius: 50%; /* Makes it a circle */
   display: flex;
@@ -41,34 +41,31 @@
   word-break: break-word;
   overflow-wrap: break-word;
   white-space: normal; /* Allows wrapping */
+  font-weight: bolder;
+  margin-left: 6px;
 }
-.profile_followerCount {
-  /* background-color: burlywood; */
-  flex: 1;
-  white-space: nowrap;
-  justify-content: flex-end;
-  align-self: center;
 
-  font-size: smaller;
-}
-.profile_userBio {
-  font-size: small;
-  color: #7d7e80;
-  max-width: 100%;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  white-space: normal; /* Allows wrapping */
-}
 .profile_editbtn button {
-  background-color: #621c74;
-  padding: 10px 16px;
-  border-radius: 15px;
-  white-space: nowrap;
-  font-size: 15px;
-  font-weight: 400;
+  width: 150px;
+  padding: 0.7rem 0.9rem;
+  border-radius: 25px !important;
+  background-color: #621c74 !important;
+  border: none !important;
+  color: white !important;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 .profile_editbtn button:hover {
-  background-color: #41124d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756) !important;
+  background-color: #7d2496 !important;
+  color: #ffffff !important;
 }
 .profile_folders {
   display: flex;
@@ -79,15 +76,23 @@
   justify-content: flex-end;
   gap: 0.4em;
   color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: transparent !important;
+  margin-top: 3px;
 }
 .profile_newFolder button:hover {
-  color: #621c74;
+  transform: translateY(-2px) scale(1.05);
+  color: #ffffff !important;
 }
 .profile_newFolder button {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.1em;
+  justify-content: flex-end;
+  gap: 0.4em;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: transparent !important;
 }
 
 .profile_folderContent {
@@ -100,12 +105,54 @@
 
 .profile_deleteFolderBtn {
   border: white solid 1px;
-  padding: 5px 8px;
-  border-radius: 1em;
+  padding: 6px 7px;
   white-space: nowrap; /* Prevents text from wrapping */
   align-self: flex-end;
+  width: 140px;
+  /* padding: 0.7rem 0.9rem; */
+  border-radius: 25px !important;
+  color: white !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  margin-top: 3px;
 }
 .profile_deleteFolderBtn:hover {
   border: red solid 1px;
   color: red;
+
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(221, 121, 121, 0.756) !important;
+}
+/* Change Collapse header background and text color */
+.ant-collapse-header {
+  /* Change background */
+  color: white !important; /* Change text color */
+}
+
+/* Change Collapse panel background */
+.ant-collapse-content {
+  /* Light purple background */
+  color: white !important;
+}
+
+/* Change active tab color */
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: white !important; /* Active tab text color */
+  font-weight: bold;
+}
+
+/* Change inactive tab color */
+.ant-tabs-tab {
+  color: #95a1ad !important; /* Inactive tab text color */
+}
+
+/* Change tab underline (indicator) color */
+.ant-tabs-ink-bar {
+  background-color: #621c74 !important; /* Active tab underline */
 }

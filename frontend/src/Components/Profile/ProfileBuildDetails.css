@@ -1,41 +1,43 @@
-.profile_buildDetails {
+/* Main Container */
+.profilefullbuild_container {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   width: 90%;
   margin: 2em auto;
   gap: 2em;
-  flex-wrap: wrap; /* Ensures wrapping on small screens */
+  flex-wrap: wrap;
 }
 
-.profile_buildDetails_main {
+/* Primary Content Section */
+.profilefullbuild_main {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: 2em;
   gap: 1.5em;
-}
-.profile_buildDetails-title {
-  text-align: center;
+  min-width: 300px;
 }
 
-.profile_buildDetails-image {
+/* Image Section */
+.profilefullbuild_image {
   width: 100%;
   display: flex;
   justify-content: center;
 }
 
-.profile_buildDetails-image img {
+.profilefullbuild_image img {
   width: 100%;
   height: auto;
   object-fit: cover;
   border-radius: 8px;
+  max-height: 400px;
 }
 
-.profile_buildDetails_secondary {
+/* Components List Section */
+.profilefullbuild_secondary {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -43,56 +45,128 @@
   background-color: #ffffff17;
   border-radius: 12px;
   padding: 2em;
-  width: 100%;
+  min-width: 300px;
 }
-/* Individual component block - Horizontal layout */
-.profile_buildDetails_Component {
+
+/* Title Section */
+.profilefullbuild_title_container {
+  width: 80%;
+  text-align: center;
+  position: relative;
+}
+
+.profilefullbuild_title_field {
+  width: 100%;
+  font-size: 1.4rem;
+  font-weight: 500;
+  font-style: oblique;
+  color: white;
+  padding: 10px 10px 10px 10px;
+  border-radius: 23px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: #8b66955e !important;
+}
+
+.profilefullbuild_title_field:focus {
+  background: #8b66955e !important;
+}
+
+/* Description Section */
+.profilefullbuild_desc_container {
+  width: 80%;
+  text-align: center;
+  position: relative;
+}
+
+.profilefullbuild_desc_field {
+  width: 100%;
+  font-size: 1.1rem;
+  font-weight: 350;
+  font-style: italic;
+  padding: 10px 10px 10px 10px;
+  border-radius: 23px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: #8b66955e !important;
+  min-height: 80px;
+}
+
+.profilefullbuild_desc_field:focus {
+  background: #8b66955e !important;
+}
+
+.profilefullbuild_desc_field::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Edit Icons */
+.profilefullbuild_title_edit_icon {
+  position: absolute;
+  right: 15px;
+  top: 28%;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: medium;
+  transition: all 0.2s ease;
+}
+
+.profilefullbuild_desc_edit_icon {
+  position: absolute;
+  right: 15px;
+  top: 20px;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: medium;
+  transition: all 0.2s ease;
+}
+
+.profilefullbuild_title_edit_icon:hover,
+.profilefullbuild_desc_edit_icon:hover {
+  transform: scale(1.2);
+}
+
+/* Component Items */
+.profilefullbuild_component {
   display: flex;
-  flex-direction: row; /* Ensure items are in a row */
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  gap: 15px; /* Increased gap for better spacing */
+  gap: 15px;
   padding: 12px;
 }
 
-/* 
-.profile_buildDetails_Component {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-} */
-/* Component type (CPU, GPU, etc.) */
-.profile_buildDetails_Component-type {
+.profilefullbuild_component_type {
   font-weight: bold;
   font-size: 16px;
-  flex: 1; /* Takes some space but allows flexibility */
+  flex: 1;
   text-align: left;
-  min-width: 100px; /* Ensures type doesn't shrink too much */
+  min-width: 100px;
 }
 
-/* Component title */
-.profile_buildDetails_Component-title {
+.profilefullbuild_component_title {
   font-size: 16px;
-  font-weight: 500;
-  flex: 2; /* Gives more space to title */
+  font-weight: 400;
+  flex: 2;
   text-align: center;
   min-width: 150px;
 }
 
-/* Component image - Larger Size */
-.profile_buildDetails_Component img {
-  width: 80px; /* Increased width */
-  height: 80px; /* Increased height */
+.profilefullbuild_component img {
+  width: 80px;
+  height: 80px;
   object-fit: contain;
   border-radius: 6px;
-  flex-shrink: 0; /* Prevents shrinking */
+  flex-shrink: 0;
 }
 
-/* Refresh button */
-.profile_buildDetails_Component button {
+/* Buttons */
+.profilefullbuild_refresh_button {
   background: none;
   border: none;
   cursor: pointer;
@@ -102,101 +176,109 @@
   flex-shrink: 0;
 }
 
-.profile_buildDetails_Component button:hover {
-  transform: rotate(20deg);
+.profilefullbuild_refresh_button:hover {
+  transform: rotate(20deg) scale(1.2);
+  color: #8f45a1;
 }
 
-/* Divider */
-.divider {
+.profilefullbuild_divider {
   width: 100%;
-  height: 1px;
-  background-color: white;
+  height: 0.5px;
+  background-color: rgba(255, 255, 255, 0.134);
   margin: 8px 0;
 }
 
-/* Buttons section */
-.profile_buildDetails_buttons {
+.profilefullbuild_buttons {
   display: flex;
   justify-content: space-between;
   width: 100%;
   padding: 1em;
 }
 
-.buildDetails_delete_btn,
-.buildDetails_save_btn {
-  padding: 10px 16px;
-  border-radius: 15px;
-  white-space: nowrap;
-  max-width: fit-content;
-  color: white;
+.profilefullbuild_delete_btn,
+.profilefullbuild_save_btn {
+  width: 150px !important;
+  padding: 0.7rem 0.9rem;
+  border-radius: 25px !important;
+  border: none !important;
+  color: white !important;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: auto !important;
+  line-height: 1.5 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  margin-top: 10px;
 }
 
-.buildDetails_delete_btn {
-  background-color: red;
+.profilefullbuild_delete_btn {
+  background-color: #ff4d4f;
 }
 
-.buildDetails_save_btn {
+.profilefullbuild_delete_btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(189, 144, 144, 0.756) !important;
+  background-color: #e34a4a !important;
+  color: #ffffff !important;
+}
+
+.profilefullbuild_save_btn {
   background-color: #621c74;
+}
+
+.profilefullbuild_save_btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756) !important;
+  background-color: #7d2496 !important;
+  color: #ffffff !important;
 }
 
 /* Responsive Styling */
 @media screen and (max-width: 1024px) {
-  .profile_buildDetails {
-    flex-direction: column; /* Stack elements vertically on smaller screens */
+  .profilefullbuild_container {
+    flex-direction: column;
     width: 100%;
   }
 
-  .profile_buildDetails_main,
-  .profile_buildDetails_secondary {
-    width: 100%; /* Make sections take full width */
+  .profilefullbuild_main,
+  .profilefullbuild_secondary {
+    width: 100%;
     padding: 1em;
   }
 
-  .profile_buildDetails_Component {
-    flex-direction: row; /* Keep it horizontal */
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .profile_buildDetails_Component img {
-    width: 70px; /* Slightly smaller on tablets */
+  .profilefullbuild_component img {
+    width: 70px;
     height: 70px;
-  }
-
-  .profile_buildDetails_Component-title {
-    font-size: 14px;
-  }
-
-  .profile_buildDetails_Component-type {
-    font-size: 14px;
   }
 }
 
 @media screen and (max-width: 768px) {
-  .profile_buildDetails_Component {
-    flex-direction: column; /* Stack elements on smaller screens */
+  .profilefullbuild_component {
+    flex-direction: column;
     align-items: center;
-  }
-
-  .profile_buildDetails_Component img {
-    width: 100px; /* Make image bigger on small screens */
-    height: 100px;
-  }
-
-  .profile_buildDetails_Component-title {
     text-align: center;
   }
 
-  .profile_buildDetails-buttons {
+  .profilefullbuild_component img {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profilefullbuild_component_type,
+  .profilefullbuild_component_title {
+    text-align: center;
+  }
+
+  .profilefullbuild_buttons {
     flex-direction: column;
     gap: 10px;
     align-items: center;
   }
 
-  .buildDetails_delete_btn,
-  .buildDetails_save_btn {
+  .profilefullbuild_delete_btn,
+  .profilefullbuild_save_btn {
     width: 100%;
-    padding: 8px 12px;
-    font-size: 0.75rem; /* Full width buttons */
   }
 }

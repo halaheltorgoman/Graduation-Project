@@ -132,13 +132,13 @@ const ForgotPassword = () => {
           autoComplete="off"
         >
           <p className="forgot-instructions">
-            Create a new password for {email}
+            Create a new password for your account.
           </p>
 
           <Form.Item
             name="password"
             rules={[{ validator: validatePassword }]}
-            extra="Password must be at least 8 characters with uppercase, lowercase, number, and special character"
+           
           >
             <Input.Password className="form-input" placeholder="New Password" />
           </Form.Item>

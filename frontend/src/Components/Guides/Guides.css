@@ -1,0 +1,23 @@
+/* Main container */
+.guides_container {
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+
+  min-height: 100vh;
+}
+
+/* Filters section */
+.guides_filters {
+  width: 25%;
+  flex-shrink: 0;
+}
+
+/* Main content section */
+.guides_main {
+  width: 75%;
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
