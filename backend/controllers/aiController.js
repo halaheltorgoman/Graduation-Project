@@ -9,8 +9,8 @@ require("dotenv").config();
  * @param {Object} res - Express response object
  */
 exports.askAI = async (req, res) => {
-  const { prompt, componentType, filters, requirements } = req.body;
-  const sessionId = req.cookies.sessionId || uuidv4();
+  const { prompt, sessionId } = req.body;
+  const currentSessionId = sessionId || req.cookies.sessionId || uuidv4();
 
   if (!prompt) {
     return res.status(400).json({ error: "Prompt is required" });
@@ -19,7 +19,7 @@ exports.askAI = async (req, res) => {
   try {
     // Set session cookie if not exists
     if (!req.cookies.sessionId) {
-      res.cookie('sessionId', sessionId, {
+      res.cookie('sessionId', currentSessionId, {
         maxAge: 12 * 60 * 60 * 1000, // 12 hours
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production'
@@ -27,7 +27,7 @@ exports.askAI = async (req, res) => {
     }
     
     // Generate response using the RAG service
-    const response = await ragService.generateResponse(prompt, sessionId, req);
+    const response = await ragService.generateResponse(prompt, currentSessionId, req);
     
     res.json({ response });
   } catch (error) {
@@ -40,37 +40,61 @@ exports.askAI = async (req, res) => {
 };
 
 /**
- * Generate a PC build based on user requirements
+ * Get all chat histories for the current user
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.generateBuild = async (req, res) => {
-  const { requirements } = req.body;
-  const sessionId = req.cookies.sessionId;
-
-  if (!requirements) {
-    return res.status(400).json({ error: "Requirements are required" });
-  }
-
+exports.getChatHistory = async (req, res) => {
   try {
-    // Generate a build based on requirements
-    const build = await ragService.generateBuild(requirements);
-    
-    // If we have a session, update chat history with the build generation
-    if (sessionId) {
-      await ragService.updateChatHistory(sessionId, {
-        content: `Generated build based on requirements: ${JSON.stringify(requirements)}`,
-        role: 'system',
-        timestamp: new Date()
+    const sessionId = req.cookies.sessionId;
+    if (!sessionId) {
+      return res.json({
+        success: true,
+        chatHistory: []
       });
     }
+
+    const chatHistory = await ragService.getChatHistory(sessionId, req);
     
-    res.json({ build });
+    res.json({
+      success: true,
+      chatHistory: chatHistory ? [chatHistory] : [] // Return as array for consistency
+    });
   } catch (error) {
-    console.error("Error generating build:", error);
-    res.status(500).json({ 
-      error: "Failed to generate build",
-      details: error.message 
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({
+      error: "Failed to fetch chat history",
+      details: error.message
+    });
+  }
+};
+
+/**
+ * Get chat history by session ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+exports.getChatHistoryById = async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+    const chatHistory = await ragService.getChatHistory(sessionId, req);
+    
+    if (!chatHistory) {
+      return res.status(404).json({
+        error: "Chat history not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      messages: chatHistory.messages
+    });
+  } catch (error) {
+    console.error("Error fetching chat history:", error);
+    res.status(500).json({
+      error: "Failed to fetch chat history",
+      details: error.message
     });
   }
 };

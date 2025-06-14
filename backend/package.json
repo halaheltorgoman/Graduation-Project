@@ -12,11 +12,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@chroma-core/default-embed": "^0.1.8",
     "@langchain/community": "^0.3.42",
     "@langchain/openai": "^0.5.10",
     "backend": "file:",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.1",
+    "chromadb": "^3.0.3",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

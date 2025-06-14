@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./AIAssistant.css";
 import aiLogo from "../../assets/images/aiassistant.png";
 import refreshIcon from "../../assets/images/Refresh.png";
@@ -16,34 +17,62 @@ function AIAssistant() {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [chatActive, setChatActive] = useState(false);
+  const [sessionId, setSessionId] = useState(() => {
+    return localStorage.getItem('aiAssistantSessionId') || crypto.randomUUID();
+  });
   
   // State for sidebar functionality
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [isSidebarClosed, setIsSidebarClosed] = useState(false);
+  const [isSidebarClosed, setIsSidebarClosed] = useState(() => {
+    const savedState = localStorage.getItem('aiAssistantSidebarClosed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [searchQuery, setSearchQuery] = useState("");
-  const [footerHeight, setFooterHeight] = useState(80); // Default footer height
+  const [footerHeight, setFooterHeight] = useState(80);
   
-  // Mock chat history data
-  const [chatHistory, setChatHistory] = useState([
-    {
-      id: 1,
-      title: "Gaming PC Build",
-      preview: "Looking for components under $1000...",
-      date: new Date(Date.now() - 86400000),
-    },
-    {
-      id: 2,
-      title: "Component Compatibility",
-      preview: "Will this CPU work with my motherboard...",
-      date: new Date(Date.now() - 86400000 * 3),
-    },
-    {
-      id: 3,
-      title: "Workstation Advice",
-      preview: "Need recommendations for video editing...",
-      date: new Date(Date.now() - 86400000 * 8),
-    }
-  ]);
+  // Chat history from database
+  const [chatHistory, setChatHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Save sessionId to localStorage
+  useEffect(() => {
+    localStorage.setItem('aiAssistantSessionId', sessionId);
+  }, [sessionId]);
+
+  // Save sidebar state to localStorage
+  useEffect(() => {
+    localStorage.setItem('aiAssistantSidebarClosed', JSON.stringify(isSidebarClosed));
+  }, [isSidebarClosed]);
+
+  // Fetch chat history from database
+  useEffect(() => {
+    const fetchChatHistory = async () => {
+      try {
+        const response = await axios.get('http://localhost:4000/api/ai/chat-history', {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.data.success) {
+          setChatHistory(response.data.chatHistory);
+          // If we have messages in the chat history, set them as current messages
+          if (response.data.chatHistory.length > 0) {
+            const currentChat = response.data.chatHistory[0];
+            setMessages(currentChat.messages || []);
+            setChatActive(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchChatHistory();
+  }, [sessionId]); // Re-fetch when sessionId changes
 
   // Calculate footer height and adjust sidebar positioning
   useEffect(() => {
@@ -51,10 +80,9 @@ function AIAssistant() {
       const footer = document.querySelector('footer, .footer, [class*="footer"]');
       if (footer) {
         const footerRect = footer.getBoundingClientRect();
-        const newFooterHeight = footerRect.height + 20; // Add some margin
+        const newFooterHeight = footerRect.height + 20;
         setFooterHeight(newFooterHeight);
         
-        // Apply dynamic bottom positioning to sidebar
         const sidebar = document.querySelector('.chat-sidebar');
         if (sidebar && window.innerWidth > 1200) {
           sidebar.style.bottom = `${newFooterHeight}px`;
@@ -62,13 +90,9 @@ function AIAssistant() {
       }
     };
 
-    // Calculate on mount
     calculateFooterHeight();
-
-    // Recalculate on window resize
     window.addEventListener('resize', calculateFooterHeight);
     
-    // Use ResizeObserver if available for better footer height detection
     if (window.ResizeObserver) {
       const footer = document.querySelector('footer, .footer, [class*="footer"]');
       if (footer) {
@@ -91,14 +115,25 @@ function AIAssistant() {
   const groupChatsByWeek = () => {
     const grouped = {};
     chatHistory.forEach(chat => {
-      const weekStart = new Date(chat.date);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekKey = weekStart.toISOString().split('T')[0];
-      
-      if (!grouped[weekKey]) {
-        grouped[weekKey] = [];
+      try {
+        // Ensure we have a valid date
+        const date = new Date(chat.updatedAt);
+        if (isNaN(date.getTime())) {
+          console.warn('Invalid date found:', chat.updatedAt);
+          return; // Skip this chat if date is invalid
+        }
+
+        const weekStart = new Date(date);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        const weekKey = weekStart.toISOString().split('T')[0];
+        
+        if (!grouped[weekKey]) {
+          grouped[weekKey] = [];
+        }
+        grouped[weekKey].push(chat);
+      } catch (error) {
+        console.error('Error processing chat date:', error);
       }
-      grouped[weekKey].push(chat);
     });
     return grouped;
   };
@@ -108,44 +143,108 @@ function AIAssistant() {
     element.style.height = `${Math.min(element.scrollHeight, 150)}px`;
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputValue.trim() === "") return;
     
     if (messages.length === 0) {
       setChatActive(true);
     }
     
-    setMessages(prev => [...prev, {
-      text: inputValue,
-      sender: 'user'
-    }]);
+    // Add user message immediately
+    const userMessage = {
+      content: inputValue,
+      role: 'user',
+      timestamp: new Date().toISOString()
+    };
     
+    setMessages(prev => [...prev, userMessage]);
     setInputValue("");
     const textarea = document.querySelector('.chat-textarea');
     if (textarea) {
       textarea.style.height = 'auto';
     }
 
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        text: "This is a sample response from the AI assistant. In a real implementation, this would connect to your AI backend.",
-        sender: 'ai'
-      }]);
+    try {
+      // Show loading state
+      const loadingMessage = {
+        content: "Thinking...",
+        role: 'assistant',
+        isLoading: true,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, loadingMessage]);
+
+      // Make API call to backend
+      const response = await axios.post('http://localhost:4000/api/ai/ask', {
+        prompt: inputValue,
+        sessionId: sessionId
+      }, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      // Remove loading message and add AI response
+      const aiMessage = {
+        content: response.data.response || "I apologize, but I couldn't process your request at the moment.",
+        role: 'assistant',
+        timestamp: new Date().toISOString()
+      };
       
-      if (isLoggedIn) {
-        setChatHistory(prev => [{
-          id: Date.now(),
-          title: inputValue.slice(0, 30) + (inputValue.length > 30 ? "..." : ""),
-          preview: inputValue.slice(0, 60) + (inputValue.length > 60 ? "..." : ""),
-          date: new Date()
-        }, ...prev]);
+      setMessages(prev => prev.filter(msg => !msg.isLoading).concat(aiMessage));
+      
+      // Refresh chat history after new message
+      const historyResponse = await axios.get('http://localhost:4000/api/ai/chat-history', {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (historyResponse.data.success) {
+        setChatHistory(historyResponse.data.chatHistory);
       }
-    }, 1000);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      // Remove loading message and show error
+      const errorMessage = {
+        content: "I apologize, but I encountered an error while processing your request. Please try again.",
+        role: 'assistant',
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => prev.filter(msg => !msg.isLoading).concat(errorMessage));
+    }
   };
 
   const handleNewChat = () => {
     setMessages([]);
     setChatActive(false);
+    const newSessionId = crypto.randomUUID();
+    setSessionId(newSessionId);
+    setChatHistory([]);
+  };
+
+  const handleLoadChat = async (chat) => {
+    try {
+      const response = await axios.get(`http://localhost:4000/api/ai/chat-history/${chat.sessionId}`, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.data.success) {
+        setMessages(response.data.messages);
+        setSessionId(chat.sessionId);
+        setChatActive(true);
+      }
+    } catch (error) {
+      console.error('Error loading chat:', error);
+    }
   };
 
   const groupedChats = groupChatsByWeek();
@@ -169,88 +268,120 @@ function AIAssistant() {
     }
   ];
 
-  return (
-    <div className={`ai-assistant-container ${isLoggedIn ? 'with-sidebar' : ''} ${isSidebarClosed ? 'closed-sidebar' : ''}`}>
-      {/* Sidebar - only shown when logged in */}
-      {isLoggedIn && (
-        <div 
-          className={`chat-sidebar ${isSidebarClosed ? 'closed' : ''}`}
-          style={{
-            // Apply dynamic bottom positioning only on desktop
-            ...(window.innerWidth > 1200 && {
-              bottom: `${footerHeight}px`,
-              maxHeight: `calc(100vh - 130px - ${footerHeight}px)`
-            })
-          }}
-        >
-          <div className="sidebar-header">
-            <button 
-              className="sidebar-toggle"
-              onClick={() => setIsSidebarClosed(!isSidebarClosed)}
-              aria-label={isSidebarClosed ? "Open sidebar" : "Close sidebar"}
-            >
-              <img 
-                src={isSidebarClosed ? menuIcon : closeIcon} 
-                alt={isSidebarClosed ? "Open sidebar" : "Close sidebar"} 
-              />
-            </button>
-            
-            {!isSidebarClosed && (
-              <>
-                <div className="sidebar-search">
-                  <input
-                    type="text"
-                    placeholder="Search chats..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <img src={searchIcon} alt="Search" className="search-icon" />
-                </div>
-                <h3 className="sidebar-title">Chat History</h3>
-              </>
-            )}
-          </div>
+  const formatMessage = (text) => {
+    if (!text) return null;
+    
+    // Split text into paragraphs
+    const paragraphs = text.split('\n\n');
+    
+    return paragraphs.map((paragraph, index) => {
+      if (!paragraph) return null;
+      
+      // Check if paragraph is a bullet point list
+      if (paragraph.trim().startsWith('- ')) {
+        const items = paragraph.split('\n').map(item => item.trim().replace(/^- /, ''));
+        return (
+          <ul key={index} className="message-list">
+            {items.map((item, itemIndex) => (
+              <li key={itemIndex}>{item}</li>
+            ))}
+          </ul>
+        );
+      }
+      
+      // Check if paragraph is a numbered list
+      if (paragraph.trim().match(/^\d+\.\s/)) {
+        const items = paragraph.split('\n').map(item => item.trim().replace(/^\d+\.\s/, ''));
+        return (
+          <ol key={index} className="message-list">
+            {items.map((item, itemIndex) => (
+              <li key={itemIndex}>{item}</li>
+            ))}
+          </ol>
+        );
+      }
+      
+      // Regular paragraph
+      return <p key={index}>{paragraph}</p>;
+    });
+  };
 
+  return (
+    <div className={`ai-assistant-container ${isSidebarClosed ? 'closed-sidebar' : ''}`}>
+      {/* Sidebar */}
+      <div 
+        className={`chat-sidebar ${isSidebarClosed ? 'closed' : ''}`}
+        style={{
+          ...(window.innerWidth > 1200 && {
+            bottom: `${footerHeight}px`,
+            maxHeight: `calc(100vh - 130px - ${footerHeight}px)`
+          })
+        }}
+      >
+        <div className="sidebar-header">
+          <button 
+            className="sidebar-toggle"
+            onClick={() => setIsSidebarClosed(!isSidebarClosed)}
+            aria-label={isSidebarClosed ? "Open sidebar" : "Close sidebar"}
+          >
+            <img 
+              src={isSidebarClosed ? menuIcon : closeIcon} 
+              alt={isSidebarClosed ? "Open sidebar" : "Close sidebar"} 
+            />
+          </button>
+          
           {!isSidebarClosed && (
-            <div className="history-list">
-              {Object.entries(groupedChats).map(([weekStart, chats]) => (
-                <div key={weekStart} className="week-section">
-                  <h4 className="week-title">
-                    {new Date(weekStart).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric'
-                    })} - {new Date(new Date(weekStart).getTime() + 6 * 86400000).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric'
-                    })}
-                  </h4>
-                  {chats
-                    .filter(chat => 
-                      searchQuery === '' || 
-                      chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      chat.preview.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(chat => (
-                    <div key={chat.id} className="history-item" onClick={() => {
-                      setMessages([
-                        { text: chat.title, sender: 'user' },
-                        { text: "This would load the actual conversation history in a real implementation", sender: 'ai' }
-                      ]);
-                      setChatActive(true);
-                    }}>
-                      <h5>{chat.title}</h5>
-                      <p>{chat.preview}</p>
-                      <span className="chat-time">
-                        {chat.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+            <>
+              <div className="sidebar-search">
+                <input
+                  type="text"
+                  placeholder="Search chats..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <img src={searchIcon} alt="Search" className="search-icon" />
+              </div>
+              <h3 className="sidebar-title">Chat History</h3>
+            </>
           )}
         </div>
-      )}
+
+        {!isSidebarClosed && (
+          <div className="history-list">
+            {isLoading ? (
+              <div className="loading">Loading chat history...</div>
+            ) : chatHistory.length === 0 ? (
+              <div className="no-chats">No chat history available</div>
+            ) : (
+              <div className="week-section">
+                <h4 className="week-title">Current Chat</h4>
+                {chatHistory.map(chat => {
+                  const firstMessage = chat.messages[0] || {};
+                  const messageContent = firstMessage.content || '';
+                  const timestamp = new Date(chat.updatedAt);
+                  
+                  return (
+                    <div 
+                      key={chat.sessionId} 
+                      className="history-item" 
+                      onClick={() => handleLoadChat(chat)}
+                    >
+                      <h5>{messageContent.slice(0, 30) + (messageContent.length > 30 ? "..." : "")}</h5>
+                      <p>{messageContent.slice(0, 60) + (messageContent.length > 60 ? "..." : "")}</p>
+                      <span className="chat-time">
+                        {!isNaN(timestamp.getTime()) ? 
+                          timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) :
+                          'Invalid date'
+                        }
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Main Content */}
       <div className="ai-main-content">
@@ -272,14 +403,8 @@ function AIAssistant() {
                   key={index} 
                   className="prompt-card"
                   onClick={() => {
-                    setMessages([{ text: prompt.text, sender: 'user' }]);
-                    setChatActive(true);
-                    setTimeout(() => {
-                      setMessages(prev => [...prev, {
-                        text: "This is a sample response to the prompt. In a real implementation, the AI would provide a detailed answer.",
-                        sender: 'ai'
-                      }]);
-                    }, 1000);
+                    setInputValue(prompt.text);
+                    handleSendMessage();
                   }}
                 >
                   <p>{prompt.text}</p>
@@ -307,18 +432,28 @@ function AIAssistant() {
             {messages.map((message, index) => (
               <div 
                 key={index} 
-                className={`message-container ${message.sender}`}
+                className={`message-container ${message.role}`}
               >
-                {message.sender === 'ai' && (
+                {message.role === 'assistant' && (
                   <img src={aiLogo} alt="AI" className="message-ai-logo" />
                 )}
                 <div 
-                  className={`message ${message.sender}`}
+                  className={`message ${message.role}`}
                   style={{
-                    backgroundColor: message.sender === 'user' ? '#3E2F54' : '#c030d975'
+                    backgroundColor: message.role === 'user' ? '#3E2F54' : '#c030d975'
                   }}
                 >
-                  <p>{message.text}</p>
+                  <div className="message-content">
+                    {message.isLoading ? (
+                      <div className="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </div>
+                    ) : (
+                      formatMessage(message.content)
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
