@@ -640,6 +640,7 @@ const checkComponentCompatibility = async (components) => {
  */
 const generateResponse = async (prompt, sessionId, req) => {
   try {
+    // Get user context first
     const userContext = await getUserContext(req, sessionId);
     
     const relevantKnowledge = await getRelevantKnowledge(prompt);
