@@ -1,0 +1,106 @@
+{
+	"info": {
+		"_postman_id": "your-collection-id",
+		"name": "RAG Service Tests",
+		"description": "Test collection for the RAG service endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Basic Chat",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"prompt\": \"What are the key components needed for a gaming PC?\",\n    \"userId\": null\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/ai/ask",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "ai", "ask"]
+				}
+			}
+		},
+		{
+			"name": "Chat with User Context",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"prompt\": \"What's a good GPU for my budget of $500?\",\n    \"userId\": \"{{userId}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/ai/ask",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "ai", "ask"]
+				}
+			}
+		},
+		{
+			"name": "Generate Build",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"requirements\": {\n        \"budget\": 1500,\n        \"purpose\": \"gaming\",\n        \"performance\": \"high\",\n        \"preferences\": [\"NVIDIA\", \"Intel\"]\n    },\n    \"userId\": \"{{userId}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/ai/generate-build",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "ai", "generate-build"]
+				}
+			}
+		},
+		{
+			"name": "Chat with Component Filter",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"prompt\": \"What are the best gaming CPUs?\",\n    \"componentType\": \"cpu\",\n    \"filters\": {\n        \"price\": { \"$lte\": 300 },\n        \"brand\": \"Intel\"\n    }\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/ai/ask",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "ai", "ask"]
+				}
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "your-test-user-id",
+			"type": "string"
+		}
+	]
+} 

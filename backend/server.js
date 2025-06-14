@@ -44,6 +44,10 @@ app.use("/api/search", searchRouter);
 // Error handling middleware (uncomment and implement your errorHandler)
 // app.use(errorHandler);
 
+app.use("/api/ai", require("./routes/aiAssistant"));
+
+//app.use(errorHandler);
+
 connectDB().then(() => {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => {
