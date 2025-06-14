@@ -1,189 +1,3 @@
-// const Build = require('../models/Build');
-// const buildService = require('../services/buildService');
-
-// exports.getNextComponents = async (req, res) => {
-//   try {
-//     const { selectedComponents, targetType } = req.body;
-
-//     // Validate input
-//     if (!targetType || typeof selectedComponents !== 'object') {
-//       return res.status(400).json({ message: 'Invalid request parameters' });
-//     }
-
-//     const compatibleComponents = await buildService.getCompatibleComponents(
-//       selectedComponents,
-//       targetType
-//     );
-
-//     res.json({
-//       type: targetType,
-//       components: compatibleComponents
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       message: err.message || 'Failed to get compatible components',
-//       error: err.message
-//     });
-//   }
-// };
-
-// exports.validateBuild = async (req, res) => {
-//   try {
-//     const { components } = req.body;
-
-//     // Validate all components exist
-//     const componentPromises = Object.entries(components).map(async ([type, id]) => {
-//       const Model = buildService.getComponentModel(type);
-//       return Model.findById(id);
-//     });
-
-//     const componentObjects = await Promise.all(componentPromises);
-//     const componentMap = componentObjects.reduce((acc, comp, index) => {
-//       const type = Object.keys(components)[index];
-//       acc[type.toLowerCase()] = comp;
-//       return acc;
-//     }, {});
-
-//     // Check full compatibility
-//     const isValid = await buildService.checkCompatibility(componentMap);
-
-//     res.json({
-//       valid: isValid,
-//       message: isValid ? 'Build is compatible!' : 'Build has compatibility issues'
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       message: 'Validation failed',
-//       error: err.message
-//     });
-//   }
-// };
-
-// exports.saveBuild = async (req, res) => {
-//   try {
-//     const { components, title, description } = req.body;
-
-//     if (!req.user) {
-//       return res.status(401).json({ message: 'Unauthorized' });
-//     }
-
-//     // Validate components structure
-//     if (!components || typeof components !== 'object') {
-//       return res.status(400).json({ message: 'Invalid components data' });
-//     }
-
-//     // Validate each component exists in its respective collection
-//     const componentValidation = {};
-//     const validationPromises = Object.entries(components).map(async ([type, id]) => {
-//       const Model = buildService.getComponentModel(type);
-//       if (!Model) {
-//         throw new Error(`Invalid component type: ${type}`);
-//       }
-//       const component = await Model.findById(id);
-//       componentValidation[type] = component;
-//       return component;
-//     });
-
-//     await Promise.all(validationPromises);
-
-//     // Check if all components were found
-//     const missingComponents = Object.entries(componentValidation)
-//       .filter(([_, comp]) => !comp)
-//       .map(([type, _]) => type);
-
-//     if (missingComponents.length > 0) {
-//       return res.status(400).json({
-//         message: 'Invalid component IDs',
-//         missing: missingComponents
-//       });
-//     }
-
-//     // Verify compatibility using the service
-//     const isValid = await buildService.checkCompatibility(components);
-//     if (!isValid) {
-//       return res.status(400).json({ message: 'Build is not compatible' });
-//     }
-
-//     // Create the build document
-//     const newBuild = new Build({
-//       user: req.user._id,
-//       components: components,
-//       title: title || 'Unnamed Build',
-//       description: description || ''
-//     });
-
-//     await newBuild.save();
-
-//     await User.findByIdAndUpdate(
-//       req.user._id,
-//       { $push: { builds: newBuild._id } },
-//       { new: true }
-//     );
-//     // Populate components for the response
-//     const populatedBuild = await Build.findById(newBuild._id)
-//       .populate('components.cpu')
-//       .populate('components.gpu')
-//       .populate('components.motherboard')
-//       .populate('components.ram')
-//       .populate('components.storage')
-//       .populate('components.psu')
-//       .populate('components.case')
-//       .populate('components.cooler');
-
-//     res.status(201).json({
-//       message: 'Build saved successfully',
-//       build: populatedBuild
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       message: 'Failed to save build',
-//       error: err.message
-//     });
-//   }
-// };
-
-// /*
-// exports.shareBuild = async (req, res) => {
-//   try {
-//     const { buildId } = req.params;
-
-//     if (!req.user) {
-//       return res.status(401).json({ message: 'Unauthorized' });
-//     }
-
-//     const build = await Build.findById(buildId);
-//     if (!build) {
-//       return res.status(404).json({ message: 'Build not found' });
-//     }
-
-//     if (build.user.toString() !== req.user._id.toString()) {
-//       return res.status(403).json({ message: 'Unauthorized to share this build' });
-//     }
-
-//     build.isPublic = true;
-//     await build.save();
-
-//     const populatedBuild = await Build.findById(buildId)
-//       .populate('components.cpu')
-//       .populate('components.gpu')
-//       .populate('components.motherboard')
-//       .populate('components.ram')
-//       .populate('components.storage')
-//       .populate('components.psu')
-//       .populate('components.case')
-//       .populate('components.cooler');
-
-//     res.json({
-//       message: 'Build shared to community successfully',
-//       build: populatedBuild
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       message: 'Failed to share build',
-//       error: err.message
-//     });
-//   }
-// };*/const mongoose = require('mongoose');
 const Build = require("../models/Build");
 const CommunityPost = require("../models/Post");
 const User = require("../models/User");
@@ -265,8 +79,9 @@ exports.validateBuild = async (req, res) => {
 
 exports.createBuild = async (req, res) => {
   try {
-    const { components } = req.body;
+    const { components, title } = req.body;
     console.log("Received components in createBuild:", components);
+
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
@@ -276,6 +91,19 @@ exports.createBuild = async (req, res) => {
         .status(400)
         .json({ success: false, message: "Invalid components data" });
     }
+
+    // Validate title if provided
+    if (title && typeof title !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Title must be a string",
+      });
+    }
+
+    // Clean and format title
+    const cleanTitle = title
+      ? title.trim().substring(0, 100)
+      : `My Build ${new Date().toLocaleDateString()}`;
 
     const { valid, checks } = await buildService.checkCompatibility(components);
     if (!valid) {
@@ -289,7 +117,7 @@ exports.createBuild = async (req, res) => {
     const newBuild = new Build({
       user: req.userId,
       components: components,
-      title: "Unnamed Build",
+      title: cleanTitle, // Use cleaned title
       isShared: false,
     });
 
@@ -304,7 +132,7 @@ exports.createBuild = async (req, res) => {
       .populate("components.storage")
       .populate("components.psu")
       .populate("components.case")
-      .populate("components.cooler"); // Make sure this matches your schema
+      .populate("components.cooler");
 
     res.status(201).json({
       success: true,
@@ -315,7 +143,6 @@ exports.createBuild = async (req, res) => {
   } catch (err) {
     console.error("Create build error:", err);
     res.status(500).json({
-      //
       success: false,
       message: "Failed to create build",
       error: err.message,
@@ -378,77 +205,6 @@ exports.getBuildTotalPrice = async (req, res) => {
   }
 };
 
-exports.finalizeBuild = async (req, res) => {
-  try {
-    const { buildId } = req.params;
-    const { title, description, shareToCommunity } = req.body;
-
-    if (!req.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
-    const user = await User.findById(req.userId);
-
-    const build = await Build.findById(buildId);
-    if (!build) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Build not found" });
-    }
-
-    if (!build.user.equals(req.userId)) {
-      return res.status(403).json({
-        success: false,
-        message: "Unauthorized to modify this build",
-      });
-    }
-
-    build.title = title || "Unnamed Build";
-    build.description = description || "";
-    build.isShared = shareToCommunity === true;
-
-    await build.save();
-    if (build.isShared) {
-      const newPost = new CommunityPost({
-        build: build._id,
-        user: req.userId,
-        title: build.title,
-        description: build.description,
-      });
-
-      await newPost.save();
-    }
-
-    await User.findByIdAndUpdate(req.userId, {
-      $addToSet: { builds: buildId },
-    });
-
-    await build.save();
-    const populatedBuild = await Build.findById(build._id)
-      .populate("components.cpu")
-      .populate("components.gpu")
-      .populate("components.motherboard")
-      .populate("components.memory")
-      .populate("components.storage")
-      .populate("components.psu")
-      .populate("components.case")
-      .populate("components.cooler");
-
-    res.json({
-      success: true,
-      message: `Build ${build.isShared ? "shared" : "saved"} successfully`,
-      build: populatedBuild,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to finalize build",
-      error: err.message,
-    });
-  }
-};
-
-// GET /api/build/user/completed
-// GET /api/build/user/completed
 exports.getUserCompletedBuilds = async (req, res) => {
   try {
     if (!req.userId) {
@@ -483,6 +239,358 @@ exports.getUserCompletedBuilds = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch completed builds",
+      error: err.message,
+    });
+  }
+};
+
+exports.getBuildForReconfigure = async (req, res) => {
+  try {
+    const { buildId } = req.params;
+    const { componentType } = req.query;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (!componentType) {
+      return res.status(400).json({
+        success: false,
+        message: "Component type is required",
+      });
+    }
+
+    // Validate component type
+    const validTypes = [
+      "cpu",
+      "gpu",
+      "motherboard",
+      "case",
+      "cooler",
+      "memory",
+      "storage",
+      "psu",
+    ];
+    if (!validTypes.includes(componentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid component type",
+      });
+    }
+
+    // Find the build
+    const build = await Build.findById(buildId).populate([
+      "components.cpu",
+      "components.gpu",
+      "components.motherboard",
+      "components.memory",
+      "components.storage",
+      "components.psu",
+      "components.case",
+      "components.cooler",
+      "title",
+    ]);
+
+    if (!build) {
+      return res.status(404).json({
+        success: false,
+        message: "Build not found",
+      });
+    }
+
+    // Check if user owns the build
+    if (!build.user.equals(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to access this build",
+      });
+    }
+
+    // Extract component IDs for the build service
+    const componentIds = {};
+    Object.keys(build.components.toObject()).forEach((key) => {
+      if (build.components[key] && build.components[key]._id) {
+        componentIds[key] = build.components[key]._id.toString();
+      }
+    });
+
+    res.json({
+      success: true,
+      build: build,
+      selectedComponents: componentIds,
+      targetComponent: componentType,
+    });
+  } catch (err) {
+    console.error("Get build for reconfigure error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get build for reconfiguration",
+      error: err.message,
+    });
+  }
+};
+exports.updateBuildComponent = async (req, res) => {
+  try {
+    const { buildId } = req.params;
+    const { componentType, componentId } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    if (!componentType || !componentId) {
+      return res.status(400).json({
+        success: false,
+        message: "Component type and ID are required",
+      });
+    }
+
+    // Validate component type
+    const validTypes = [
+      "cpu",
+      "gpu",
+      "motherboard",
+      "case",
+      "cooler",
+      "memory",
+      "storage",
+      "psu",
+    ];
+    if (!validTypes.includes(componentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid component type",
+      });
+    }
+
+    // Find the build
+    const build = await Build.findById(buildId);
+    if (!build) {
+      return res.status(404).json({
+        success: false,
+        message: "Build not found",
+      });
+    }
+
+    // Check if user owns the build
+    if (!build.user.equals(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to modify this build",
+      });
+    }
+
+    // Create updated components object for compatibility check
+    const updatedComponents = {
+      ...build.components.toObject(),
+      [componentType]: componentId,
+    };
+
+    // Convert ObjectIds to strings for compatibility check
+    const componentIds = {};
+    Object.keys(updatedComponents).forEach((key) => {
+      if (updatedComponents[key]) {
+        componentIds[key] = updatedComponents[key].toString();
+      }
+    });
+
+    // Validate compatibility of the updated build
+    const { valid, checks } = await buildService.checkCompatibility(
+      componentIds
+    );
+    if (!valid) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "The selected component is not compatible with your current build",
+        compatibilityIssues: checks,
+      });
+    }
+
+    // Update the component directly in the existing build
+    build.components[componentType] = componentId;
+    build.updatedAt = new Date();
+    await build.save();
+
+    // Get the populated build with updated component
+    const populatedBuild = await Build.findById(buildId).populate([
+      "components.cpu",
+      "components.gpu",
+      "components.motherboard",
+      "components.memory",
+      "components.storage",
+      "components.psu",
+      "components.case",
+      "components.cooler",
+    ]);
+
+    // Recalculate total price
+    let totalPrice = 0;
+    Object.values(populatedBuild.components.toObject()).forEach((component) => {
+      if (component && component.price) {
+        totalPrice += component.price;
+      }
+    });
+
+    populatedBuild.totalPrice = totalPrice;
+    await populatedBuild.save();
+
+    res.json({
+      success: true,
+      message: `${componentType.toUpperCase()} updated successfully`,
+      build: populatedBuild,
+    });
+  } catch (err) {
+    console.error("Update build component error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update component",
+      error: err.message,
+    });
+  }
+};
+
+exports.getBuildDetails = async (req, res) => {
+  try {
+    const { buildId } = req.params;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const build = await Build.findById(buildId).populate([
+      "components.cpu",
+      "components.gpu",
+      "components.motherboard",
+      "components.memory",
+      "components.storage",
+      "components.psu",
+      "components.case",
+      "components.cooler",
+      "title",
+    ]);
+
+    if (!build) {
+      return res.status(404).json({
+        success: false,
+        message: "Build not found",
+      });
+    }
+
+    // Check if user owns the build or if it's shared
+    if (!build.user.equals(req.userId) && !build.isShared) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to access this build",
+      });
+    }
+
+    // Calculate total price if not already calculated
+    if (!build.totalPrice) {
+      let totalPrice = 0;
+      Object.values(build.components.toObject()).forEach((component) => {
+        if (component && component.price) {
+          totalPrice += component.price;
+        }
+      });
+      build.totalPrice = totalPrice;
+      await build.save();
+    }
+
+    res.json({
+      success: true,
+      build: build,
+    });
+  } catch (err) {
+    console.error("Get build details error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get build details",
+      error: err.message,
+    });
+  }
+};
+exports.finalizeBuild = async (req, res) => {
+  try {
+    const { buildId } = req.params;
+    const { title, description, shareToCommunity } = req.body;
+
+    if (!req.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const build = await Build.findById(buildId);
+    if (!build) {
+      return res.status(404).json({
+        success: false,
+        message: "Build not found",
+      });
+    }
+
+    if (!build.user.equals(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized to modify this build",
+      });
+    }
+
+    // Update the existing build
+    if (title) build.title = title;
+    if (description !== undefined) build.description = description;
+    if (shareToCommunity !== undefined)
+      build.isShared = shareToCommunity === true;
+
+    await build.save();
+
+    // Handle community sharing
+    if (build.isShared) {
+      // Check if post already exists for this build
+      const existingPost = await CommunityPost.findOne({ build: build._id });
+
+      if (!existingPost) {
+        const newPost = new CommunityPost({
+          build: build._id,
+          user: req.userId,
+          title: build.title,
+          description: build.description,
+        });
+        await newPost.save();
+      } else {
+        // Update existing post
+        existingPost.title = build.title;
+        existingPost.description = build.description;
+        await existingPost.save();
+      }
+    }
+
+    // Ensure build is in user's builds array
+    await User.findByIdAndUpdate(req.userId, {
+      $addToSet: { builds: buildId },
+    });
+
+    const populatedBuild = await Build.findById(build._id).populate([
+      "components.cpu",
+      "components.gpu",
+      "components.motherboard",
+      "components.memory",
+      "components.storage",
+      "components.psu",
+      "components.case",
+      "components.cooler",
+    ]);
+
+    res.json({
+      success: true,
+      message: `Build ${
+        build.isShared ? "updated and shared" : "updated"
+      } successfully`,
+      build: populatedBuild,
+    });
+  } catch (err) {
+    console.error("Finalize build error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to finalize build",
       error: err.message,
     });
   }

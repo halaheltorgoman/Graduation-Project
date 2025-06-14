@@ -1,7 +1,7 @@
 const express = require("express");
 const userController = require("../controllers/userController");
 const usersRouter = express.Router();
-const userAuth = require("../middleware/authMiddleware");
+const authMiddleware = require("../middleware/authMiddleware");
 const { profileStorage } = require("../config/cloudinary");
 const multer = require("multer");
 const uploadProfile = multer({
@@ -14,21 +14,29 @@ const uploadProfile = multer({
   },
   limits: { fileSize: 5 * 1024 * 1024 },
 });
+usersRouter.get(
+  "/completed",
+  authMiddleware,
+  userController.getUserCompletedBuilds
+);
 
-// usersRouter.get("/data", userAuth, userController.getUserData);
-usersRouter.get("/:username", userAuth, userController.getUserProfile);
-usersRouter.get("/saved-builds", userAuth, userController.getSavedBuilds);
+usersRouter.get("/:username", authMiddleware, userController.getUserProfile);
+
 usersRouter.put(
   "/avatar",
-  userAuth,
+  authMiddleware,
   uploadProfile.single("avatar"),
   userController.updateAvatar
 );
 usersRouter.put(
   "/me/profile",
-  userAuth,
+  authMiddleware,
   uploadProfile.single("avatar"),
   userController.updateMyProfile
 );
-
+usersRouter.get(
+  "/completed",
+  authMiddleware,
+  userController.getUserCompletedBuilds
+);
 module.exports = usersRouter;

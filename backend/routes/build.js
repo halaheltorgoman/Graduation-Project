@@ -1,15 +1,3 @@
-// const express = require('express');
-// const router = express.Router();
-// const buildController = require('../controllers/buildController');
-// const authMiddleware = require('../middleware/userAuth');
-
-// // Builder workflow endpoints
-// router.post('/next-components', authMiddleware, buildController.getNextComponents);
-// router.post('/validate', authMiddleware, buildController.validateBuild);
-// router.post('/save', authMiddleware, buildController.saveBuild);
-// // router.put('/:buildId/share', builderController.shareBuild);
-
-// module.exports = router;const express = require('express');
 const express = require("express"); // <-- THIS LINE IS REQUIRED
 const router = express.Router();
 const buildController = require("../controllers/buildController");
@@ -37,4 +25,17 @@ router.get(
   authMiddleware,
   buildController.getUserCompletedBuilds
 );
-module.exports = router; // <-- also fix this line, should be 'router', not 'buildRouter'
+// To this:
+
+router.get(
+  "/:buildId/reconfigure",
+  authMiddleware,
+  buildController.getBuildForReconfigure
+);
+router.put(
+  "/:buildId/update-component",
+  authMiddleware,
+  buildController.updateBuildComponent
+);
+
+module.exports = router;

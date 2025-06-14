@@ -52,6 +52,15 @@ const userSchema = new Schema(
         ref: "Post",
       },
     ], //saved builds from community/guides
+
+    // ADD THIS: savedGuides array for saving guides
+    savedGuides: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Guide",
+      },
+    ],
+
     savedPosts: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -83,4 +92,5 @@ const userSchema = new Schema(
 userSchema.index({
   username: "text",
 });
+
 module.exports = mongoose.model("User", userSchema);

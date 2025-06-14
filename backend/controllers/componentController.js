@@ -437,7 +437,6 @@ exports.getUserFavorites = async (req, res) => {
   }
 };
 
-// New method to get detailed favorite components
 exports.getUserFavoriteComponents = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
@@ -479,45 +478,6 @@ exports.getUserFavoriteComponents = async (req, res) => {
   }
 };
 
-exports.searchComponents = async (req, res) => {
-  try {
-    const { type } = req.params;
-    const { minRating, maxRating, search, minPrice, maxPrice, sortBy } =
-      req.query;
-
-    const Model = getComponentModel(type.toLowerCase());
-
-    let query = {};
-
-    if (search) {
-      query.$text = { $search: search };
-    }
-
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = parseFloat(minPrice);
-      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
-    }
-
-    if (minRating || maxRating) {
-      query.rating = {};
-      if (minRating) query.rating.$gte = parseFloat(minRating);
-      if (maxRating) query.rating.$lte = parseFloat(maxRating);
-    }
-
-    let dbQuery = Model.find(query);
-
-    if (sortBy) {
-      const [field, order] = sortBy.split(":");
-      dbQuery = dbQuery.sort({ [field]: order === "desc" ? -1 : 1 });
-    }
-
-    const results = await dbQuery.limit(100).exec();
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ message: "Search failed", error: err.message });
-  }
-};
 exports.getComponentById = async (req, res) => {
   try {
     const { type, componentId } = req.params;
@@ -556,43 +516,5 @@ exports.getComponentById = async (req, res) => {
       message: "Server error",
       error: err.message,
     });
-  }
-};
-// Add this to your components controller
-// componentController.js
-exports.getSearchSuggestions = async (req, res) => {
-  try {
-    const { type } = req.params;
-    const { query, limit = 5 } = req.query;
-
-    if (!query || query.length < 2) {
-      return res.json([]);
-    }
-
-    const Model = getComponentModel(type.toLowerCase());
-    if (!Model)
-      return res.status(400).json({ message: "Invalid component type" });
-
-    const results = await Model.aggregate([
-      {
-        $search: {
-          index: "autocomplete",
-          autocomplete: {
-            query: query,
-            path: "title",
-            fuzzy: {
-              maxEdits: 1,
-            },
-          },
-        },
-      },
-      { $limit: parseInt(limit) },
-      { $project: { _id: 1, title: 1, category: 1, image_source: 1 } },
-    ]);
-
-    res.json(results);
-  } catch (err) {
-    console.error("Error in getSuggestions:", err);
-    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

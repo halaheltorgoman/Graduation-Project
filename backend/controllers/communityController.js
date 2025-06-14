@@ -146,53 +146,6 @@ exports.getComments = async (req, res) => {
   }
 };
 
-//     const { postId } = req.params;
-
-//     if (!req.userId) {
-//       return res.status(401).json({ success: false, message: "Unauthorized" });
-//     }
-
-//     const [post, user] = await Promise.all([
-//       Post.findById(postId),
-//       User.findById(req.userId),
-//     ]);
-
-//     if (!post) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Post not found" });
-//     }
-
-//     const buildIndex = user.savedBuilds.indexOf(post.build);
-//     if (buildIndex === -1) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Build not found in your saved items",
-//       });
-//     }
-
-//     user.savedBuilds.splice(buildIndex, 1);
-//     await user.save();
-
-//     post.savesCount = await User.countDocuments({ savedBuilds: post.build });
-//     await post.save();
-
-//     res.json({
-//       success: true,
-//       message: "Build removed from saved items",
-//       totalSaves: post.savesCount,
-//       savedBuilds: user.savedBuilds,
-//     });
-//   } catch (err) {
-//     res.status(500).json({
-//       success: false,
-//       message: "Failed to remove saved build",
-//       error: err.message,
-//     });
-//   }
-// };
-// Completely revised save post controller
-
 exports.getSharedBuildDetails = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -233,9 +186,7 @@ exports.getSharedBuildDetails = async (req, res) => {
     });
   }
 };
-// In communityController.js
 
-// Updated savePost controller
 exports.savePost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -294,7 +245,6 @@ exports.savePost = async (req, res) => {
   }
 };
 
-// Updated removeSavedPost controller
 exports.removeSavedPost = async (req, res) => {
   try {
     const { postId } = req.params;
@@ -352,7 +302,6 @@ exports.removeSavedPost = async (req, res) => {
   }
 };
 
-////working version
 // exports.getSavedPosts = async (req, res) => {
 //   try {
 //     // Use either req.user._id (recommended) or req.body.userId

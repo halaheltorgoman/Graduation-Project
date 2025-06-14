@@ -1,25 +1,29 @@
+// In your routes file, there's a potential conflict. Make sure these routes are in the RIGHT ORDER:
+
+// routes/guides.js - CORRECTED ORDER
 const guideController = require("../controllers/guideController");
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
+// SPECIFIC routes must come FIRST (before parameterized routes)
+router.get("/genres", guideController.getGenres);
+router.get("/saved", authMiddleware, guideController.getSavedGuides);
+
+// Build-related routes (specific IDs)
 router.post(
   "/:buildId/convert-to-guide",
   authMiddleware,
-  guideController.isGuideCreator,
+  guideController.isAdmin,
   guideController.convertToGuide
 );
+router.post("/:buildId/rate", authMiddleware, guideController.rateGuide);
+router.post("/:guideId/save", authMiddleware, guideController.toggleSaveGuide);
 
-router.get("/guides/:category", guideController.getGuidesByCategory);
+// Get single guide by ID (this should come BEFORE category route)
+router.get("/:id([0-9a-fA-F]{24})", guideController.getGuideById); // MongoDB ObjectId pattern
 
-router.post(
-  "/guides/:buildId/save",
-  authMiddleware,
-  guideController.toggleSaveGuide
-);
-
-router.post("/guides/:buildId/rate", authMiddleware, guideController.rateGuide);
-
-router.get("/guides/saved", authMiddleware, guideController.getSavedGuides);
+// CATEGORY route must be LAST (catches everything else)
+router.get("/:category", guideController.getGuidesByCategory);
 
 module.exports = router;

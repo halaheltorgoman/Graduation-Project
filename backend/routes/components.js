@@ -25,10 +25,6 @@ router.get(
   authMiddleware,
   componentController.getUserFavoriteComponents
 );
-router.get("/:type/suggestions", componentController.getSearchSuggestions);
-// search
-router.get("/:type/search", componentController.searchComponents);
-// New route for component details
 
 router.get("/:type/:componentId", componentController.getComponentById);
 
