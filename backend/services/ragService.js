@@ -102,25 +102,29 @@ const initializeVectorStore = async () => {
       try {
         console.log(`Attempt ${retryCount + 1} to connect to ChromaDB...`);
         
-        // Try to load existing collection using the correct method
-        vectorStore = await Chroma.fromExistingCollection(embeddings, {
+        // Create new collection with proper configuration
+        vectorStore = await Chroma.fromDocuments(documents, embeddings, {
           collectionName: "pc_building_knowledge",
           url: "http://localhost:8001",
-          apiVersion: "v2"
+          apiVersion: "v2",
+          collectionMetadata: {
+            "hnsw:space": "cosine",
+            "hnsw:construction_ef": 100,
+            "hnsw:search_ef": 100
+          },
+          embeddingFunction: {
+            generate: async (texts) => {
+              const embeddings = await Promise.all(
+                texts.map(text => embeddings.embedQuery(text))
+              );
+              return embeddings;
+            }
+          }
         });
 
         const collection = await vectorStore.ensureCollection();
         const count = await collection.count();
-        console.log(`Found existing collection with ${count} documents`);
-
-        if (count === 0) {
-          console.log('Collection is empty, adding documents...');
-          await vectorStore.addDocuments(documents);
-          const newCount = await collection.count();
-          console.log(`Added ${newCount} documents to empty collection`);
-        } else {
-          console.log('Collection already has documents, skipping initialization');
-        }
+        console.log(`Collection initialized with ${count} documents`);
 
         // If we get here, everything worked
         console.log('Vector store initialized successfully with ChromaDB');
@@ -138,17 +142,7 @@ const initializeVectorStore = async () => {
     }
 
     // If we get here, all retries failed
-    console.log('All retries failed, creating new collection...');
-    vectorStore = await Chroma.fromDocuments(documents, embeddings, {
-      collectionName: "pc_building_knowledge",
-      url: "http://localhost:8001",
-      apiVersion: "v2"
-    });
-
-    const collection = await vectorStore.ensureCollection();
-    const count = await collection.count();
-    console.log(`Created new collection with ${count} documents`);
-    console.log('Vector store initialized successfully with ChromaDB');
+    throw new Error(`Failed to initialize ChromaDB after ${maxRetries} attempts: ${lastError.message}`);
   } catch (error) {
     console.error('Error initializing vector store:', error);
     throw error;
@@ -422,8 +416,11 @@ const ragService = {
 
       console.log(`Performing similarity search for query: "${query}"`);
       
-      // Perform semantic search with ChromaDB
-      const results = await vectorStore.similaritySearch(query, 10);
+      // Get embeddings for the query
+      const queryEmbedding = await embeddings.embedQuery(query);
+      
+      // Perform semantic search with ChromaDB using raw embeddings
+      const results = await vectorStore.similaritySearchVectorWithScore(queryEmbedding, 10);
 
       console.log(`Search returned ${results.length} results`);
 
@@ -437,7 +434,8 @@ const ragService = {
           console.log('Vector store is empty, reinitializing...');
           await initializeVectorStore();
           // Try search again
-          results = await vectorStore.similaritySearch(query, 10);
+          const newQueryEmbedding = await embeddings.embedQuery(query);
+          results = await vectorStore.similaritySearchVectorWithScore(newQueryEmbedding, 10);
           console.log(`After reinitialization, search returned ${results.length} results`);
         }
       }
@@ -451,7 +449,7 @@ const ragService = {
       // Organize results by type and merge chunks
       const processedDocs = new Map();
 
-      results.forEach(result => {
+      results.forEach(([result, score]) => {
         const { type, componentType, id, title, chunkIndex, totalChunks } = result.metadata;
         const content = result.pageContent;
 
@@ -462,14 +460,13 @@ const ragService = {
         // If this is a chunk, try to get all chunks
         if (chunkIndex !== undefined) {
           // Get all chunks for this document
-          const allChunks = results.filter(r => 
-            r.metadata.id === id && 
-            r.metadata.type === type
-          ).sort((a, b) => a.metadata.chunkIndex - b.metadata.chunkIndex);
+          const allChunks = results
+            .filter(([r]) => r.metadata.id === id && r.metadata.type === type)
+            .sort(([a], [b]) => a.metadata.chunkIndex - b.metadata.chunkIndex);
 
           // If we have all chunks, process the complete document
           if (allChunks.length === totalChunks) {
-            const fullContent = allChunks.map(c => c.pageContent).join('\n');
+            const fullContent = allChunks.map(([c]) => c.pageContent).join('\n');
             processedDocs.set(id, true);
 
             switch (type) {
@@ -477,7 +474,8 @@ const ragService = {
                 relevantKnowledge.concepts.push({
                   id,
                   title,
-                  content: fullContent
+                  content: fullContent,
+                  score
                 });
                 break;
               case 'component':
@@ -487,14 +485,16 @@ const ragService = {
                 relevantKnowledge.components[componentType].push({
                   id,
                   title,
-                  content: fullContent
+                  content: fullContent,
+                  score
                 });
                 break;
               case 'buildType':
                 relevantKnowledge.buildTypes.push({
                   id,
                   title,
-                  content: fullContent
+                  content: fullContent,
+                  score
                 });
                 break;
             }
@@ -506,7 +506,8 @@ const ragService = {
               relevantKnowledge.concepts.push({
                 id,
                 title,
-                content
+                content,
+                score
               });
               break;
             case 'component':
@@ -516,14 +517,16 @@ const ragService = {
               relevantKnowledge.components[componentType].push({
                 id,
                 title,
-                content
+                content,
+                score
               });
               break;
             case 'buildType':
               relevantKnowledge.buildTypes.push({
                 id,
                 title,
-                content
+                content,
+                score
               });
               break;
           }

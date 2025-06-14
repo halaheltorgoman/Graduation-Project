@@ -29,6 +29,8 @@
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^6.10.0",
     "uuid": "^11.1.0",
-    "validator": "^13.12.0"
+    "validator": "^13.12.0",
+    "chromadb": "^2.3.0",
+    "@chroma-core/default-embed": "^0.1.0"
   }
 }

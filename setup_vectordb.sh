@@ -13,28 +13,30 @@ fi
 if docker ps -a | grep -q chroma_db; then
   echo "Found existing ChromaDB container."
   if docker ps | grep -q chroma_db; then
-    echo "ChromaDB is already running."
-  else
-    echo "Starting existing ChromaDB container..."
-    docker start chroma_db
+    echo "Stopping existing ChromaDB container..."
+    docker stop chroma_db
   fi
-else
-  echo "Creating new ChromaDB container..."
-  # Create the volume if it doesn't exist
-  if ! docker volume ls | grep -q chroma_data; then
-    echo "Creating chroma_data volume..."
-    docker volume create chroma_data
-  fi
-
-  docker run -d \
-    -p 8001:8000 \
-    --name chroma_db \
-    --restart unless-stopped \
-    -v chroma_data:/chroma/chroma \
-    -e CHROMA_DB_IMPL=duckdb+parquet \
-    -e PERSIST_DIRECTORY=/chroma/chroma \
-    chromadb/chroma
+  echo "Removing existing ChromaDB container..."
+  docker rm chroma_db
 fi
+
+echo "Creating new ChromaDB container..."
+# Create the volume if it doesn't exist
+if ! docker volume ls | grep -q chroma_data; then
+  echo "Creating chroma_data volume..."
+  docker volume create chroma_data
+fi
+
+docker run -d \
+  -p 8001:8000 \
+  --name chroma_db \
+  --restart unless-stopped \
+  -v chroma_data:/chroma/chroma \
+  -e CHROMA_DB_IMPL=duckdb+parquet \
+  -e PERSIST_DIRECTORY=/chroma/chroma \
+  -e ALLOW_RESET=true \
+  -e ANONYMIZED_TELEMETRY=false \
+  chromadb/chroma:latest
 
 echo "Waiting for ChromaDB to start..."
 sleep 15
