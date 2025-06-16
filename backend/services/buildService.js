@@ -194,35 +194,40 @@ const buildService = {
   ) {
     try {
       let compatibilityFilter = {};
-      let selectFields = "title image_source price product_name rating";
+      let selectFields =
+        "title image_source price product_name rating product_link";
 
       // Add component-specific fields needed for compatibility checks
       switch (targetType.toLowerCase()) {
         case "cpu":
-          selectFields += " manfacturer socket cores threads MB_chipsets";
+          selectFields +=
+            " manfacturer socket cores threads MB_chipsets product_link";
           break;
         case "gpu":
-          selectFields += " manfacturer brand length power_requirements";
+          selectFields +=
+            " manfacturer brand length power_requirements product_link";
           break;
         case "motherboard":
           selectFields +=
-            " brand MB_socket supported_memory MB_form chipset pcie_slots dimensions storage_interfaces";
+            " brand MB_socket supported_memory MB_form chipset pcie_slots dimensions storage_interfaces product_link";
           break;
         case "case":
           selectFields +=
-            " brand case_type color supported_motherboards max_gpu_length psu_support dimensions cooler_height drive_bays";
+            " brand case_type color supported_motherboards max_gpu_length psu_support dimensions cooler_height drive_bays product_link";
           break;
         case "cooler":
-          selectFields += " brand cooling_method compatible_cpu_sockets height";
+          selectFields +=
+            " brand cooling_method compatible_cpu_sockets height product_link";
           break;
         case "memory":
-          selectFields += " brand DDR_generation memory_size modules";
+          selectFields +=
+            " brand DDR_generation memory_size modules product_link";
           break;
         case "storage":
-          selectFields += " brand size form_factor interface";
+          selectFields += " brand size form_factor interface product_link";
           break;
         case "psu":
-          selectFields += " brand wattage form_factor modular";
+          selectFields += " brand wattage form_factor modular product_link";
           break;
       }
 
