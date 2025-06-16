@@ -195,7 +195,7 @@ const buildService = {
     try {
       let compatibilityFilter = {};
       let selectFields =
-        "title image_source price product_name rating product_link";
+        "title image_source price product_name rating product_link category";
 
       // Add component-specific fields needed for compatibility checks
       switch (targetType.toLowerCase()) {
