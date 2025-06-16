@@ -1,14 +1,14 @@
 const express = require("express");
 const aiController = require("../controllers/aiController");
-// const userAuth = require("../middleware/authMiddleware");
+const userAuth = require("../middleware/authMiddleware");
 const router = express.Router();
 
-router.post("/ask", aiController.askAI);
+router.post("/ask",userAuth, aiController.askAI);
 
 // Chat history endpoints
-router.get("/chat-history", aiController.getChatHistory);
-router.get("/chat-history/:sessionId", aiController.getChatHistoryById);
-router.post("/chat-history/associate", aiController.associateSession);
+router.get("/chat-history", userAuth, aiController.getChatHistory);
+router.get("/chat-history/:sessionId", userAuth, aiController.getChatHistoryById);
+router.post("/chat-history/associate", userAuth,  aiController.associateSession);
 
 // Test endpoint to check environment
 router.get("/test", (req, res) => {
