@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Rate } from "antd";
 import "./CommunityBuildDetailsModal.css";
 
 const specTemplates = {
@@ -74,8 +75,8 @@ const specTemplates = {
 
 const CommunityBuildDetailsModal = ({ build, onClose }) => {
   const [selectedComponent, setSelectedComponent] = useState(null);
-
-  if (!build || !build.components) return null;
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [componentTypes, setComponentTypes] = useState([]);
 
   // List of fields to exclude from specs display
   const EXCLUDED_FIELDS = [
@@ -87,26 +88,52 @@ const CommunityBuildDetailsModal = ({ build, onClose }) => {
     "full_rating",
     "price",
     "image_source",
+    "images",
     "product_link",
     "name",
     "type",
     "__v",
   ];
 
-  // Convert components object to array
-  const componentsArray = Object.entries(build.components).map(
-    ([type, component]) => ({
-      type,
-      ...component,
-    })
-  );
-
-  // Set the first component as selected by default when modal opens
   useEffect(() => {
-    if (componentsArray.length > 0 && !selectedComponent) {
-      setSelectedComponent(componentsArray[0]);
+    if (build?.components) {
+      // Convert components object to array of types
+      const types = Object.keys(build.components);
+      setComponentTypes(types);
+      
+      // Set first component as default selection
+      if (types.length > 0) {
+        setSelectedComponent({
+          ...build.components[types[0]],
+          type: types[0] // Ensure type is set
+        });
+      }
     }
-  }, [build]); // Trigger when build changes
+  }, [build]);
+
+  const handleComponentClick = (component, type) => {
+    setSelectedComponent({
+      ...component,
+      type // Ensure type is set
+    });
+    setCurrentImageIndex(0);
+  };
+
+  const handlePrevImage = () => {
+    if (selectedComponent?.images?.length) {
+      setCurrentImageIndex(prev => 
+        (prev - 1 + selectedComponent.images.length) % selectedComponent.images.length
+      );
+    }
+  };
+
+  const handleNextImage = () => {
+    if (selectedComponent?.images?.length) {
+      setCurrentImageIndex(prev => 
+        (prev + 1) % selectedComponent.images.length
+      );
+    }
+  };
 
   const getAllSpecs = (component) => {
     return Object.entries(component).reduce((acc, [key, value]) => {
@@ -124,114 +151,202 @@ const CommunityBuildDetailsModal = ({ build, onClose }) => {
   };
 
   const renderComponentSpecs = (component) => {
-    const componentType =
-      component.type?.toLowerCase() || component.category?.toLowerCase();
+    const componentType = component.type?.toLowerCase();
     const template = specTemplates[componentType];
     const allSpecs = getAllSpecs(component);
     const hasSpecs = Object.keys(allSpecs).length > 0;
 
     if (!hasSpecs) {
-      return <p className="component-no-specs">No specifications available</p>;
+      return <div className="no-specs">No specifications available</div>;
     }
 
     return (
-      <ul className="component-specs-list">
+      <div className="component-specs">
         {template
           ? template
               .filter((spec) => allSpecs[spec.key])
               .map((spec) => (
-                <li key={spec.key} className="component-spec-item">
-                  <span className="component-spec-label">{spec.label}:</span>
-                  <span className="component-spec-value">
-                    {allSpecs[spec.key]?.toString().trim()}
+                <div key={spec.key} className="spec-row">
+                  <span className="spec-key">{spec.label}:</span>
+                  <span className="spec-value">
+                    {allSpecs[spec.key]?.toString().trim() || 'N/A'}
                   </span>
-                </li>
+                </div>
               ))
           : Object.entries(allSpecs).map(([key, value]) => (
-              <li key={key} className="component-spec-item">
-                <span className="component-spec-label">
-                  {key.replace(/_/g, " ")}:
+              <div key={key} className="spec-row">
+                <span className="spec-key">{key.replace(/_/g, " ")}:</span>
+                <span className="spec-value">
+                  {value?.toString().trim() || 'N/A'}
                 </span>
-                <span className="component-spec-value">
-                  {value?.toString().trim()}
-                </span>
-              </li>
+              </div>
             ))}
-      </ul>
+      </div>
     );
   };
 
+  if (!build || !build.components || componentTypes.length === 0) {
+    return (
+      <div className="build-modal-overlay">
+        <div className="build-modal-content">
+          <button className="build-modal-close" onClick={onClose}>
+            <FaTimes />
+          </button>
+          <div className="error-message">
+            No component data available
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="close-button" onClick={onClose}>
+    <div className="build-modal-overlay" onClick={onClose}>
+      <div className="build-modal-content" onClick={(e) => e.stopPropagation()}>
+        <button className="build-modal-close" onClick={onClose}>
           <FaTimes />
         </button>
 
-        <div className="modal-header">
-          <h2>{build.title || "Unnamed Build"}</h2>
+        {/* <div className="build-modal-header">
+          <h2>{build.title || "Build Details"}</h2>
           {build.description && (
             <p className="build-description">{build.description}</p>
           )}
-          <p className="total-price">
-            Total Price: EGP {build.totalPrice || 0}
-          </p>
-        </div>
+        </div> */}
 
-        <div className="component-viewer">
-          {/* Main Component Display */}
-          {selectedComponent && (
-            <div className="main-component">
-              <div className="main-image-container">
-                {selectedComponent.image_source && (
-                  <img
-                    src={selectedComponent.image_source}
-                    alt={
-                      selectedComponent.name || selectedComponent.product_name
-                    }
-                    className="main-image"
-                  />
-                )}
-              </div>
-              <div className="main-details">
-                <h3>
-                  {(
-                    selectedComponent.type || selectedComponent.category
-                  )?.toUpperCase()}
-                </h3>
-                <h4>
-                  {selectedComponent.name || selectedComponent.product_name}
-                </h4>
-                <p className="price">EGP {selectedComponent.price || "N/A"}</p>
-                <div className="specs-container">
-                  {renderComponentSpecs(selectedComponent)}
+        <div className="build-modal-body">
+          {/* Left Panel - Component Images */}
+          <div className="build-image-panel">
+            {selectedComponent && (
+              <>
+                <div className="main-component-image">
+                  {selectedComponent.images?.length > 0 ? (
+                    <>
+                      <img
+                        src={selectedComponent.images[currentImageIndex].url}
+                        alt={selectedComponent.name || selectedComponent.product_name || 'Component'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/default-component-image.png';
+                        }}
+                      />
+                      {selectedComponent.images.length > 1 && (
+                        <>
+                          <button 
+                            className="image-nav-button left" 
+                            onClick={handlePrevImage}
+                          >
+                            <FaChevronLeft />
+                          </button>
+                          <button 
+                            className="image-nav-button right" 
+                            onClick={handleNextImage}
+                          >
+                            <FaChevronRight />
+                          </button>
+                          <div className="image-counter">
+                            {currentImageIndex + 1} / {selectedComponent.images.length}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div className="no-image-placeholder">
+                      <img 
+                        src={selectedComponent.image_source || '/default-component-image.png'} 
+                        alt={selectedComponent.name || selectedComponent.product_name || 'No image available'}
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/default-component-image.png';
+                        }}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          )}
 
-          {/* Component Thumbnails */}
-          <div className="component-thumbnails">
-            {componentsArray.map((component, index) => (
-              <div
-                key={index}
-                className={`thumbnail ${
-                  selectedComponent === component ? "active" : ""
-                }`}
-                onClick={() => setSelectedComponent(component)}
-              >
-                {component.image_source && (
-                  <img
-                    src={component.image_source}
-                    alt={component.name || component.product_name}
-                    className="thumbnail-image"
-                  />
-                )}
-                <span className="thumbnail-label">
-                  {(component.type || component.category)?.toUpperCase()}
-                </span>
+                <div className="component-thumbnails">
+                  {componentTypes.map(type => {
+                    const component = build.components[type];
+                    return (
+                      <div 
+                        key={type}
+                        className={`thumbnail-item ${
+                          selectedComponent?.type === type ? "active" : ""
+                        }`}
+                        onClick={() => handleComponentClick(component, type)}
+                      >
+                        {component?.images?.length > 0 ? (
+                          <img 
+                            src={component.images[0].url} 
+                            alt={component.name || component.product_name || type}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/default-component-image.png';
+                            }}
+                          />
+                        ) : component?.image_source ? (
+                          <img 
+                            src={component.image_source} 
+                            alt={component.name || component.product_name || type}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/default-component-image.png';
+                            }}
+                          />
+                        ) : (
+                          <div className="thumbnail-placeholder">
+                            <img src="/default-component-image.png" alt={type} />
+                          </div>
+                        )}
+                        <span className="thumbnail-label">{type}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Right Panel - Component Details */}
+          <div className="build-details-panel">
+            {selectedComponent ? (
+              <>
+                <h3 className="component-name">
+                  {selectedComponent.name || selectedComponent.product_name || 'Component'}
+                </h3>
+                
+                {/* {selectedComponent.price && (
+                  <div className="component-price">
+                    <span className="spec-key">Price:</span>
+                    <span className="spec-value">EGP {selectedComponent.price.toLocaleString()}</span>
+                  </div>
+                )} */}
+{/* 
+                {selectedComponent.rating && (
+                  <div className="component-rating">
+                    <span className="spec-key">Rating:</span>
+                    <Rate 
+                      disabled 
+                      value={selectedComponent.rating} 
+                      allowHalf 
+                      style={{ color: '#bf30d9', fontSize: 16 }} 
+                    />
+                    <span className="rating-value">({selectedComponent.full_rating || selectedComponent.rating})</span>
+                  </div>
+                )} */}
+
+                {renderComponentSpecs(selectedComponent)}
+
+                <div className="build-total-price">
+                  <h4>Total Build Price</h4>
+                  <p>EGP {build.totalPrice?.toLocaleString() || "N/A"}</p>
+                </div>
+              </>
+            ) : (
+              <div className="no-component-selected">
+                Select a component to view details
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
