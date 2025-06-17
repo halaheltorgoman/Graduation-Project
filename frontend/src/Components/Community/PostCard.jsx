@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import { RiShare2Line } from "react-icons/ri";
 import BuildCarousel from "./BuildCarousel";
+import PostCarousel from "./PostCarousel";
 import CommunityBuildDetailsModal from "./CommunityBuildDetailsModal";
 import "./PostCard.css";
 
@@ -72,6 +73,58 @@ const PostCard = ({
     document.body.style.overflow = "auto";
   };
 
+  const buildContent = hasBuild && (
+    <div className="community_post_content">
+      <div className="community_post_image_container" style={{ cursor: "pointer" }}>
+        <BuildCarousel 
+          components={post.build.components} 
+          onClick={handleBuildClick}
+        />
+      </div>
+      <div className="community_post_details">
+        <h3 className="community_build_title">
+          {post.build.title}
+        </h3>
+        
+        {post.build.description && (
+          <p className="community_build_description">
+            {post.build.description}
+          </p>
+        )}
+        
+        <div className="community_build_meta">
+          <div className="community_build_rating_section">
+            <div className="community_build_rating">
+              <Rate
+                allowHalf
+                value={post.userRating || 0}
+                onChange={(value) => onAddRating(post._id, value)}
+                className="post_rate_stars"
+              />
+              <span className="rating-text">
+                {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0} reviews)
+              </span>
+            </div>
+          </div>
+          
+          {post.build.genre && (
+            <div className="community_build_info_row">
+              <span className="build-info-label">Genre:</span>
+              <span className="build-info-value">{post.build.genre}</span>
+            </div>
+          )}
+          
+          <div className="community_build_info_row">
+            <span className="build-info-label">Price:</span>
+            <span className="build-info-value">
+              EGP {post.build.totalPrice?.toLocaleString() || "N/A"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <div className={`community_post ${isTextOnly ? "community_text_only" : ""}`}>
@@ -108,66 +161,15 @@ const PostCard = ({
 
         {/* Post Content */}
         {(hasImages || hasBuild) && (
-          <div className="community_post_content">
-            {hasBuild ? (
-              <>
-               <div 
-  className="community_post_image_container" 
-  style={{ cursor: "pointer" }}
->
-  <BuildCarousel 
-    components={post.build.components} 
-    onClick={handleBuildClick}
-  />
-</div>
-                <div className="community_post_details">
-                  {/* Build Title */}
-                  <h3 className="community_build_title">
-                    {post.build.title}
-                  </h3>
-                  
-                  {/* Build Description */}
-                  {post.build.description && (
-                    <p className="community_build_description">
-                      {post.build.description}
-                    </p>
-                  )}
-                  
-                  {/* Build Meta Information */}
-                  <div className="community_build_meta">
-                    {/* Rating Section */}
-                    <div className="community_build_rating_section">
-                      <div className="community_build_rating">
-                        <Rate
-                          allowHalf
-                          value={post.userRating || 0}
-                          onChange={(value) => onAddRating(post._id, value)}
-                          className="post_rate_stars"
-                        />
-                        <span className="rating-text">
-                          {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0} reviews)
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {/* Build Genre */}
-                    {post.build.genre && (
-                      <div className="community_build_info_row">
-                        <span className="build-info-label">Genre:</span>
-                        <span className="build-info-value">{post.build.genre}</span>
-                      </div>
-                    )}
-                    
-                    {/* Build Price */}
-                    <div className="community_build_info_row">
-                      <span className="build-info-label">Price:</span>
-                      <span className="build-info-value">
-                        EGP {post.build.totalPrice?.toLocaleString() || "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </>
+          <>
+            {hasBuild && hasImages ? (
+              <PostCarousel 
+                buildContent={buildContent}
+                images={post.images}
+                onBuildClick={handleBuildClick}
+              />
+            ) : hasBuild ? (
+              buildContent
             ) : (
               <div className="community_images_container">
                 {multipleImages ? (
@@ -201,7 +203,7 @@ const PostCard = ({
                 )}
               </div>
             )}
-          </div>
+          </>
         )}
 
         {/* Post Footer */}
