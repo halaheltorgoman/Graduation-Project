@@ -33,12 +33,12 @@ function CommentModal({
           <FaTimes />
         </button>
 
-        {/* Post Content Section */}
+        {/* Post Content Section
         {post?.build ? (
           <BigImageSlider components={post.build.components} />
         ) : post?.images && post.images.length > 0 ? (
           <BigImageSlider images={post.images} />
-        ) : null}
+        ) : null} */}
 
         {/* Comments Section */}
         <div className="modal-comments-section">

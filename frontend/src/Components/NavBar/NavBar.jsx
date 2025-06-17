@@ -264,9 +264,9 @@ export default function NavBar() {
                     </NavLink>
                   )}
 
-                  <NavLink to="notifications" className="navbar_nav-icon">
+                  {/* <NavLink to="notifications" className="navbar_nav-icon">
                     <PiBellLight size={24} />
-                  </NavLink>
+                  </NavLink> */}
                 </div>
 
                 <div className="navbar_actual-btn">

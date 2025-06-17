@@ -1,67 +1,3 @@
-.community_post {
-  background-color: rgba(0, 0, 0, 0.05);
-  display: flex;
-  flex-direction: column;
-  width: 90%;
-  padding: 20px;
-  border-radius: 15px;
-  border-left: 4px solid rgba(128, 0, 128, 0.134);
-  transition: transform 0.2s ease;
-  margin-bottom: 2em;
-  word-wrap: break-word;
-  overflow: hidden;
-}
-
-.community_post:hover {
-  transform: translateY(-3px);
-}
-
-/* Post header */
-.community_post_header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-.postHeader_userInfo {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5em;
-}
-.postHeader_userInfo_firstpart {
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-  width: 100%; /* Take full width */
-}
-
-.post_username {
-  font-size: 14px;
-  align-self: center;
-  font-weight: bold;
-
-  color: var(--purple);
-}
-
-.post_timeposted {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.post_username,
-.post_timeposted {
-  color: var(--text-dark-muted);
-  white-space: nowrap;
-}
-.community_default-avatar-icon {
-  font-size: 0.8rem;
-  background-color: rgba(191, 48, 217, 1);
-  color: var(--text-secondary);
-  border-radius: 50%;
-  padding: 10px;
-}
-
 /* Post description */
 .postHeader_desc p {
   margin-top: 0.5em;
@@ -181,6 +117,8 @@
   background-color: rgba(0, 0, 0, 0.15);
   width: 100%;
   display: flex;
+  border-radius: 20px;
+  padding: 20px;
 }
 
 .community_spin .ant-spin-dot-item {
@@ -218,3 +156,401 @@
 .post_timeposted {
   white-space: nowrap;
 }
+
+
+
+
+
+/* Community Post Card Styles */
+.community_post {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 25px;
+   width: 90%;
+  padding: 20px;
+  margin-bottom: 30px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  word-wrap: break-word;
+  overflow: hidden;
+}
+
+.community_post:hover {
+  transform: translateY(-5px);
+}
+
+/* Post Header */
+.community_post_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+   /* flex-direction: column; */
+  gap: 0.5em;
+}
+
+.postHeader_userInfo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.community_user_avatar {
+ font-size: 0.8rem;
+  background-color: rgba(191, 48, 217, 1);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  padding: 10px;
+}
+
+.community_user_info {
+  display: flex;
+  flex-direction: column;
+}
+
+.community_user_name {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.community_user_username {
+  color: rgba(255, 255, 255, 0.459);
+  font-size: 0.85rem;
+}
+
+.community_post_time {
+  color: rgba(255, 255, 255, 0.459);
+  font-size: 0.8rem;
+}
+
+/* Post Description */
+.postHeader_desc {
+  margin-bottom: 20px;
+}
+
+.post-text-content {
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Post Content */
+.community_post_content {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.community_post_image_container {
+  width: 50%;
+}
+
+.community_post_image {
+  width: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  height: 250px;
+}
+
+.community_post_details {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+}
+
+.community_build_title {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.community_build_description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.community_build_meta {
+  margin-top: auto;
+}
+
+.post_averageRating {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.community_build_rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}
+
+
+
+.community_build_rating .ant-rate {
+  color: #bf30d9;
+}
+
+.community_build_spec {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-bottom: 5px;
+}
+
+/* Text-only post section */
+.community_post_info_sec {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+/* Post Footer */
+.community_post_footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.community_post_actions {
+  display: flex;
+  gap: 20px;
+}
+
+.community_post_action {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.community_post_action:hover {
+  color: #bf30d9;
+}
+
+.community_post_action_icon {
+  font-size: 1.2rem;
+}
+
+/* For text-only posts */
+.community_text_only .community_post_content {
+  flex-direction: column;
+}
+
+.community_text_only .community_post_image_container,
+.community_text_only .community_post_details {
+  width: 100%;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .community_post_content {
+    flex-direction: column;
+  }
+
+  .community_post_image_container,
+  .community_post_details {
+    width: 100%;
+  }
+
+  .community_post_image {
+    height: 200px;
+  }
+}
+
+
+
+/* Add these to your PostCard.css */
+
+/* Rating Section */
+.community_rating_section {
+  display: flex;
+  /* align-items: center; */
+  gap: 15px;
+  margin-bottom: 15px;
+  margin-left: 555px;
+}
+
+/* Images Container */
+.community_images_container {
+  width: 100%;
+}
+
+/* Side-by-side images */
+.side_by_side_images {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+
+.side_by_side_images .community_post_image {
+  width: calc(50% - 5px);
+  height: 250px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+/* Image Slider */
+.image_slider {
+  position: relative;
+  width: 100%;
+}
+
+.image_slider .community_post_image {
+  width: 100%;
+  height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.slider_arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(102, 82, 105, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.3s;
+}
+
+.slider_arrow:hover {
+  background: rgba(149, 124, 150, 0.8);
+}
+
+.slider_arrow.left {
+  left: 15px;
+}
+
+.slider_arrow.right {
+  right: 15px;
+}
+
+.slider_indicator {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.252);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .side_by_side_images {
+    flex-direction: column;
+  }
+  
+  .side_by_side_images .community_post_image {
+    width: 100%;
+    height: 200px;
+  }
+  
+  .image_slider .community_post_image {
+    height: 200px;
+  }
+}
+
+
+/* Build Details Section */
+.community_post_details {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.community_build_title {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+}
+
+.community_build_description {
+  color: rgba(255, 255, 255, 0.668);
+  font-size: 0.9rem;
+  font-weight: 350;
+  line-height: 1.4;
+  margin: 0 0 15px 0;
+}
+
+.community_build_meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.community_build_rating_section {
+  margin-bottom: 10px;
+}
+
+.community_build_rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.community_build_info_row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.build-info-label {
+  color: #bf30d9;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.build-info-value {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+/* Rating Stars */
+.post_rate_stars .ant-rate-star {
+  font-size: 16px;
+  color: #bf30d9;
+  margin-right: 2px;
+}
+
+.post_rate_stars .ant-rate-star-full {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-half .ant-rate-star-first .anticon {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-zero .anticon,
+.post_rate_stars .ant-rate-star-half .ant-rate-star-second .anticon {
+  color: #d9d9d9;
+}
+
+
+
