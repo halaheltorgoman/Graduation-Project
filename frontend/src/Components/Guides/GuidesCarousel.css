@@ -12,17 +12,6 @@
   position: relative;
 }
 
-.guides_page_carousel_image {
-  /* width: 100%; */
-  height: 180px;
-  border-radius: 14px;
-  display: block;
-  margin: 0 auto;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-  object-fit: fill;
-  cursor: pointer;
-}
-
 /* Arrow positioning outside */
 .ant-carousel .slick-prev {
   left: -40px !important; /* Position left arrow outside container */
