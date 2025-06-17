@@ -4,60 +4,22 @@ import { FaTimes } from "react-icons/fa";
 import { Spin, message } from "antd";
 import axios from "axios";
 import { IoIosAdd } from "react-icons/io";
-import "./CreatePostModal.css"; // Adjust the path as necessary
+import BuildCarousel from "./BuildCarousel";
+import PostCarousel from "./PostCarousel";
+import "./CreatePostModal.css";
 
-function CreatePostModal({ visible, onClose, onSubmit, loading }) {
+function CreatePostModal({ visible, onClose, onSubmit, loading, savedBuilds }) {
   const [postText, setPostText] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [selectedBuild, setSelectedBuild] = useState(null);
-  const [savedBuilds, setSavedBuilds] = useState([]);
-  const [fetchingBuilds, setFetchingBuilds] = useState(false);
   const [showBuildsList, setShowBuildsList] = useState(false);
 
   useEffect(() => {
     if (visible) {
-      fetchCompletedBuilds();
-    } else {
       resetForm();
     }
   }, [visible]);
-
-  const fetchCompletedBuilds = async () => {
-    try {
-      setFetchingBuilds(true);
-      const response = await axios.get(
-        "http://localhost:4000/api/build/user/completed",
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.data.success) {
-        setSavedBuilds(
-          response.data.builds.map((build) => ({
-            ...build,
-            totalPrice: calculateBuildPrice(build.components),
-          }))
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching builds:", error);
-      message.error("Failed to load your builds");
-    } finally {
-      setFetchingBuilds(false);
-    }
-  };
-
-  const calculateBuildPrice = (components) => {
-    if (!components) return 0;
-    return Object.values(components).reduce(
-      (total, component) => total + (component?.price || 0),
-      0
-    );
-  };
 
   const resetForm = () => {
     setPostText("");
@@ -137,6 +99,38 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
     });
   };
 
+  const buildContent = selectedBuild && (
+    <div className="community_post_content">
+      <div className="community_post_image_container">
+        <BuildCarousel components={selectedBuild.components} />
+      </div>
+      <div className="community_post_details">
+        <h3 className="community_build_title">
+          {selectedBuild.title || "Untitled Build"}
+        </h3>
+        {selectedBuild.description && (
+          <p className="community_build_description">
+            {selectedBuild.description}
+          </p>
+        )}
+        <div className="community_build_meta">
+          {selectedBuild.genre && (
+            <div className="community_build_info_row">
+              <span className="build-info-label">Genre:</span>
+              <span className="build-info-value">{selectedBuild.genre}</span>
+            </div>
+          )}
+          <div className="community_build_info_row">
+            <span className="build-info-label">Price:</span>
+            <span className="build-info-value">
+              ${selectedBuild.totalPrice?.toFixed(2) || "0.00"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   if (!visible) return null;
 
   return (
@@ -160,7 +154,16 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
 
           {/* Media section */}
           <div className="media-section">
-            {imagePreviews.length > 0 ? (
+            {selectedBuild ? (
+              imagePreviews.length > 0 ? (
+                <PostCarousel
+                  buildContent={buildContent}
+                  images={imagePreviews}
+                />
+              ) : (
+                buildContent
+              )
+            ) : imagePreviews.length > 0 ? (
               <div className="image-preview-grid">
                 {imagePreviews.map((preview, index) => (
                   <div key={index} className="image-preview-item">
@@ -200,15 +203,10 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
             )}
           </div>
 
-          {/* Saved builds section - now toggled by button */}
+          {/* Saved builds section */}
           {showBuildsList && (
             <div className="saved-builds-section">
-              {fetchingBuilds ? (
-                <div className="loading-builds">
-                  <Spin indicator={<LoadingOutlined />} />
-                  <p>Loading your builds...</p>
-                </div>
-              ) : savedBuilds.length > 0 ? (
+              {savedBuilds.length > 0 ? (
                 <>
                   <h4>Select a Build to Post</h4>
                   <div
@@ -260,7 +258,6 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
           <button
             className="Create_Post_choose-build-button"
             onClick={toggleBuildsList}
-            disabled={fetchingBuilds}
           >
             {showBuildsList
               ? "Post without a Build"
