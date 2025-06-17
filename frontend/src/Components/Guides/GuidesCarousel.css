@@ -1,0 +1,90 @@
+/* BuildCarousel.css */
+.custom-carousel-wrapper {
+  position: relative;
+  width: calc(100% + 80px); /* Account for arrow space */
+  margin: 0 -40px; /* Pull arrows outside container */
+}
+
+.custom-carousel-container {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.guides_page_carousel_image {
+  /* width: 100%; */
+  height: 180px;
+  border-radius: 14px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  object-fit: fill;
+  cursor: pointer;
+}
+
+/* Arrow positioning outside */
+.ant-carousel .slick-prev {
+  left: -40px !important; /* Position left arrow outside container */
+}
+
+.ant-carousel .slick-next {
+  right: -40px !important; /* Position right arrow outside container */
+}
+
+/* Arrow styling */
+.ant-carousel .slick-arrow {
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  z-index: 2;
+  transition: all 0.3s ease;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.ant-carousel .slick-arrow:before {
+  color: white !important;
+  font-size: 18px;
+  opacity: 1;
+}
+
+/* Dots positioning below image */
+.ant-carousel .slick-dots {
+  position: absolute;
+  bottom: -20px;
+  width: 100%;
+  display: flex !important;
+  justify-content: center;
+  gap: 8px;
+  /* margin: 0;
+  padding: 0; */
+  list-style: none;
+}
+
+.ant-carousel .slick-dots li {
+  margin: 0;
+  width: auto !important;
+  height: auto !important;
+}
+
+.ant-carousel .slick-dots li button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50% !important;
+  background: white !important;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.ant-carousel .slick-dots li.slick-active button {
+  opacity: 1;
+  width: 8px !important;
+  background: #bf30d9 !important;
+}
+
+.ant-carousel .slick-dots li::after {
+  display: none !important;
+}

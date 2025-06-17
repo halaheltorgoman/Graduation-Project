@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: row;
   gap: 1em;
-
   min-height: 100vh;
 }
 
@@ -18,6 +17,455 @@
   width: 75%;
   display: flex;
   flex-direction: column;
-
   overflow: hidden;
+}
+
+/* Updated Guide Card - PostCard Style */
+.guide_card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 25px;
+  width: 90%;
+  margin: 0 auto 30px auto;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  word-wrap: break-word;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.guide_card:hover {
+  transform: translateY(-5px);
+}
+
+/* Guide Header - Similar to PostCard Header */
+.guide_header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.guide_user_info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.guide_user_avatar {
+  font-size: 0.8rem;
+  background-color: rgba(191, 48, 217, 1);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  padding: 10px;
+}
+
+.guide_user_details {
+  display: flex;
+  flex-direction: column;
+}
+
+.guide_user_name {
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.guide_user_username {
+  color: rgba(255, 255, 255, 0.459);
+  font-size: 0.85rem;
+}
+
+.guide_favorite {
+  color: rgba(255, 255, 255, 0.459);
+  font-size: 0.8rem;
+}
+
+/* Guide Description */
+.guide_description_section {
+  margin-bottom: 20px;
+}
+
+.guide_desc {
+  color: white;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Guide Content - Similar to PostCard Content */
+.guide_content {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.guide_left {
+  width: 50%;
+}
+
+.guide_right {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+/* Guide Image */
+.guides_page_carousel_image {
+  width: 100%;
+  height: 250px;
+  border-radius: 12px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* Guide Details */
+.guide_title {
+  color: white;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.guide_build_description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 15px;
+}
+
+.guide_meta {
+  margin-top: auto;
+}
+
+/* Category Section */
+.guide_category_section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.guide_category_label {
+  color: #bf30d9;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.guide_category_value {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+/* Rating Section */
+.guide_rating_section {
+  margin-bottom: 15px;
+}
+
+.guide_average_rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.guide_rating_text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+}
+
+.user_rating_section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user_rating_label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.user_rating_value {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+/* Price Section */
+.guide_price_section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.guide_price_label {
+  color: #bf30d9;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.guide_price_value {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+}
+
+/* Favorite Icon Styling */
+.favorite-icon {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.favorite-icon:hover {
+  transform: scale(1.1);
+}
+
+.unfavorited {
+  color: #bf30d9;
+  font-size: 20px;
+}
+
+.favorited {
+  color: red;
+  font-size: 20px;
+}
+
+/* Loading and Error States */
+.no-guides-message {
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  min-height: 200px;
+  gap: 1rem;
+}
+
+.loading-container p {
+  font-size: 1rem;
+  color: #666;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Guides Page Carousel Styles */
+.guides_page_carousel_wrapper {
+  position: relative;
+  width: calc(100% + 80px);
+  margin: 0 -40px;
+}
+
+.guides_page_carousel_container {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  position: relative;
+}
+.guides_page_carousel_image {
+  /* width: 100%; */
+  height: 180px;
+  border-radius: 14px;
+  display: block;
+  margin: 0 auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  object-fit: contain;
+  cursor: pointer;
+}
+/* Arrow positioning outside container */
+.guides_page_carousel_wrapper .ant-carousel .slick-prev {
+  left: -40px !important;
+  z-index: 10;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-next {
+  right: -40px !important;
+  z-index: 10;
+}
+
+/* Arrow styling */
+.guides_page_carousel_wrapper .ant-carousel .slick-arrow {
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+
+  border: none !important;
+  transition: all 0.3s ease;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-arrow:before {
+  color: white !important;
+  font-size: 18px !important;
+  opacity: 1 !important;
+}
+/* 
+.guides_page_carousel_wrapper .ant-carousel .slick-arrow:hover {
+  background: rgba(191, 48, 217, 0.9) !important;
+  transform: scale(1.1);
+} */
+
+.guides_page_carousel_wrapper .ant-carousel .slick-arrow:hover:before {
+  color: white !important;
+}
+
+/* Dots positioning below image */
+.guides_page_carousel_wrapper .ant-carousel .slick-dots {
+  position: absolute !important;
+  bottom: -25px !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-dots li {
+  margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-dots li button {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+  opacity: 1 !important;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-dots li.slick-active button {
+  background: #bf30d9 !important;
+  width: 10px !important;
+  height: 10px !important;
+  opacity: 1 !important;
+}
+
+.guides_page_carousel_wrapper .ant-carousel .slick-dots li button:hover {
+  background: rgba(191, 48, 217, 0.8) !important;
+}
+
+/* Rating Stars Styling */
+.post_rate_stars {
+  align-self: center;
+  font-size: 16px;
+}
+
+.post_rate_stars .ant-rate-star {
+  font-size: 16px;
+  color: #bf30d9;
+  margin-right: 2px;
+}
+
+.post_rate_stars .ant-rate-star-full {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-half .ant-rate-star-first .anticon {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-zero .anticon,
+.post_rate_stars .ant-rate-star-half .ant-rate-star-second .anticon {
+  color: #d9d9d9;
+}
+
+.post_rate_stars .ant-rate-star-half .ant-rate-star-first {
+  color: #bf30d9;
+}
+
+.post_rate_stars .ant-rate-star-zero .ant-rate-star-second {
+  color: #d9d9d9;
+}
+
+.post_rate_stars .ant-rate-star-full .ant-rate-star-second {
+  color: #bf30d9;
+}
+
+.community_spin .ant-spin-dot-item {
+  background-color: white !important;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .guide_content {
+    flex-direction: column;
+  }
+
+  .guide_left,
+  .guide_right {
+    width: 100%;
+  }
+
+  .guides_page_carousel_image {
+    height: 200px;
+  }
+
+  .guide_right {
+    padding: 16px;
+  }
+
+  .guides_page_carousel_wrapper {
+    width: calc(100% + 60px);
+    margin: 0 -30px;
+  }
+
+  .guides_page_carousel_wrapper .ant-carousel .slick-prev {
+    left: -30px !important;
+  }
+
+  .guides_page_carousel_wrapper .ant-carousel .slick-next {
+    right: -30px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .guide_left {
+    height: 200px;
+  }
+
+  .guide_right {
+    padding: 12px;
+  }
+
+  .guides_page_carousel_wrapper {
+    width: calc(100% + 40px);
+    margin: 0 -20px;
+  }
+
+  .guides_page_carousel_wrapper .ant-carousel .slick-prev {
+    left: -20px !important;
+  }
+
+  .guides_page_carousel_wrapper .ant-carousel .slick-next {
+    right: -20px !important;
+  }
+
+  .guides_page_carousel_wrapper .ant-carousel .slick-arrow {
+    width: 28px !important;
+    height: 28px !important;
+  }
 }

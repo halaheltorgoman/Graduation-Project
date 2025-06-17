@@ -32,12 +32,7 @@ const TabContent = ({
 
   return (
     <div className="profile_folders">
-      <div className="profile_newFolder">
-        <button>
-          <MdAddCircle size={20} />
-          <p>New Folder</p>
-        </button>
-      </div>
+      <div className="profile_newFolder"></div>
       <Collapse
         ghost
         items={

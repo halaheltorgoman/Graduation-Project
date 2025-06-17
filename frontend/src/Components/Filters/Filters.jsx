@@ -229,7 +229,7 @@ function Filters({
       },
       motherboard: {
         Brand: ["MSI", "ASUS", "Gigabyte"],
-        "Supported Socket": ["LGA 1700", "AM5", "LGA1200", "AM4"],
+        "Supported Socket": ["LGA1700", "AM5", "AM4"],
         "Supported Memory": ["DDR4", "DDR5"],
         "Form Factor": ["ATX", "Micro-ATX", "Extended-ATX"],
       },
@@ -670,16 +670,6 @@ function Filters({
                 <span className="filter-mode-tag">Compatible Products</span>
               )}
           </div>
-
-          {/* Show compatibility notice if needed */}
-          {shouldShowCompatibilityNotice() && (
-            <div className="compatibility-notice">
-              <p>
-                Select {COMPONENT_DEPENDENCIES[componentType].join(", ")} first
-                to see compatible options
-              </p>
-            </div>
-          )}
 
           <div className="filter_secondHeader">
             <p>Applied Filters</p>

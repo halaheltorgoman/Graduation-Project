@@ -11,16 +11,6 @@ function GuidesNavbar() {
         <ul>
           <li className="hover:text-white">
             <NavLink
-              to="/guides/all"
-              className={({ isActive }) =>
-                isActive || isBaseBrowsePath ? "nav-item active" : "nav-item"
-              }
-            >
-              All
-            </NavLink>
-          </li>
-          <li className="hover:text-white">
-            <NavLink
               to="/guides/gaming"
               className={({ isActive }) =>
                 isActive ? "nav-item active" : "nav-item"

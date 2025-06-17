@@ -37,10 +37,10 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="all" replace />,
+            element: <Navigate to="gaming" replace />,
           },
           {
-            path: ":type",
+            path: ":category",
             element: <Guides />,
           },
         ],

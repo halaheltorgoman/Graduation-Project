@@ -12,7 +12,6 @@ exports.getGuidesByCategory = async (req, res) => {
       sortBy = "newest",
       minRating = 0,
       maxPrice,
-      genre,
     } = req.query;
 
     console.log("Request received:", {
@@ -51,7 +50,7 @@ exports.getGuidesByCategory = async (req, res) => {
         sort = { createdAt: -1 };
     }
 
-    // Build filter object
+    // Build filter object - removed genre filter
     const filter = {
       category: category,
       status: "Published",
@@ -60,10 +59,6 @@ exports.getGuidesByCategory = async (req, res) => {
 
     if (minRating > 0) {
       filter.averageRating = { $gte: parseFloat(minRating) };
-    }
-
-    if (genre && genre.trim() !== "") {
-      filter.genre = { $regex: new RegExp(`^${genre}$`, "i") };
     }
 
     console.log("Query filter:", JSON.stringify(filter, null, 2));
@@ -103,7 +98,6 @@ exports.getGuidesByCategory = async (req, res) => {
         path: "build",
         populate: {
           path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
-          select: "title image_source price manufacturer brand",
         },
       })
       .lean()
@@ -164,13 +158,12 @@ exports.getGuidesByCategory = async (req, res) => {
             return null;
           }
 
-          // Build processed guide object
+          // Build processed guide object - removed genre field
           const processedGuide = {
             _id: guide._id,
             title: guide.title,
             description: guide.description,
             category: guide.category,
-            genre: guide.genre,
             tags: guide.tags || [],
             difficulty: guide.difficulty,
             estimatedBuildTime: guide.estimatedBuildTime,
@@ -265,8 +258,7 @@ exports.convertToGuide = async (req, res) => {
     const {
       title,
       description,
-      genre,
-      category,
+      category, // Changed from genre to category
       tags,
       difficulty,
       estimatedBuildTime,
@@ -277,16 +269,15 @@ exports.convertToGuide = async (req, res) => {
       buildId,
       title,
       description,
-      genre,
       category,
     });
 
-    // Validate required fields
-    if (!title || !description || !genre || !category) {
+    // Validate required fields - removed genre, kept category
+    if (!title || !description || !category) {
       console.log("Validation failed - missing required fields");
       return res.status(400).json({
         success: false,
-        message: "Title, description, genre, and category are required",
+        message: "Title, description, and category are required",
       });
     }
 
@@ -354,7 +345,7 @@ exports.convertToGuide = async (req, res) => {
       });
     }
 
-    // Create new guide
+    // Create new guide - removed genre field
     console.log("Creating new guide...");
     const guideData = {
       build: buildId,
@@ -362,7 +353,6 @@ exports.convertToGuide = async (req, res) => {
       title,
       description,
       category,
-      genre,
       tags: tags || [],
       difficulty: difficulty || "Intermediate",
       estimatedBuildTime: estimatedBuildTime || "2-4 hours",
@@ -466,24 +456,8 @@ exports.isAdmin = async (req, res, next) => {
   }
 };
 
-exports.getGenres = async (req, res) => {
-  try {
-    const genres = await Guide.distinct("genre", {
-      status: "Published",
-      isApproved: true,
-    });
-    res.json({
-      success: true,
-      genres: genres.filter((genre) => genre),
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch genres",
-      error: err.message,
-    });
-  }
-};
+// Remove getGenres function since we're no longer using genres
+// Categories are fixed: Gaming, Workstation, Budget, Development
 
 exports.toggleSaveGuide = async (req, res) => {
   try {
@@ -693,21 +667,27 @@ exports.getGuideById = async (req, res) => {
     });
   }
 };
+
 exports.rateGuide = async (req, res) => {
   try {
     const { guideId } = req.params;
-    const { value, review } = req.body;
+    let { value } = req.body;
 
     if (!req.userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    if (value < 1 || value > 5) {
+    // Validate and normalize the rating value (same as community)
+    value = parseFloat(value);
+    if (isNaN(value) || value < 0.5 || value > 5) {
       return res.status(400).json({
         success: false,
-        message: "Rating must be between 1 and 5",
+        message: "Rating must be between 0.5 and 5",
       });
     }
+
+    // Round to nearest 0.5 (same as community)
+    value = Math.round(value * 2) / 2;
 
     const guide = await Guide.findById(guideId);
     if (!guide) {
@@ -717,7 +697,26 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    guide.addRating(req.userId, value, review);
+    // Check for existing rating (same logic as community)
+    const existingRatingIndex = guide.ratings.findIndex((r) =>
+      r.user.equals(req.userId)
+    );
+
+    if (existingRatingIndex >= 0) {
+      // Update existing rating
+      guide.ratings[existingRatingIndex].value = value;
+    } else {
+      // Add new rating
+      guide.ratings.push({
+        user: req.userId,
+        value,
+      });
+    }
+
+    // Calculate new average (same as community)
+    const sum = guide.ratings.reduce((acc, curr) => acc + curr.value, 0);
+    guide.averageRating = sum / guide.ratings.length;
+
     await guide.save();
 
     res.json({
@@ -726,8 +725,10 @@ exports.rateGuide = async (req, res) => {
       averageRating: guide.averageRating,
       userRating: value,
       totalRatings: guide.ratings.length,
+      ratings: guide.ratings, // Send the updated ratings array (same as community)
     });
   } catch (err) {
+    console.error("Guide rating error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to rate guide",

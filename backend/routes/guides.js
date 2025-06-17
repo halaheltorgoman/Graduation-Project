@@ -1,5 +1,3 @@
-// In your routes file, there's a potential conflict. Make sure these routes are in the RIGHT ORDER:
-
 // routes/guides.js - CORRECTED ORDER
 const guideController = require("../controllers/guideController");
 const express = require("express");
@@ -7,7 +5,7 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
 // SPECIFIC routes must come FIRST (before parameterized routes)
-router.get("/genres", guideController.getGenres);
+// Remove the genres route since we're no longer using genres
 router.get("/saved", authMiddleware, guideController.getSavedGuides);
 
 // Build-related routes (specific IDs)
@@ -17,7 +15,11 @@ router.post(
   guideController.isAdmin,
   guideController.convertToGuide
 );
-router.post("/:buildId/rate", authMiddleware, guideController.rateGuide);
+
+// Rating route - Fixed to use guideId instead of buildId
+router.post("/:guideId/rate", authMiddleware, guideController.rateGuide);
+
+// Save/unsave guide route
 router.post("/:guideId/save", authMiddleware, guideController.toggleSaveGuide);
 
 // Get single guide by ID (this should come BEFORE category route)

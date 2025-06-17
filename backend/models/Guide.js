@@ -27,19 +27,9 @@ const guideSchema = new Schema(
     category: {
       type: String,
       required: true,
-      enum: [
-        "Gaming",
-        "Workstation",
-        "Budget",
-        "High-End",
-        "Streaming",
-        "Content Creation",
-      ],
+      enum: ["Gaming", "Workstation", "Budget", "Development"],
     },
-    genre: {
-      type: String,
-      required: true,
-    },
+    // Removed genre field - everything now depends on category
     tags: [String],
     difficulty: {
       type: String,
@@ -51,14 +41,13 @@ const guideSchema = new Schema(
       default: "2-4 hours",
     },
     performance: {
-      fps: Number,
-      resolution: String,
-      settings: String,
+      type: Object,
+      default: {},
     },
     status: {
       type: String,
-      enum: ["Draft", "Published", "Archived"],
-      default: "Draft",
+      enum: ["Draft", "Published"],
+      default: "Published",
     },
     isApproved: {
       type: Boolean,
@@ -76,24 +65,11 @@ const guideSchema = new Schema(
       type: Number,
       default: 0,
     },
+    // Updated ratings structure to match community Post schema
     ratings: [
       {
-        user: {
-          type: Schema.Types.ObjectId,
-          ref: "User",
-          required: true,
-        },
-        value: {
-          type: Number,
-          required: true,
-          min: 1,
-          max: 5,
-        },
-        review: String,
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
+        user: { type: Schema.Types.ObjectId, ref: "User" },
+        value: { type: Number, min: 0.5, max: 5 },
       },
     ],
     averageRating: {
@@ -108,12 +84,7 @@ const guideSchema = new Schema(
 
 // Method to toggle save status and update save count
 guideSchema.methods.toggleSave = function (userId) {
-  // This method will be called from the controller
-  // We'll update the savesCount here
   const currentSavesCount = this.savesCount || 0;
-
-  // The actual save/unsave logic is handled in the controller
-  // This method just helps with the count logic
   if (this._currentUserId && this._toggleAction === "save") {
     this.savesCount = currentSavesCount + 1;
     return true;
@@ -121,35 +92,7 @@ guideSchema.methods.toggleSave = function (userId) {
     this.savesCount = Math.max(0, currentSavesCount - 1);
     return false;
   }
-
   return false;
-};
-
-// Method to add/update rating
-guideSchema.methods.addRating = function (userId, value, review = "") {
-  const existingRatingIndex = this.ratings.findIndex(
-    (rating) => rating.user.toString() === userId.toString()
-  );
-
-  if (existingRatingIndex !== -1) {
-    // Update existing rating
-    this.ratings[existingRatingIndex].value = value;
-    this.ratings[existingRatingIndex].review = review;
-  } else {
-    // Add new rating
-    this.ratings.push({
-      user: userId,
-      value,
-      review,
-    });
-  }
-
-  // Recalculate average rating
-  const totalRating = this.ratings.reduce(
-    (sum, rating) => sum + rating.value,
-    0
-  );
-  this.averageRating = totalRating / this.ratings.length;
 };
 
 // Index for efficient querying

@@ -40,7 +40,7 @@ const COMPONENT_FILTERS = {
   },
   motherboard: {
     Brand: ["MSI", "ASUS", "Gigabyte"],
-    "Supported Socket": ["LGA 1700", "AM5", "LGA 1200", "AM4"],
+    "Supported Socket": ["LGA1700", "AM5", , "AM4"],
     "Supported Memory": ["DDR4", "DDR5"],
     "Form Factor": ["ATX", "Micro-ATX", "Extended-ATX"],
   },

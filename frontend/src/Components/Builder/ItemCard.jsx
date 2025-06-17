@@ -1,10 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Button } from "../ui/button";
-import logo from "../../assets/images/logo.svg";
-import { FaStar } from "react-icons/fa";
+import { FaStar, FaHeart, FaRegHeart } from "react-icons/fa";
 import { MdArrowOutward } from "react-icons/md";
 import { FaShare } from "react-icons/fa";
+import {
+  FaWhatsapp,
+  FaFacebook,
+  FaTwitter,
+  FaLink,
+  FaTelegram,
+  FaReddit,
+  FaTimes,
+} from "react-icons/fa";
 import TransparentImage from "../TransparentImage/TransparentImage";
+import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 
 const specTemplates = {
   cpu: [
@@ -56,6 +65,14 @@ const specTemplates = {
     { label: "Fan Size", key: "fan_size" },
     { label: "Supported Lightning Type", key: "compatible_lighting_type" },
   ],
+  cooling: [
+    { label: "Brand", key: "brand" },
+    { label: "Cooling Method", key: "cooling_method" },
+    { label: "Air Flow Capacity", key: "air_flow_capacity" },
+    { label: "Radiator Size", key: "radiator_size" },
+    { label: "Fan Size", key: "fan_size" },
+    { label: "Supported Lightning Type", key: "compatible_lighting_type" },
+  ],
   memory: [
     { label: "Brand", key: "brand" },
     { label: "Color", key: "color" },
@@ -77,6 +94,12 @@ const specTemplates = {
 };
 
 const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
+  const [activeImage, setActiveImage] = useState(0);
+  const [showShareMenu, setShowShareMenu] = useState(false);
+
+  // Use context for favorites instead of local state
+  const { favorites, toggleFavorite } = useContext(SavedComponentsContext);
+
   const allSpecs = item
     ? Object.entries(item).reduce((acc, [key, value]) => {
         if (
@@ -101,6 +124,119 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       }, {})
     : {};
 
+  const shareOptions = [
+    {
+      name: "WhatsApp",
+      icon: <FaWhatsapp className="whatsapp-icon" />,
+      action: () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        window.open(
+          `https://wa.me/?text=${encodeURIComponent(
+            `Check out this ${item?.category || "component"}: ${item?.title}\n${
+              item?.product_link
+            }`
+          )}`,
+          "_blank"
+        );
+      },
+    },
+    {
+      name: "Facebook",
+      icon: <FaFacebook className="facebook-icon" />,
+      action: () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        window.open(
+          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+            item?.product_link
+          )}`,
+          "_blank"
+        );
+      },
+    },
+    {
+      name: "Twitter",
+      icon: <FaTwitter className="twitter-icon" />,
+      action: () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+            `Check out this ${item?.category || "component"}: ${item?.title}`
+          )}&url=${encodeURIComponent(item?.product_link)}`,
+          "_blank"
+        );
+      },
+    },
+    {
+      name: "Telegram",
+      icon: <FaTelegram className="telegram-icon" />,
+      action: () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        window.open(
+          `https://t.me/share/url?url=${encodeURIComponent(
+            item?.product_link
+          )}&text=${encodeURIComponent(
+            `Check out this ${item?.category || "component"}: ${item?.title}`
+          )}`,
+          "_blank"
+        );
+      },
+    },
+    {
+      name: "Reddit",
+      icon: <FaReddit className="reddit-icon" />,
+      action: () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        window.open(
+          `https://www.reddit.com/submit?url=${encodeURIComponent(
+            item?.product_link
+          )}&title=${encodeURIComponent(
+            `${item?.title} - PC Builder Component`
+          )}`,
+          "_blank"
+        );
+      },
+    },
+    {
+      name: "Copy Link",
+      icon: <FaLink className="link-icon" />,
+      action: async () => {
+        if (!item?.product_link) {
+          alert("Product link not available");
+          return;
+        }
+        try {
+          await navigator.clipboard.writeText(item?.product_link);
+          alert("Product link copied to clipboard!");
+        } catch (err) {
+          // Fallback for older browsers
+          const textArea = document.createElement("textarea");
+          textArea.value = item?.product_link;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          alert("Product link copied to clipboard!");
+        }
+        setShowShareMenu(false);
+      },
+    },
+  ];
+
   const getSpecTemplate = () => {
     const componentType = item?.category?.toLowerCase() || type.toLowerCase();
     return specTemplates[componentType] || null;
@@ -112,6 +248,26 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       <span className="component_details_spec-value">{value?.toString()}</span>
     </li>
   );
+
+  // Simplified favorite toggle using context
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation();
+    if (!item) return;
+    toggleFavorite(item);
+  };
+
+  const handleShareClick = (e) => {
+    e.stopPropagation();
+    setShowShareMenu(true);
+  };
+
+  const handleShareOptionClick = (option) => {
+    option.action();
+    if (option.name !== "Copy Link") {
+      setShowShareMenu(false);
+    }
+  };
+
   // Support both images (array) and image_source (string)
   const images =
     Array.isArray(item.images) && item.images.length > 0
@@ -120,10 +276,9 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       ? [item.image_source]
       : [];
 
-  const [activeImage, setActiveImage] = useState(0);
-
   const specTemplate = getSpecTemplate();
   const hasSpecs = Object.keys(allSpecs).length > 0;
+
   return (
     <div
       className={`p-6 mb-8 last:mb-0 rounded-3xl bg-black/60 flex gap-6 transition-all border-2 ${
@@ -132,6 +287,41 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       onClick={onSelect}
       style={{ cursor: "pointer" }}
     >
+      {/* Share Modal */}
+      {showShareMenu && (
+        <div
+          className="share-modal-overlay"
+          onClick={() => setShowShareMenu(false)}
+        >
+          <div
+            className="share-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="share-modal-header">
+              <h3>Share this product</h3>
+              <button
+                className="close-share-menu"
+                onClick={() => setShowShareMenu(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="share-options-grid">
+              {shareOptions.map((option) => (
+                <button
+                  key={option.name}
+                  className="share-option"
+                  onClick={() => handleShareOptionClick(option)}
+                >
+                  <span className="share-option-icon">{option.icon}</span>
+                  <span className="share-option-text">{option.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1">
         <div className="flex gap-6">
           <div className="space-y-4">
@@ -155,11 +345,18 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
             ))}
           </div>
           <div className="flex-1 relative">
-            <button className="absolute top-2 right-2 p-2 hover:bg-purple-500/20 rounded-full transition-colors">
-              {/* <Heart className="w-6 h-6 text-primary" /> */}
+            <button
+              className="absolute top-2 right-2 p-2 hover:bg-purple-500/20 rounded-full transition-colors z-10"
+              onClick={handleFavoriteClick}
+            >
+              {favorites.includes(item?._id) ? (
+                <FaHeart className="text-red-500" size={20} />
+              ) : (
+                <FaRegHeart className="text-white" size={20} />
+              )}
             </button>
             <div className="px-8 py-16 border-b">
-              <TransparentImage
+              <img
                 className="w-full h-full object-contain"
                 src={images[activeImage]}
                 alt={item.name}
@@ -167,7 +364,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
             </div>
             <div className="mt-4">
               <h3 className="text-lg font-semibold mb-3">Description</h3>
-              <ul className="text-sm text-gray-400 list-disc ">
+              <ul className="text-sm text-gray-400 list-disc">
                 {item.product_name}
               </ul>
             </div>
@@ -216,12 +413,13 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
 
           {item.website && (
             <p className="mt-6 text-lg font-semibold mb-3">
-              For More Info Visit :{" "}
+              For More Info Visit:{" "}
               <a
                 href={item.website.url}
                 target="_blank"
                 className="underline"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
               >
                 {item.website.title}
               </a>
@@ -246,11 +444,11 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
         </div>
 
         <div className="flex flex-col gap-4 w-fit items-start my-4">
-          <Button variant="link" className="text-white">
-            <MdArrowOutward className="w-4 h-4" />
-            Compare
-          </Button>
-          <Button variant="link" className="text-white">
+          <Button
+            variant="link"
+            className="text-white"
+            onClick={handleShareClick}
+          >
             <FaShare className="w-4 h-4" />
             Share
           </Button>

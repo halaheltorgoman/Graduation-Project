@@ -430,6 +430,7 @@ import { useNavigation } from "../../Context/NavigationContext";
 import ComponentList from "../BrowseComponentList/BrowseComponentList";
 import ComparsionModal from "../ComparisonModal/ComparisonModal.jsx";
 import { CiSearch } from "react-icons/ci";
+
 function BrowseComponents() {
   const { type = "all" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -449,9 +450,11 @@ function BrowseComponents() {
     hasPrevPage: false,
   });
 
-  // Filter and sort state
+  // Filter, sort, and search state
   const [filters, setFilters] = useState({});
   const [sortBy, setSortBy] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState("");
 
   // Comparison state
   const [compareList, setCompareList] = useState([]);
@@ -461,19 +464,22 @@ function BrowseComponents() {
 
   const { savedComponents } = useContext(SavedComponentsContext);
 
-  // Get current page from URL
+  // Get current page and search from URL
   const currentPage = Math.max(1, parseInt(searchParams.get("page")) || 1);
+  const urlSearchQuery = searchParams.get("q") || "";
 
   // Refs to prevent infinite loops and track state
   const prevTypeRef = useRef(type);
   const prevFiltersRef = useRef(filters);
   const prevSortByRef = useRef(sortBy);
+  const prevSearchQueryRef = useRef(searchQuery);
   const hasInitialized = useRef(false);
   const currentRequestRef = useRef(null);
+  const searchTimeoutRef = useRef(null);
 
-  // Fetch components function with request cancellation
+  // Fetch components function with search support
   const fetchComponents = useCallback(
-    async (page, currentFilters, currentSort) => {
+    async (page, currentFilters, currentSort, currentSearchQuery) => {
       // Cancel previous request if it exists
       if (currentRequestRef.current) {
         currentRequestRef.current.cancel?.();
@@ -492,41 +498,78 @@ function BrowseComponents() {
           params.sortBy = currentSort;
         }
 
+        // Add search query parameter
+        if (currentSearchQuery && currentSearchQuery.trim()) {
+          params.q = currentSearchQuery.trim();
+        }
+
         // Create cancellation token
         const cancelTokenSource = axios.CancelToken.source();
         currentRequestRef.current = cancelTokenSource;
 
-        const { data } = await axios.get(
-          `http://localhost:4000/api/components/${type}`,
-          {
-            params,
-            cancelToken: cancelTokenSource.token,
-          }
-        );
+        // Use search endpoint instead of regular browse endpoint
+        const endpoint =
+          currentSearchQuery && currentSearchQuery.trim()
+            ? `http://localhost:4000/api/search/${type}`
+            : `http://localhost:4000/api/components/${type}`;
+
+        const { data } = await axios.get(endpoint, {
+          params,
+          cancelToken: cancelTokenSource.token,
+        });
 
         // Clear the request reference after successful completion
         currentRequestRef.current = null;
 
-        if (data.components && data.pagination) {
-          setComponents(data.components);
-          setPagination(data.pagination);
-        } else if (Array.isArray(data)) {
-          // Fallback for old API response format
-          setComponents(data);
-          setPagination({
-            currentPage: page,
-            pageSize: 15,
-            totalCount: data.length,
-            totalPages: Math.ceil(data.length / 15),
-            hasNextPage: page < Math.ceil(data.length / 15),
-            hasPrevPage: page > 1,
-          });
+        // Handle search API response format
+        if (currentSearchQuery && currentSearchQuery.trim()) {
+          if (data.success && data.components) {
+            setComponents(data.components);
+            // Create pagination for search results
+            const totalResults = data.totalResults || data.components.length;
+            setPagination({
+              currentPage: page,
+              pageSize: 15,
+              totalCount: totalResults,
+              totalPages: Math.ceil(totalResults / 15),
+              hasNextPage: page < Math.ceil(totalResults / 15),
+              hasPrevPage: page > 1,
+            });
+          } else {
+            setComponents([]);
+            setPagination({
+              currentPage: page,
+              pageSize: 15,
+              totalCount: 0,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPrevPage: false,
+            });
+          }
+        } else {
+          // Handle regular browse API response
+          if (data.components && data.pagination) {
+            setComponents(data.components);
+            setPagination(data.pagination);
+          } else if (Array.isArray(data)) {
+            // Fallback for old API response format
+            setComponents(data);
+            setPagination({
+              currentPage: page,
+              pageSize: 15,
+              totalCount: data.length,
+              totalPages: Math.ceil(data.length / 15),
+              hasNextPage: page < Math.ceil(data.length / 15),
+              hasPrevPage: page > 1,
+            });
+          }
         }
 
         // Save current state to sessionStorage
         const stateToSave = {
           filters: currentFilters,
           sortBy: currentSort,
+          searchQuery: currentSearchQuery,
           currentPage: page,
         };
         sessionStorage.setItem(
@@ -564,11 +607,13 @@ function BrowseComponents() {
       // Reset all state when type changes
       setFilters({});
       setSortBy(null);
+      setSearchQuery("");
+      setSearchInput("");
       setCompareList([]);
       setComponents([]);
       hasInitialized.current = false;
 
-      // Reset to page 1
+      // Reset to page 1 and clear search
       const newSearchParams = new URLSearchParams();
       newSearchParams.set("page", "1");
       setSearchParams(newSearchParams, { replace: true });
@@ -588,11 +633,16 @@ function BrowseComponents() {
         // Restore from navigation state
         setFilters(returnState.filters || {});
         setSortBy(returnState.sortBy || null);
+        setSearchQuery(returnState.searchQuery || "");
+        setSearchInput(returnState.searchQuery || "");
 
         // Update URL if needed
         if (returnPage !== currentPage) {
           const newSearchParams = new URLSearchParams();
           newSearchParams.set("page", returnPage.toString());
+          if (returnState.searchQuery) {
+            newSearchParams.set("q", returnState.searchQuery);
+          }
           setSearchParams(newSearchParams, { replace: true });
         }
 
@@ -603,6 +653,12 @@ function BrowseComponents() {
           }, 100);
         }
       } else {
+        // Initialize from URL parameters
+        if (urlSearchQuery) {
+          setSearchQuery(urlSearchQuery);
+          setSearchInput(urlSearchQuery);
+        }
+
         // Try to restore from sessionStorage
         const savedState = sessionStorage.getItem(`browseState-${type}`);
         if (savedState) {
@@ -611,6 +667,12 @@ function BrowseComponents() {
             setFilters(parsedState.filters || {});
             setSortBy(parsedState.sortBy || null);
 
+            // Only restore search if not already set from URL
+            if (!urlSearchQuery && parsedState.searchQuery) {
+              setSearchQuery(parsedState.searchQuery);
+              setSearchInput(parsedState.searchQuery);
+            }
+
             // Update URL if needed
             if (
               parsedState.currentPage &&
@@ -618,6 +680,9 @@ function BrowseComponents() {
             ) {
               const newSearchParams = new URLSearchParams();
               newSearchParams.set("page", parsedState.currentPage.toString());
+              if (parsedState.searchQuery) {
+                newSearchParams.set("q", parsedState.searchQuery);
+              }
               setSearchParams(newSearchParams, { replace: true });
             }
           } catch (error) {
@@ -629,31 +694,43 @@ function BrowseComponents() {
 
       hasInitialized.current = true;
     }
-  }, [type, currentPage, location.state, setSearchParams]);
+  }, [type, currentPage, urlSearchQuery, location.state, setSearchParams]);
 
   // Main data fetching effect
   useEffect(() => {
     if (hasInitialized.current) {
-      // Check if filters or sort actually changed
+      // Check if filters, sort, or search actually changed
       const filtersChanged =
         JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
       const sortChanged = sortBy !== prevSortByRef.current;
+      const searchChanged = searchQuery !== prevSearchQueryRef.current;
 
-      if (filtersChanged || sortChanged) {
-        // Reset to page 1 if filters or sort changed
+      if (filtersChanged || sortChanged || searchChanged) {
+        // Reset to page 1 if filters, sort, or search changed
         if (currentPage !== 1) {
           const newSearchParams = new URLSearchParams();
           newSearchParams.set("page", "1");
+          if (searchQuery) {
+            newSearchParams.set("q", searchQuery);
+          }
           setSearchParams(newSearchParams, { replace: true });
           return; // Don't fetch yet, wait for page change
         }
       }
 
-      fetchComponents(currentPage, filters, sortBy);
+      fetchComponents(currentPage, filters, sortBy, searchQuery);
       prevFiltersRef.current = filters;
       prevSortByRef.current = sortBy;
+      prevSearchQueryRef.current = searchQuery;
     }
-  }, [currentPage, filters, sortBy, fetchComponents, setSearchParams]);
+  }, [
+    currentPage,
+    filters,
+    sortBy,
+    searchQuery,
+    fetchComponents,
+    setSearchParams,
+  ]);
 
   // Cleanup effect to cancel requests when component unmounts
   useEffect(() => {
@@ -661,8 +738,61 @@ function BrowseComponents() {
       if (currentRequestRef.current) {
         currentRequestRef.current.cancel?.();
       }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
     };
   }, []);
+
+  // Handle search input changes with debouncing
+  const handleSearchInputChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchInput(value);
+
+      // Clear previous timeout
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      // Debounce search for 500ms
+      searchTimeoutRef.current = setTimeout(() => {
+        setSearchQuery(value);
+
+        // Update URL with search query
+        const newSearchParams = new URLSearchParams();
+        newSearchParams.set("page", "1");
+        if (value.trim()) {
+          newSearchParams.set("q", value.trim());
+        }
+        setSearchParams(newSearchParams);
+      }, 500);
+    },
+    [setSearchParams]
+  );
+
+  // Handle search button click
+  const handleSearchSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+
+      // Clear timeout if user clicks search button
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+
+      setSearchQuery(searchInput);
+
+      // Update URL with search query
+      const newSearchParams = new URLSearchParams();
+      newSearchParams.set("page", "1");
+      if (searchInput.trim()) {
+        newSearchParams.set("q", searchInput.trim());
+      }
+      setSearchParams(newSearchParams);
+    },
+    [searchInput, setSearchParams]
+  );
 
   // Handle page changes
   const handlePageChange = useCallback(
@@ -672,12 +802,15 @@ function BrowseComponents() {
       // Update URL
       const newSearchParams = new URLSearchParams();
       newSearchParams.set("page", newPage.toString());
+      if (searchQuery) {
+        newSearchParams.set("q", searchQuery);
+      }
       setSearchParams(newSearchParams);
 
       // Scroll to top
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [currentPage, setSearchParams]
+    [currentPage, searchQuery, setSearchParams]
   );
 
   // Handle filter changes
@@ -699,10 +832,11 @@ function BrowseComponents() {
         currentPage: currentPage,
         filters: filters,
         sortBy: sortBy,
+        searchQuery: searchQuery,
         scrollPosition: window.pageYOffset,
       });
     },
-    [navigateToComponentDetail, type, currentPage, filters, sortBy]
+    [navigateToComponentDetail, type, currentPage, filters, sortBy, searchQuery]
   );
 
   // Comparison functions
@@ -750,6 +884,7 @@ function BrowseComponents() {
     }
     return () => clearTimeout(timer);
   }, [showAlert]);
+
   return (
     <div className="browsecomponents_container">
       <div className="browsecomponents_filter">
@@ -765,16 +900,46 @@ function BrowseComponents() {
         <div className="browsecomponents_nav">
           <NestedNavBar />
         </div>
-        <div className="browsecomponents_search-container">
+
+        <form
+          className="browsecomponents_search-container"
+          onSubmit={handleSearchSubmit}
+        >
           <input
             type="text"
-            placeholder="Search components..."
+            placeholder={`Search ${type === "all" ? "components" : type}...`}
             className="browsecomponents_search-input"
+            value={searchInput}
+            onChange={handleSearchInputChange}
           />
-          <button className="browsecomponents_search-button">
+          <button type="submit" className="browsecomponents_search-button">
             <CiSearch size={20} />
           </button>
-        </div>
+        </form>
+
+        {searchQuery && (
+          <div className="browsecomponents_search-info">
+            <p>
+              Showing results for "{searchQuery}"
+              {components.length > 0 && ` (${pagination.totalCount} found)`}
+            </p>
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSearchInput("");
+                  const newSearchParams = new URLSearchParams();
+                  newSearchParams.set("page", "1");
+                  setSearchParams(newSearchParams);
+                }}
+                className="clear-search-btn"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+        )}
+
         <div className="browsecomponents_products">
           <ComponentList
             components={components}
@@ -796,7 +961,9 @@ function BrowseComponents() {
             disabled={isLoading}
             showQuickJumper
             showTotal={(total, range) =>
-              `${range[0]}-${range[1]} of ${total} components`
+              `${range[0]}-${range[1]} of ${total} ${
+                searchQuery ? "results" : "components"
+              }`
             }
           />
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { FaHeart, FaRegHeart, FaStar, FaInfoCircle } from "react-icons/fa";
@@ -14,6 +14,7 @@ import {
   FaReddit,
   FaTimes,
 } from "react-icons/fa";
+import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 
 const specTemplates = {
   cpu: [
@@ -91,8 +92,10 @@ const ComponentDetails = () => {
   const navigate = useNavigate();
   const [component, setComponent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [favorites, setFavorites] = useState([]);
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  // Use context for favorites instead of local state
+  const { favorites, toggleFavorite } = useContext(SavedComponentsContext);
 
   const allSpecs = component
     ? Object.entries(component).reduce((acc, [key, value]) => {
@@ -230,13 +233,10 @@ const ComponentDetails = () => {
     fetchComponent();
   }, [type, componentId]);
 
-  const toggleFavorite = () => {
+  // Simplified favorite toggle using context
+  const handleFavoriteClick = () => {
     if (!component) return;
-    setFavorites((prev) =>
-      prev.includes(component._id)
-        ? prev.filter((fav) => fav !== component._id)
-        : [...prev, component._id]
-    );
+    toggleFavorite(component);
   };
 
   const handleBackClick = () => {
@@ -359,7 +359,7 @@ const ComponentDetails = () => {
               className={`favorite-icon ${
                 favorites.includes(component?._id) ? "favorited" : ""
               }`}
-              onClick={toggleFavorite}
+              onClick={handleFavoriteClick}
             >
               {favorites.includes(component?._id) ? (
                 <FaHeart className="favorited" style={{ fontSize: "30px" }} />

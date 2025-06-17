@@ -164,22 +164,6 @@ function GuidesFilters({
   const [maxPrice, setMaxPrice] = useState(1000);
   const [loading, setLoading] = useState(false);
 
-  const fetchMaxPrice = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data } = await axios.get(
-        `http://localhost:4000/api/components/${type}/max-price`
-      );
-      setMaxPrice(data.maxPrice || 1000);
-      setPriceRange([0, data.maxPrice || 1000]);
-    } catch (error) {
-      message.error("Failed to fetch price range");
-      console.error("Error fetching max price:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [type]);
-
   const clearAllFilters = useCallback(() => {
     setSelectedFilters([]);
     setSelectedSort(null);
@@ -302,12 +286,6 @@ function GuidesFilters({
     },
     [onSortChange]
   );
-
-  useEffect(() => {
-    if (type && type !== "all") {
-      fetchMaxPrice();
-    }
-  }, [type, fetchMaxPrice]);
 
   useEffect(() => {
     const componentType = type?.toLowerCase();
