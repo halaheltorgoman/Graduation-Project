@@ -644,7 +644,7 @@ const AIBuilderSection = () => {
         <h3 className="ai-assistant-name">Techie</h3>
         <Button
           className="ai-try-button"
-          onClick={() => navigate("/ai-assistant")}
+          onClick={() => navigate("/ai_assistant")}
         >
           Try Now
         </Button>
