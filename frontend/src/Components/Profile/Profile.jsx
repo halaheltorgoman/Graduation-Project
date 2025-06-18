@@ -9,7 +9,6 @@ import SavedPostsTab from "./SavedPostsTab";
 import SavedComponentsTab from "./SavedComponentsTab";
 import EditProfilePopUp from "./EditProfilePopUp";
 import "./Profile.css";
-import SavedBuildsTab from "./SavedBuildsTab";
 
 function Profile() {
   const [activeTab, setActiveTab] = useState("1");
@@ -103,14 +102,21 @@ function Profile() {
                 <SavedComponentsTab savedComponents={savedComponents} />
               ),
             },
-            {
-              label: "Saved Builds",
-              key: "4",
-              children: <SavedBuildsTab />,
-            },
           ]}
         />
       </div>
+
+      {openEditProfilePopUp && (
+        <EditProfilePopUp
+          setOpenEditProfilePopUp={setOpenEditProfilePopUp}
+          setImageUrl={setImageUrl}
+          imageUrl={imageUrl}
+          setUserBio={setUserBio}
+          userBio={userBio}
+          setUserName={setUserName}
+          userName={userName}
+        />
+      )}
     </div>
   );
 }
