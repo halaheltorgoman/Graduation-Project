@@ -79,7 +79,7 @@ exports.validateBuild = async (req, res) => {
 
 exports.createBuild = async (req, res) => {
   try {
-    const { components, title } = req.body;
+    const { components, title, description } = req.body; // Added description
     console.log("Received components in createBuild:", components);
 
     if (!req.userId) {
@@ -100,10 +100,23 @@ exports.createBuild = async (req, res) => {
       });
     }
 
+    // Validate description if provided
+    if (description && typeof description !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "Description must be a string",
+      });
+    }
+
     // Clean and format title
     const cleanTitle = title
       ? title.trim().substring(0, 100)
       : `My Build ${new Date().toLocaleDateString()}`;
+
+    // Clean and format description
+    const cleanDescription = description
+      ? description.trim().substring(0, 1000) // Limit description length
+      : null;
 
     const { valid, checks } = await buildService.checkCompatibility(components);
     if (!valid) {
@@ -117,7 +130,8 @@ exports.createBuild = async (req, res) => {
     const newBuild = new Build({
       user: req.userId,
       components: components,
-      title: cleanTitle, // Use cleaned title
+      title: cleanTitle,
+      description: cleanDescription, // Add description
       isShared: false,
     });
 
