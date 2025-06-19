@@ -231,11 +231,12 @@ const buildService = {
           break;
       }
 
-      // Enhanced two-way compatibility logic for all components
+      // Limited compatibility logic - only CPU-Motherboard, Motherboard-Memory, Motherboard-Case, Cooling-CPU
       const components = await this.getComponentsByIds(selectedComponents);
 
       switch (targetType.toLowerCase()) {
         case "cpu":
+          // CPU compatibility with motherboard
           if (components.motherboard) {
             compatibilityFilter = {
               socket: components.motherboard.MB_socket,
@@ -245,18 +246,21 @@ const buildService = {
           break;
 
         case "motherboard":
+          // Motherboard compatibility with CPU
           if (components.cpu) {
             compatibilityFilter = {
               MB_socket: components.cpu.socket,
               chipset: { $in: components.cpu.MB_chipsets },
             };
           }
+          // Motherboard compatibility with case
           if (components.case) {
             compatibilityFilter = {
               ...compatibilityFilter,
               MB_form: { $in: components.case.supported_motherboards },
             };
           }
+          // Motherboard compatibility with memory
           if (components.memory) {
             compatibilityFilter = {
               ...compatibilityFilter,
@@ -265,47 +269,17 @@ const buildService = {
           }
           break;
 
-        case "gpu":
-          if (components.case && components.case.max_gpu_length) {
-            compatibilityFilter = {
-              length: { $lte: components.case.max_gpu_length },
-            };
-          }
-          if (components.psu && components.psu.wattage) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              power_requirements: { $lte: components.psu.wattage * 0.8 }, // 80% of PSU capacity
-            };
-          }
-          break;
-
         case "case":
+          // Case compatibility with motherboard
           if (components.motherboard) {
             compatibilityFilter = {
               supported_motherboards: components.motherboard.MB_form,
             };
           }
-          if (components.gpu && components.gpu.length) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              max_gpu_length: { $gte: components.gpu.length },
-            };
-          }
-          if (components.psu) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              psu_support: components.psu.form_factor,
-            };
-          }
-          if (components.cooler && components.cooler.height) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              cooler_height: { $gte: components.cooler.height },
-            };
-          }
           break;
 
         case "memory":
+          // Memory compatibility with motherboard
           if (components.motherboard) {
             compatibilityFilter = {
               DDR_generation: components.motherboard.supported_memory,
@@ -313,49 +287,20 @@ const buildService = {
           }
           break;
 
-        case "storage":
-          if (
-            components.motherboard &&
-            components.motherboard.storage_interfaces
-          ) {
-            compatibilityFilter = {
-              interface: { $in: components.motherboard.storage_interfaces },
-            };
-          }
-          if (components.case && components.case.drive_bays) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              form_factor: { $in: components.case.drive_bays },
-            };
-          }
-          break;
-
-        case "psu":
-          if (components.case) {
-            compatibilityFilter = {
-              form_factor: components.case.psu_support,
-            };
-          }
-          if (components.gpu && components.gpu.power_requirements) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              wattage: { $gte: components.gpu.power_requirements * 1.5 }, // 50% headroom
-            };
-          }
-          break;
-
         case "cooler":
+          // Cooler compatibility with CPU
           if (components.cpu) {
             compatibilityFilter = {
               compatible_cpu_sockets: components.cpu.socket,
             };
           }
-          if (components.case && components.case.cooler_height) {
-            compatibilityFilter = {
-              ...compatibilityFilter,
-              height: { $lte: components.case.cooler_height },
-            };
-          }
+          break;
+
+        // For GPU, storage, and PSU - no compatibility filters (they can be selected freely)
+        case "gpu":
+        case "storage":
+        case "psu":
+          // No compatibility restrictions
           break;
       }
 
@@ -387,6 +332,7 @@ const buildService = {
     try {
       const components = await buildService.getComponentsByIds(componentIds);
 
+      // Only check the specified compatibility pairs
       const compatibilityChecks = {
         cpu_motherboard: buildService.checkCpuMotherboard(
           components.cpu,
@@ -404,17 +350,6 @@ const buildService = {
           components.cooler,
           components.cpu
         ),
-        cooling_case: buildService.checkCoolingCase(
-          components.cooler,
-          components.case
-        ),
-        gpu_case: buildService.checkGpuCase(components.gpu, components.case),
-        gpu_psu: buildService.checkGpuPsu(components.gpu, components.psu),
-        storage_motherboard: buildService.checkStorageMotherboard(
-          components.storage,
-          components.motherboard
-        ),
-        psu_case: buildService.checkPsuCase(components.psu, components.case),
       };
 
       const isValid = Object.values(compatibilityChecks).every(
@@ -469,85 +404,7 @@ const buildService = {
     return components;
   },
 
-  // Enhanced compatibility check functions
-  checkGpuCase: (gpu, pCcase) => {
-    if (!gpu || !pCcase) return { valid: true };
-
-    const isValid =
-      !gpu.length ||
-      !pCcase.max_gpu_length ||
-      gpu.length <= pCcase.max_gpu_length;
-    return {
-      valid: isValid,
-      message: isValid
-        ? "GPU fits in case"
-        : `GPU (${gpu.length}mm) too long for case (max ${pCcase.max_gpu_length}mm)`,
-    };
-  },
-
-  checkGpuPsu: (gpu, psu) => {
-    if (!gpu || !psu) return { valid: true };
-
-    const isValid =
-      !gpu.power_requirements ||
-      !psu.wattage ||
-      gpu.power_requirements <= psu.wattage * 0.8;
-    return {
-      valid: isValid,
-      message: isValid
-        ? "PSU sufficient for GPU"
-        : `PSU (${psu.wattage}W) insufficient for GPU (needs ${gpu.power_requirements}W)`,
-    };
-  },
-
-  checkCoolingCase: (cooler, pCcase) => {
-    if (!cooler || !pCcase) return { valid: true };
-
-    const isValid =
-      !cooler.height ||
-      !pCcase.cooler_height ||
-      cooler.height <= pCcase.cooler_height;
-    return {
-      valid: isValid,
-      message: isValid
-        ? "Cooler fits in case"
-        : `Cooler (${cooler.height}mm) too tall for case (max ${pCcase.cooler_height}mm)`,
-    };
-  },
-
-  checkStorageMotherboard: (storage, motherboard) => {
-    if (!storage || !motherboard) return { valid: true };
-
-    const isValid =
-      !storage.interface ||
-      !motherboard.storage_interfaces ||
-      !Array.isArray(motherboard.storage_interfaces) ||
-      motherboard.storage_interfaces.includes(storage.interface);
-    return {
-      valid: isValid,
-      message: isValid
-        ? "Storage compatible with motherboard"
-        : `Storage interface (${storage.interface}) not supported by motherboard`,
-    };
-  },
-
-  checkPsuCase: (psu, pCcase) => {
-    if (!psu || !pCcase) return { valid: true };
-
-    const isValid =
-      !psu.form_factor ||
-      !pCcase.psu_support ||
-      (Array.isArray(pCcase.psu_support)
-        ? pCcase.psu_support.includes(psu.form_factor)
-        : pCcase.psu_support === psu.form_factor);
-    return {
-      valid: isValid,
-      message: isValid
-        ? "PSU fits in case"
-        : `PSU form factor (${psu.form_factor}) not supported by case`,
-    };
-  },
-
+  // Only keep the required compatibility check functions
   checkCpuMotherboard: (cpu, motherboard) => {
     if (!cpu || !motherboard) {
       return { valid: false, message: "Missing CPU or motherboard" };
