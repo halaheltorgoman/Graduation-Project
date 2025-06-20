@@ -1,25 +1,48 @@
+// PostCarousel.js
 import React from "react";
 import { Carousel } from "antd";
 import "./PostCarousel.css";
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
-const PostCarousel = ({ 
-  buildContent,  // This will be the entire build content JSX
-  images, 
-  onBuildClick 
-}) => {
+const PostCarousel = ({ buildContent, images, onBuildClick }) => {
   if (!buildContent && (!images || images.length === 0)) return null;
+
+  // Custom arrow components
+  const PostPrevArrow = (props) => (
+  <button
+    {...props}
+    className="post-carousel-prev-arrow"
+    aria-label="Previous"
+  >
+    <LeftOutlined />
+  </button>
+);
+
+const PostNextArrow = (props) => (
+  <button
+    {...props}
+    className="post-carousel-next-arrow"
+    aria-label="Next"
+  >
+    <RightOutlined />
+  </button>
+);
 
   return (
     <div className="post-carousel-wrapper">
-      <Carousel arrows infinite={false} dots>
-        {/* First slide - Entire build content */}
+      <Carousel 
+        arrows 
+        infinite={false} 
+        dots
+        prevArrow={<PostPrevArrow />}
+        nextArrow={<PostNextArrow />}
+      >
         {buildContent && (
           <div key="build-content">
             {buildContent}
           </div>
         )}
         
-        {/* Additional slides for user images */}
         {images?.map((image, idx) => (
           <div key={`user-image-${idx}`}>
             <img

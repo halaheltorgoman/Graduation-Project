@@ -410,6 +410,7 @@
 .message-content {
   white-space: pre-wrap;
   word-wrap: break-word;
+  font-weight: normal;
 }
 
 .message-content p {

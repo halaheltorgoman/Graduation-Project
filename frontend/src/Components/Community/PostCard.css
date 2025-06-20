@@ -176,9 +176,9 @@
   overflow: hidden;
 }
 
-.community_post:hover {
+/* .community_post:hover {
   transform: translateY(-5px);
-}
+} */
 
 /* Post Header */
 .community_post_header {
@@ -412,7 +412,7 @@
   border-radius: 12px;
 }
 
-.slider_arrow {
+/* .slider_arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
@@ -440,7 +440,7 @@
 
 .slider_arrow.right {
   right: 15px;
-}
+} */
 
 .slider_indicator {
   position: absolute;

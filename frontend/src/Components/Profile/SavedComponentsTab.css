@@ -1,0 +1,121 @@
+
+/* Main container */
+.profilesavedcomponent-container {
+  width: 100%;
+  padding: 20px;
+}
+
+/* Tab styles */
+.profilesavedcomponent-tabs {
+  margin-bottom: 20px;
+}
+
+.profilesavedcomponent-tabpane {
+  padding: 16px;
+}
+
+/* Component card styles */
+.profilesavedcomponent-card {
+  width: 200px;
+  margin: 13px;
+  background-color: rgba(79, 65, 87, 0.586);
+  position: relative; /* Added for delete button positioning */
+  border:none;
+   transition: all 0.3s ease;
+}
+
+.profilesavedcomponent-card:hover {
+  box-shadow: 2px 5px 10px rgb(126, 77, 149);
+ transform: translateY(-2px) scale(1.05);
+}
+
+.profilesavedcomponent-card-image {
+  height: 200px;
+  object-fit: cover;
+  padding: 10px;
+  /* margin-top: 20px; */
+}
+
+/* .profilesavedcomponent-card-actions {
+  display: flex;
+  justify-content: center;
+} */
+
+.profilesavedcomponent-delete-container {
+  /* position: absolute; */
+margin:5px;
+  /* z-index: 1; */
+}
+
+.profilesavedcomponent-delete-btn {
+
+  border: none !important;
+  color: #ff4d4f !important;
+  border-radius: 50% !important;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profilesavedcomponent-delete-btn:hover {
+  background-color: rgba(255, 77, 79, 0.2) !important;
+}
+
+/* Empty state styles */
+.profilesavedcomponent-empty {
+  text-align: center;
+  padding: 50px;
+  color: #888;
+}
+
+/* Loading spinner */
+.profilesavedcomponent-loading {
+  display: flex;
+  justify-content: center;
+  padding: 50px;
+}
+
+/* Component grid */
+.profilesavedcomponent-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* Specifications styles */
+.profilesavedcomponent-specs {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.729);
+}
+
+
+.profilesavedcomponent-spec-item {
+  margin-bottom: 4px;
+}
+
+.profilesavedcomponent-spec-key {
+  font-weight: bold;
+}
+
+.profilesavedcomponent-price {
+  margin-top: 8px;
+  font-weight: bold;
+  color: #a84fcd;
+}
+
+/* Component title styles */
+.profilesavedcomponent-title {
+  color: white !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profilesavedcomponentspectitle{
+    color: rgba(255, 255, 255, 0.815) !important;
+}
