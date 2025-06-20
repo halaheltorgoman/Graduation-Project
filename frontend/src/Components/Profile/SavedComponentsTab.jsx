@@ -24,79 +24,80 @@ function SavedComponentsTab() {
   );
   const [loading, setLoading] = useState(false);
 
-const ComponentCard = ({ component, category }) => {
-  const handleRemove = async () => {
-    try {
-      await removeSavedComponent(component._id, category);
-    } catch (error) {
-      console.error("Error removing component:", error);
-    }
-  };
-
-  return (
-    <Card
-      hoverable
-      className="profilesavedcomponent-card"
-      cover={
-        <>
-          <div className="profilesavedcomponent-delete-container">
-            <Button
-              icon={<DeleteOutlined />}
-              className="profilesavedcomponent-delete-btn"
-              onClick={handleRemove}
-            />
-          </div>
-          <img
-            alt={component.title || component.product_name}
-            src={component.image_source || BuildDummy}
-            className="profilesavedcomponent-card-image"
-            onError={(e) => {
-              e.target.src = BuildDummy;
-            }}
-          />
-        </>
+  const ComponentCard = ({ component, category }) => {
+    const handleRemove = async () => {
+      try {
+        await removeSavedComponent(component._id, category);
+      } catch (error) {
+        console.error("Error removing component:", error);
       }
-    >
-      <Card.Meta
-        title={
-          <div className="profilesavedcomponent-title">
-            {component.title || component.product_name || "Unknown Component"}
-          </div>
+    };
+
+    return (
+      <Card
+        hoverable
+        className="profilesavedcomponent-card"
+        cover={
+          <>
+            <div className="profilesavedcomponent-delete-container">
+              <Button
+                icon={<DeleteOutlined />}
+                className="profilesavedcomponent-delete-btn"
+                onClick={handleRemove}
+              />
+            </div>
+            <img
+              alt={component.title || component.product_name}
+              src={component.image_source || BuildDummy}
+              className="profilesavedcomponent-card-image"
+              onError={(e) => {
+                e.target.src = BuildDummy;
+              }}
+            />
+          </>
         }
-        description={
-          <div className="profilesavedcomponentspectitle">
-            <p>
-              <strong>Specifications:</strong>
-            </p>
-            <div className="profilesavedcomponent-specs">
-              {component.specifications ? (
-                Object.entries(component.specifications).map(
-                  ([key, value]) => (
-                    <div 
-                      key={key} 
-                      className="profilesavedcomponent-spec-item"
-                    >
-                      <span className="profilesavedcomponent-spec-key">
-                        {key}:
-                      </span> {value}
-                    </div>
+      >
+        <Card.Meta
+          title={
+            <div className="profilesavedcomponent-title">
+              {component.title || component.product_name || "Unknown Component"}
+            </div>
+          }
+          description={
+            <div className="profilesavedcomponentspectitle">
+              <p>
+                <strong>Specifications:</strong>
+              </p>
+              <div className="profilesavedcomponent-specs">
+                {component.specifications ? (
+                  Object.entries(component.specifications).map(
+                    ([key, value]) => (
+                      <div
+                        key={key}
+                        className="profilesavedcomponent-spec-item"
+                      >
+                        <span className="profilesavedcomponent-spec-key">
+                          {key}:
+                        </span>{" "}
+                        {value}
+                      </div>
+                    )
                   )
-                )
-              ) : (
-                <p>No specifications available</p>
+                ) : (
+                  <p>No specifications available</p>
+                )}
+              </div>
+              {component.price && (
+                <p className="profilesavedcomponent-price">
+                  Price: ${component.price}
+                </p>
               )}
             </div>
-            {component.price && (
-              <p className="profilesavedcomponent-price">
-                Price: ${component.price}
-              </p>
-            )}
-          </div>
-        }
-      />
-    </Card>
-  );
-};
+          }
+        />
+      </Card>
+    );
+  };
 
   const renderComponents = () => {
     if (!savedComponents || typeof savedComponents !== "object") {

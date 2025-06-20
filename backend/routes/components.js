@@ -7,10 +7,10 @@ const authMiddleware = require("../middleware/authMiddleware");
 router.get("/:type", componentController.getComponentsByType);
 router.get("/:type/max-price", componentController.getMaxPriceForComponentType);
 
-// favs
 // Favorites routes
 router.post("/favorites", authMiddleware, componentController.addToFavorites);
-router.post(
+// FIXED: Change from POST to DELETE and update the route path
+router.delete(
   "/favorites/:id",
   authMiddleware,
   componentController.removeFavorite

@@ -364,8 +364,8 @@ exports.addToFavorites = async (req, res) => {
 
 exports.removeFavorite = async (req, res) => {
   try {
-    // Get component ID from either params or body
-    const componentId = req.params.id || req.body.componentId;
+    // Get component ID from URL params (this matches the DELETE route)
+    const componentId = req.params.id;
     const componentType = req.body.componentType;
 
     console.log("Remove favorite request:", { componentId, componentType });
@@ -379,43 +379,30 @@ exports.removeFavorite = async (req, res) => {
     const user = await User.findById(req.userId);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // For flexibility, remove by componentId regardless of type if type is not provided
-    if (!componentType) {
-      console.log("Removing by ID only");
-      user.favorites = user.favorites.filter(
-        (fav) => fav.componentId.toString() !== componentId
-      );
-    } else {
-      console.log("Removing by ID and type");
-      // Check if component is in favorites with the specified type
-      const favoriteExists = user.favorites.some(
-        (fav) =>
-          fav.componentId.toString() === componentId &&
-          fav.componentType.toLowerCase() === componentType.toLowerCase()
-      );
+    // Check if component exists in favorites before removal
+    const favoriteExists = user.favorites.some(
+      (fav) => fav.componentId.toString() === componentId
+    );
 
-      if (!favoriteExists) {
-        console.log("Component not found in favorites");
-        return res.status(200).json({
-          message: "Component not found in favorites",
-          favorites: user.favorites,
-        });
-      }
-
-      // Remove from favorites
-      user.favorites = user.favorites.filter(
-        (fav) =>
-          !(
-            fav.componentType.toLowerCase() === componentType.toLowerCase() &&
-            fav.componentId.toString() === componentId
-          )
-      );
+    if (!favoriteExists) {
+      console.log("Component not found in favorites");
+      return res.status(404).json({
+        message: "Component not found in favorites",
+        favorites: user.favorites,
+      });
     }
+
+    // Remove from favorites (remove by componentId only for simplicity)
+    user.favorites = user.favorites.filter(
+      (fav) => fav.componentId.toString() !== componentId
+    );
 
     await user.save();
     console.log("Removed from favorites successfully");
+
     res.json({
-      message: "Removed from favorites",
+      message: "Removed from favorites successfully",
+      componentId: componentId,
       favorites: user.favorites,
     });
   } catch (err) {
