@@ -667,7 +667,7 @@ exports.getGuideById = async (req, res) => {
     });
   }
 };
-
+// Updated Backend Controller - Replace your rateGuide function in guideController.js:
 exports.rateGuide = async (req, res) => {
   try {
     const { guideId } = req.params;
@@ -677,7 +677,7 @@ exports.rateGuide = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Validate and normalize the rating value (same as community)
+    // Validate and normalize the rating value
     value = parseFloat(value);
     if (isNaN(value) || value < 0.5 || value > 5) {
       return res.status(400).json({
@@ -686,7 +686,15 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Round to nearest 0.5 (same as community)
+    // Ensure rating is in 0.5 increments
+    if ((value * 2) % 1 !== 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating must be in 0.5 increments (0.5, 1.0, 1.5, etc.)",
+      });
+    }
+
+    // Round to nearest 0.5 to ensure precision
     value = Math.round(value * 2) / 2;
 
     const guide = await Guide.findById(guideId);
@@ -697,7 +705,7 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Check for existing rating (same logic as community)
+    // Check for existing rating
     const existingRatingIndex = guide.ratings.findIndex((r) =>
       r.user.equals(req.userId)
     );
@@ -713,9 +721,9 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Calculate new average (same as community)
+    // Calculate new average
     const sum = guide.ratings.reduce((acc, curr) => acc + curr.value, 0);
-    guide.averageRating = sum / guide.ratings.length;
+    guide.averageRating = Math.round((sum / guide.ratings.length) * 10) / 10; // Round to 1 decimal place
 
     await guide.save();
 
@@ -725,7 +733,7 @@ exports.rateGuide = async (req, res) => {
       averageRating: guide.averageRating,
       userRating: value,
       totalRatings: guide.ratings.length,
-      ratings: guide.ratings, // Send the updated ratings array (same as community)
+      ratings: guide.ratings,
     });
   } catch (err) {
     console.error("Guide rating error:", err);
