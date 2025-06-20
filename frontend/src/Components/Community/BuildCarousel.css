@@ -1,62 +1,62 @@
 /* BuildCarousel.css */
 .custom-carousel-wrapper {
   position: relative;
-  width: calc(100% + 80px); /* Account for arrow space */
-  margin: 0 -40px; /* Pull arrows outside container */
+  width: 100%;
+  padding: 0 60px;
 }
 
 .custom-carousel-container {
   width: 100%;
   max-width: 280px;
   margin: 0 auto;
-  position: relative;
+  height: 210px;
 }
 
 .custom-carousel-image {
-  /* width: 100%; */
   height: 180px;
   border-radius: 14px;
   display: block;
   margin: 0 auto;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
   object-fit: fill;
   cursor: pointer;
 }
 
-/* Arrow positioning outside */
-.ant-carousel .slick-prev {
-  left: -40px !important; /* Position left arrow outside container */
-}
-
-.ant-carousel .slick-next {
-  right: -40px !important; /* Position right arrow outside container */
-}
-
-/* Arrow styling */
-.ant-carousel .slick-arrow {
+/* Custom arrow classes */
+.build-carousel-prev-arrow,
+.build-carousel-next-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  /* background: rgba(0, 0, 0, 0.7) !important; */
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  z-index: 2;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   display: flex !important;
   align-items: center;
   justify-content: center;
-  /* background: rgba(0, 0, 0, 0.8) !important; */
-}
-
-.ant-carousel .slick-arrow:before {
+  z-index: 2;
+  border: none;
+  cursor: pointer;
   color: white !important;
   font-size: 18px;
-  opacity: 1;
+  transition: all 0.3s ease;
 }
 
-.ant-carousel .slick-arrow:hover {
- color: #bf30d9;
+.build-carousel-prev-arrow {
+  left: -50px;
 }
 
-/* Dots positioning below image */
+.build-carousel-next-arrow {
+  right: -50px;
+}
+
+.build-carousel-prev-arrow:hover,
+.build-carousel-next-arrow:hover {
+  /* background: rgba(0, 0, 0, 0.9) !important; */
+  color: #bf30d9 !important;
+}
+
+/* Dots styling */
 .ant-carousel .slick-dots {
   position: absolute;
   bottom: -20px;

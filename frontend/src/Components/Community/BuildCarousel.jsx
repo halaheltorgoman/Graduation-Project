@@ -2,6 +2,7 @@
 import React from "react";
 import { Carousel } from "antd";
 import "./BuildCarousel.css";
+import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 
 const BuildCarousel = ({ components, onClick }) => {
   if (!components) return null;
@@ -18,10 +19,37 @@ const BuildCarousel = ({ components, onClick }) => {
     }
   };
 
+  // Custom arrow components
+  const PrevArrow = (props) => (
+  <button
+    {...props}
+    className="build-carousel-prev-arrow"
+    aria-label="Previous"
+  >
+    <LeftOutlined />
+  </button>
+);
+
+const NextArrow = (props) => (
+  <button
+    {...props}
+    className="build-carousel-next-arrow"
+    aria-label="Next"
+  >
+    <RightOutlined />
+  </button>
+);
+
   return (
     <div className="custom-carousel-wrapper">
       <div className="custom-carousel-container" onClick={handleImageClick}>
-        <Carousel arrows infinite={false} dots>
+        <Carousel 
+          arrows 
+          infinite={false} 
+          dots
+          prevArrow={<PrevArrow />}
+          nextArrow={<NextArrow />}
+        >
           {images.map((src, idx) => (
             <div key={idx}>
               <img

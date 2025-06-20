@@ -60,12 +60,12 @@ const TabContent = ({
                 ) : (
                   <p>No {tabKey === "2" ? "posts" : "builds"} in this folder</p>
                 )}
-                <button
+                {/* <button
                   className="profile_deleteFolderBtn"
                   onClick={() => handleDeleteFolder(folderIndex)}
                 >
                   Delete Folder
-                </button>
+                </button> */}
               </div>
             ),
           })) || []
