@@ -90,6 +90,8 @@
   color: white;
   font-weight: 400;
   transition: all 0.3s ease;
+  /* margin-left: 20px; */
+  gap: 10px;
 }
 
 .fullbuild-summary-complete-btn:hover {
@@ -108,7 +110,7 @@
   padding: 0.5em 1em;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-left: 15px;
+  /* margin-left: 15px; */
 }
 
 .fullbuild-summary-share-btn:hover {
@@ -120,7 +122,7 @@
 .fullbuild-summary-share-icon {
   width: 20px;
   height: 20px;
-  margin-right: 0.5rem;
+  /* margin-right: 0.5rem; */
 }
 
 .fullbuild-summary-loading-container {
@@ -429,3 +431,186 @@
   display: block !important;
   font-weight: 500 !important;
 }
+
+
+
+
+.fullbuild-summary-actions{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 10px;
+}
+
+
+
+
+
+
+
+/* Guide Modal - Same styling as regular modal but with guide-specific class names */
+.fullbuild-summary-guide-modal .ant-modal-content {
+  background: rgba(83, 87, 99, 0.566) !important;
+  backdrop-filter: blur(6px) !important;
+  border-radius: 12px !important;
+  box-shadow: 0px 4px 5px rgba(183, 116, 219, 0.547) !important;
+  color: white !important;
+  padding: 2em !important;
+}
+
+.fullbuild-summary-guide-modal .ant-modal-header {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(183, 116, 219, 0.3) !important;
+  padding-bottom: 1em !important;
+  margin-bottom: 1em !important;
+}
+
+.fullbuild-summary-guide-modal .ant-modal-title {
+  color: white !important;
+  font-size: 1.2rem !important;
+  font-weight: 500 !important;
+}
+
+.fullbuild-summary-guide-modal .ant-modal-close-x {
+  color: white !important;
+}
+
+.fullbuild-summary-guide-title-input.ant-input,
+.fullbuild-summary-guide-description-textarea.ant-input,
+.fullbuild-summary-guide-category-select .ant-select-selector {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  border-radius: 25px !important;
+  padding: 0.6em 1em !important;
+}
+
+.fullbuild-summary-guide-title-input::placeholder,
+.fullbuild-summary-guide-description-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1 !important;
+}
+
+.fullbuild-summary-guide-title-input.ant-input:focus,
+.fullbuild-summary-guide-description-textarea.ant-input:focus,
+.fullbuild-summary-guide-category-select .ant-select-selector:focus {
+  border-color: #b778d9 !important;
+  box-shadow: 0 0 0 2px rgba(183, 116, 219, 0.2) !important;
+}
+
+.fullbuild-summary-guide-modal .ant-modal-footer {
+  border-top: 1px solid rgba(183, 116, 219, 0.3) !important;
+  padding: 1em 0 0 0 !important;
+  margin-top: 1em !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1em;
+}
+
+.fullbuild-summary-guide-modal-cancel-btn,
+.fullbuild-summary-guide-modal-convert-btn {
+  border-radius: 25px !important;
+  padding: 0.5em 1.5em !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  height: auto !important;
+}
+
+.fullbuild-summary-guide-modal-cancel-btn {
+  background: transparent !important;
+  border: 1px solid white !important;
+  color: white !important;
+}
+
+.fullbuild-summary-guide-modal-cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.fullbuild-summary-guide-modal-convert-btn {
+  background: #621c74 !important;
+  border: none !important;
+  color: white !important;
+}
+
+.fullbuild-summary-guide-modal-convert-btn:hover {
+  background: #7d2496 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756) !important;
+}
+
+.fullbuild-summary-guide-modal-convert-btn[disabled],
+.fullbuild-summary-guide-modal-convert-btn[disabled]:hover {
+  background: #555 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.fullbuild-summary-guide-note {
+  background: rgba(0, 0, 0, 0.2) !important;
+  padding: 0.8em !important;
+  border-radius: 8px !important;
+  margin-bottom: 1em !important;
+  border-left: 3px solid #b778d9 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem !important;
+}
+
+.fullbuild-summary-guide-input-group {
+  margin-bottom: 1.5em !important;
+}
+
+.fullbuild-summary-guide-label {
+  color: white !important;
+  margin-bottom: 0.5em !important;
+  display: block !important;
+  font-weight: 500 !important;
+}
+
+.fullbuild-summary-guide-warning {
+  background: rgba(214, 69, 65, 0.2) !important;
+  padding: 0.8em !important;
+  border-radius: 8px !important;
+  margin-top: 1em !important;
+  border-left: 3px solid #d64541 !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 0.9rem !important;
+}
+
+/* Select dropdown styling */
+.fullbuild-summary-guide-category-select .ant-select-selector {
+  height: auto !important;
+  min-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.fullbuild-summary-guide-category-select .ant-select-arrow {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Dropdown menu styling */
+.fullbuild-summary-guide-category-select .ant-select-dropdown {
+  background: rgba(83, 87, 99, 0.9) !important;
+  backdrop-filter: blur(6px) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* .fullbuild-summary-guide-option.ant-select-item {
+  color: white !important;
+} */
+
+.fullbuild-summary-guide-option.ant-select-item-option-selected {
+  background: rgba(183, 116, 219, 0.3) !important;
+}
+
+.fullbuild-summary-guide-option.ant-select-item-option-active {
+  background: rgba(183, 116, 219, 0.2) !important;
+}
+
+
+/* .fullbuild-summary-guide-option{
+  background-color: #a8a8a8;
+} */
