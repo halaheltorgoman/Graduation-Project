@@ -157,16 +157,12 @@
   white-space: nowrap;
 }
 
-
-
-
-
 /* Community Post Card Styles */
 .community_post {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 16px;
   padding: 25px;
-   width: 90%;
+  width: 90%;
   padding: 20px;
   margin-bottom: 30px;
   backdrop-filter: blur(12px);
@@ -186,7 +182,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 15px;
-   /* flex-direction: column; */
+  /* flex-direction: column; */
   gap: 0.5em;
 }
 
@@ -197,7 +193,7 @@
 }
 
 .community_user_avatar {
- font-size: 0.8rem;
+  font-size: 0.8rem;
   background-color: rgba(191, 48, 217, 1);
   color: var(--text-secondary);
   border-radius: 50%;
@@ -224,6 +220,15 @@
 .community_post_time {
   color: rgba(255, 255, 255, 0.459);
   font-size: 0.8rem;
+  margin: 0;
+}
+
+/* Time and Rating Section */
+.post_time_rating_section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 /* Post Description */
@@ -291,8 +296,6 @@
   gap: 10px;
   color: white;
 }
-
-
 
 .community_build_rating .ant-rate {
   color: #bf30d9;
@@ -364,9 +367,11 @@
   .community_post_image {
     height: 200px;
   }
+
+  .post_time_rating_section {
+    align-items: center;
+  }
 }
-
-
 
 /* Add these to your PostCard.css */
 
@@ -459,17 +464,16 @@
   .side_by_side_images {
     flex-direction: column;
   }
-  
+
   .side_by_side_images .community_post_image {
     width: 100%;
     height: 200px;
   }
-  
+
   .image_slider .community_post_image {
     height: 200px;
   }
 }
-
 
 /* Build Details Section */
 .community_post_details {
@@ -550,4 +554,25 @@
 .post_rate_stars .ant-rate-star-zero .anticon,
 .post_rate_stars .ant-rate-star-half .ant-rate-star-second .anticon {
   color: #d9d9d9;
+}
+
+/* Average Rating Display */
+.post_average_rating {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 500;
+  background: rgba(191, 48, 217, 0.2);
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(191, 48, 217, 0.3);
+  min-width: 50px;
+}
+
+.post_average_rating_star {
+  color: #ffd700;
+  font-size: 12px;
 }

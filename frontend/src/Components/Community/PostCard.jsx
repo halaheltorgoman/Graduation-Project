@@ -61,11 +61,13 @@ const PostCard = ({
   };
 
   const handlePrevImage = () => {
-    setCurrentImageIndex(prev => (prev - 1 + post.images.length) % post.images.length);
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + post.images.length) % post.images.length
+    );
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex(prev => (prev + 1) % post.images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % post.images.length);
   };
 
   const closeBuildModal = () => {
@@ -75,23 +77,24 @@ const PostCard = ({
 
   const buildContent = hasBuild && (
     <div className="community_post_content">
-      <div className="community_post_image_container" style={{ cursor: "pointer" }}>
-        <BuildCarousel 
-          components={post.build.components} 
+      <div
+        className="community_post_image_container"
+        style={{ cursor: "pointer" }}
+      >
+        <BuildCarousel
+          components={post.build.components}
           onClick={handleBuildClick}
         />
       </div>
       <div className="community_post_details">
-        <h3 className="community_build_title">
-          {post.build.title}
-        </h3>
-        
+        <h3 className="community_build_title">{post.build.title}</h3>
+
         {post.build.description && (
           <p className="community_build_description">
             {post.build.description}
           </p>
         )}
-        
+
         <div className="community_build_meta">
           <div className="community_build_rating_section">
             <div className="community_build_rating">
@@ -102,18 +105,19 @@ const PostCard = ({
                 className="post_rate_stars"
               />
               <span className="rating-text">
-                {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0} reviews)
+                {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0}{" "}
+                reviews)
               </span>
             </div>
           </div>
-          
+
           {post.build.genre && (
             <div className="community_build_info_row">
               <span className="build-info-label">Genre:</span>
               <span className="build-info-value">{post.build.genre}</span>
             </div>
           )}
-          
+
           <div className="community_build_info_row">
             <span className="build-info-label">Price:</span>
             <span className="build-info-value">
@@ -127,7 +131,9 @@ const PostCard = ({
 
   return (
     <>
-      <div className={`community_post ${isTextOnly ? "community_text_only" : ""}`}>
+      <div
+        className={`community_post ${isTextOnly ? "community_text_only" : ""}`}
+      >
         {/* Post Header */}
         <div className="community_post_header">
           <div className="postHeader_userInfo">
@@ -149,9 +155,15 @@ const PostCard = ({
               </p>
             </div>
           </div>
-          <p className="community_post_time">
-            {formatPostDate(post.createdAt)}
-          </p>
+          <div className="post_time_rating_section">
+            <p className="community_post_time">
+              {formatPostDate(post.createdAt)}
+            </p>
+            <div className="post_average_rating">
+              <span className="post_average_rating_star">★</span>
+              <span>{post.averageRating?.toFixed(1) || 0} </span>
+            </div>
+          </div>
         </div>
 
         {/* Post Description */}
@@ -163,7 +175,7 @@ const PostCard = ({
         {(hasImages || hasBuild) && (
           <>
             {hasBuild && hasImages ? (
-              <PostCarousel 
+              <PostCarousel
                 buildContent={buildContent}
                 images={post.images}
                 onBuildClick={handleBuildClick}
@@ -174,7 +186,10 @@ const PostCard = ({
               <div className="community_images_container">
                 {multipleImages ? (
                   <div className="image_slider">
-                    <button className="slider_arrow left" onClick={handlePrevImage}>
+                    <button
+                      className="slider_arrow left"
+                      onClick={handlePrevImage}
+                    >
                       <FaChevronLeft />
                     </button>
                     <img
@@ -182,7 +197,10 @@ const PostCard = ({
                       alt={`Post content ${currentImageIndex}`}
                       className="community_post_image"
                     />
-                    <button className="slider_arrow right" onClick={handleNextImage}>
+                    <button
+                      className="slider_arrow right"
+                      onClick={handleNextImage}
+                    >
                       <FaChevronRight />
                     </button>
                     <div className="slider_indicator">
@@ -209,34 +227,34 @@ const PostCard = ({
         {/* Post Footer */}
         <div className="community_post_footer">
           <div className="community_post_actions">
-            <div 
-              className="community_post_action" 
+            <div
+              className="community_post_action"
               onClick={() => onCommentClick(post)}
             >
               <FaRegComment className="community_post_action_icon" />
               <span>{post.comments?.length || 0}</span>
             </div>
-            
+
             {isPostSaved(post._id) ? (
-              <div 
-                className="community_post_action" 
+              <div
+                className="community_post_action"
                 onClick={() => onRemoveSavedPost(post._id)}
               >
                 <FaBookmark className="community_post_action_icon" />
                 <span>{post.savesCount || 0}</span>
               </div>
             ) : (
-              <div 
-                className="community_post_action" 
+              <div
+                className="community_post_action"
                 onClick={() => onSavePost(post._id)}
               >
                 <FaRegBookmark className="community_post_action_icon" />
                 <span>{post.savesCount || 0}</span>
               </div>
             )}
-            
-            <div 
-              className="community_post_action" 
+
+            <div
+              className="community_post_action"
               onClick={() => onSharePost(post._id)}
             >
               <RiShare2Line className="community_post_action_icon" />
