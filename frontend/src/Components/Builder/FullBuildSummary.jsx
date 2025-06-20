@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Button, Modal, Input, Select, message, Rate } from "antd";
+import { Button, Modal, Input, Select, message } from "antd";
 import logo from "../../assets/images/logo.svg";
 import axios from "axios";
 import "./FullBuildSummary.css";
 import { useLocation, useNavigate } from "react-router-dom";
-import { UserOutlined } from "@ant-design/icons";
 import { UserContext } from "../../Context/UserContext";
 import { FiRefreshCw } from "react-icons/fi";
+
 const { TextArea } = Input;
 
 const FullBuildSummary = ({
@@ -32,7 +32,7 @@ const FullBuildSummary = ({
   const [convertingToGuide, setConvertingToGuide] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const buildId = fullBuild?._id;
 
   useEffect(() => {
@@ -103,7 +103,7 @@ const FullBuildSummary = ({
         },
         {
           withCredentials: true,
-          timeout: 10000, // 10 seconds timeout
+          timeout: 10000,
         }
       );
 
@@ -113,13 +113,11 @@ const FullBuildSummary = ({
         message.success("Build converted to guide successfully!");
         setShowGuideModal(false);
 
-        // Reset form
         setGuideTitle("");
         setGuideDescription("");
         setGuideGenre("");
         setGuideCategory("gaming");
 
-        // Navigate to guides page
         navigate(`/guides/${guideCategory}`);
       } else {
         throw new Error(response.data.message || "Failed to convert to guide");
@@ -207,6 +205,49 @@ const FullBuildSummary = ({
     }
   };
 
+  const handleShareBuild = async () => {
+    setSaving(true);
+    try {
+      const response = await axios.put(
+        `http://localhost:4000/api/build/createbuild/${buildId}/finalize`,
+        {
+          title: buildTitle || `My Build ${new Date().toLocaleDateString()}`,
+          description: buildDescription,
+          shareToCommunity: false,
+        },
+        { withCredentials: true }
+      );
+
+      if (response.data.success) {
+        message.success("Build saved successfully!");
+        setShowModal(false);
+        setBuildTitle("");
+        setBuildDescription("");
+
+        navigate("/community", {
+          state: {
+            openCreateModal: true,
+            selectedBuild: {
+              _id: response.data.build._id,
+              title: response.data.build.title,
+              description: response.data.build.description,
+              components: response.data.build.components,
+              totalPrice: calculateTotalPrice(response.data.build.components),
+              updatedAt: response.data.build.updatedAt,
+            },
+          },
+        });
+      }
+    } catch (err) {
+      console.error("Share build error:", err);
+      message.error(
+        err.response?.data?.message || "Failed to save build for sharing."
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const openModal = (type) => {
     setModalType(type);
     let initialTitle = "";
@@ -222,6 +263,10 @@ const FullBuildSummary = ({
       initialTitle = originalBuild?.title || fullBuild?.title || "";
       initialDescription =
         originalBuild?.description || fullBuild?.description || "";
+    } else if (type === "share") {
+      initialTitle =
+        fullBuild?.title || `My Build ${new Date().toLocaleDateString()}`;
+      initialDescription = fullBuild?.description || "";
     } else {
       initialTitle =
         fullBuild?.title || `My Build ${new Date().toLocaleDateString()}`;
@@ -234,7 +279,6 @@ const FullBuildSummary = ({
   };
 
   const openGuideModal = () => {
-    // Pre-populate with build information if available
     const defaultTitle =
       fullBuild?.title || `Gaming Build ${new Date().toLocaleDateString()}`;
     const defaultDescription =
@@ -243,8 +287,8 @@ const FullBuildSummary = ({
 
     setGuideTitle(defaultTitle);
     setGuideDescription(defaultDescription);
-    setGuideGenre("Gaming"); // Default genre
-    setGuideCategory("gaming"); // Default category
+    setGuideGenre("Gaming");
+    setGuideCategory("gaming");
     setShowGuideModal(true);
   };
 
@@ -254,6 +298,8 @@ const FullBuildSummary = ({
         return handleUpdateCurrentBuild();
       case "complete":
         return handleCompleteBuild();
+      case "share":
+        return handleShareBuild();
       default:
         return;
     }
@@ -267,6 +313,8 @@ const FullBuildSummary = ({
         return "Update Current Build";
       case "complete":
         return "Complete Build";
+      case "share":
+        return "Share Build to Community";
       default:
         return "Build Action";
     }
@@ -278,6 +326,8 @@ const FullBuildSummary = ({
         return "Update Current Build";
       case "complete":
         return "Save Build";
+      case "share":
+        return "Save & Share";
       default:
         return "Save";
     }
@@ -289,6 +339,8 @@ const FullBuildSummary = ({
         return "This will update your existing build with the new component selection.";
       case "complete":
         return "Save your build to your completed builds collection.";
+      case "share":
+        return "Save your build to completed builds and proceed to share it with the community.";
       default:
         return "";
     }
@@ -301,7 +353,6 @@ const FullBuildSummary = ({
     }, 0);
   };
 
-  // Check if build has all required components for guide conversion
   const canConvertToGuide = () => {
     if (!fullBuild?.components) return false;
 
@@ -317,25 +368,36 @@ const FullBuildSummary = ({
     return requiredComponents.every((comp) => fullBuild.components[comp]);
   };
 
+  const handleRefreshComponent = (componentType) => {
+    navigate(`/builder/${componentType}`, {
+      state: {
+        configureMode: true,
+        selectedComponents: fullBuild.components,
+        buildId: buildId,
+        originalBuild: fullBuild,
+      },
+    });
+  };
+
   if (loading) {
     return (
-      <div className="fullbuild-loading">
-        <span className="loader"></span>
+      <div className="fullbuild-summary-loading-container">
+        <span className="fullbuild-summary-loader"></span>
       </div>
     );
   }
 
   if (!fullBuild) {
     return (
-      <div className="fullbuild-empty">
-        <div className="fullbuild-empty-message">
+      <div className="fullbuild-summary-empty-container">
+        <div className="fullbuild-summary-empty-message">
           Build summary not available. Please try creating your build again.
         </div>
-        <div className="fullbuild-actions">
+        <div className="fullbuild-summary-actions">
           <Button
             type="primary"
             onClick={() => navigate("/builder/cpu")}
-            className="fullbuild-restart-btn"
+            className="fullbuild-summary-restart-btn"
           >
             Start New Build
           </Button>
@@ -346,55 +408,57 @@ const FullBuildSummary = ({
 
   return (
     <div
-      className={`fullbuild-container ${configureMode ? "configure-mode" : ""}`}
+      className={`fullbuild-summary-container ${
+        configureMode ? "fullbuild-summary-configure-mode" : ""
+      }`}
     >
-      <h2 className="fullbuild-title">
+      <h2 className="fullbuild-summary-title">
         {configureMode ? "Build Update Summary" : "Your Build Summary"}
       </h2>
 
-      <div className="fullbuild-table">
-        <div className="fullbuild-row fullbuild-header">
-          <div className="fullbuild-col type">Type</div>
-          <div className="fullbuild-col image">Image</div>
-          <div className="fullbuild-col name">Name</div>
-          <div className="fullbuild-col brand">Brand</div>
-          <div className="fullbuild-col price">Price</div>
-          <div className="fullbuild-col refresh">
-            <span className="refresh-text">Replace</span>
+      <div className="fullbuild-summary-table">
+        <div className="fullbuild-summary-row fullbuild-summary-header">
+          <div className="fullbuild-summary-col fullbuild-summary-col-type">Type</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-image">Image</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-name">Name</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-brand">Brand</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-price">Price</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-refresh">
+            <span className="fullbuild-summary-refresh-text">Replace</span>
           </div>
         </div>
         {Object.entries(fullBuild.components).map(([compType, comp]) => {
           if (!comp) return null;
           return (
-            <div className="fullbuild-row" key={compType}>
-              <div className="fullbuild-col type">{compType.toUpperCase()}</div>
-              <div className="fullbuild-col image">
+            <div className="fullbuild-summary-row" key={compType}>
+              <div className="fullbuild-summary-col fullbuild-summary-col-type">{compType.toUpperCase()}</div>
+              <div className="fullbuild-summary-col fullbuild-summary-col-image">
                 {comp?.image_source && (
                   <img
                     src={comp.image_source}
                     alt={comp.title || comp.product_name}
-                    className="fullbuild-img"
+                    className="fullbuild-summary-img"
                     onError={(e) => {
                       e.target.style.display = "none";
                     }}
                   />
                 )}
               </div>
-              <div className="fullbuild-col name">
+              <div className="fullbuild-summary-col fullbuild-summary-col-name">
                 {comp?.title || comp?.product_name || "Unknown Component"}
               </div>
-              <div className="fullbuild-col brand">
+              <div className="fullbuild-summary-col fullbuild-summary-col-brand">
                 {comp?.manufacturer || comp?.brand || "Unknown Brand"}
               </div>
-              <div className="fullbuild-col price_val">
+              <div className="fullbuild-summary-col fullbuild-summary-col-price_val">
                 {comp?.price !== undefined && comp?.price !== null
                   ? `$${comp.price.toLocaleString()}`
                   : "--"}
               </div>
-              <div className="fullbuild-col refresh">
+              <div className="fullbuild-summary-col fullbuild-summary-col-refresh">
                 <button
-                  className="fullbuild-refresh-btn"
-                  onClick={() => handleRefreshClick(compType)}
+                  className="fullbuild-summary-refresh-btn"
+                  onClick={() => handleRefreshComponent(compType)}
                   aria-label={`Replace ${compType}`}
                 >
                   <FiRefreshCw />
@@ -405,9 +469,9 @@ const FullBuildSummary = ({
         })}
       </div>
 
-      <div className="fullbuild-total">
-        <span>Total Price:</span>
-        <span className="fullbuild-total-value">
+      <div className="fullbuild-summary-total">
+        <span className="fullbuild-summary-total-label">Total Price:</span>
+        <span className="fullbuild-summary-total-value">
           {priceLoading
             ? "Calculating..."
             : totalPrice !== null
@@ -416,12 +480,12 @@ const FullBuildSummary = ({
         </span>
       </div>
 
-      <div className="fullbuild-actions">
+      <div className="fullbuild-summary-actions">
         {configureMode ? (
           <>
             <Button
               type="primary"
-              className="fullbuild-update-btn"
+              className="fullbuild-summary-update-btn"
               onClick={() => openModal("update")}
             >
               Update Current Build
@@ -430,7 +494,7 @@ const FullBuildSummary = ({
         ) : (
           <Button
             type="primary"
-            className="fullbuild-complete-btn"
+            className="fullbuild-summary-complete-btn"
             onClick={() => openModal("complete")}
           >
             Complete Build
@@ -441,7 +505,7 @@ const FullBuildSummary = ({
           <Button
             type="primary"
             onClick={openGuideModal}
-            className="fullbuild-convert-btn"
+            className="fullbuild-summary-convert-btn"
             disabled={!canConvertToGuide()}
             title={
               !canConvertToGuide()
@@ -453,9 +517,13 @@ const FullBuildSummary = ({
           </Button>
         )}
 
-        <Button variant="link" className="fullbuild-share-btn">
-          <img src={logo} alt="share" className="fullbuild-share-icon" />
-          Share
+        <Button
+          variant="link"
+          className="fullbuild-summary-share-btn"
+          onClick={() => openModal("share")}
+        >
+          <img src={logo} alt="share" className="fullbuild-summary-share-icon" />
+          Save & Share
         </Button>
       </div>
 
@@ -465,7 +533,7 @@ const FullBuildSummary = ({
         open={showModal}
         onCancel={() => setShowModal(false)}
         footer={[
-          <Button key="cancel" onClick={() => setShowModal(false)}>
+          <Button key="cancel" onClick={() => setShowModal(false)} className="fullbuild-summary-modal-cancel-btn">
             Cancel
           </Button>,
           <Button
@@ -473,33 +541,26 @@ const FullBuildSummary = ({
             type="primary"
             loading={saving}
             onClick={handleModalAction}
+            className="fullbuild-summary-modal-action-btn"
           >
             {getModalButtonText()}
           </Button>,
         ]}
+        className="fullbuild-summary-modal"
       >
-        <div style={{ marginBottom: 16, color: "#666", fontSize: 14 }}>
+        <div className="fullbuild-summary-modal-description">
           {getModalDescription()}
         </div>
 
         {configureMode && originalBuild && modalType === "update" && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              backgroundColor: "#f5f5f5",
-              borderRadius: 4,
-            }}
-          >
+          <div className="fullbuild-summary-current-build-info">
             <strong>Current Build:</strong>{" "}
             {originalBuild.title || "Untitled Build"}
           </div>
         )}
 
-        <div style={{ marginBottom: 16 }}>
-          <label
-            style={{ display: "block", marginBottom: 4, fontWeight: "500" }}
-          >
+        <div className="fullbuild-summary-modal-input-group">
+          <label className="fullbuild-summary-modal-label">
             Build Title
           </label>
           <Input
@@ -507,13 +568,12 @@ const FullBuildSummary = ({
             value={buildTitle}
             onChange={(e) => setBuildTitle(e.target.value)}
             maxLength={100}
+            className="fullbuild-summary-title-input"
           />
         </div>
 
-        <div>
-          <label
-            style={{ display: "block", marginBottom: 4, fontWeight: "500" }}
-          >
+        <div className="fullbuild-summary-modal-input-group">
+          <label className="fullbuild-summary-modal-label">
             Description (Optional)
           </label>
           <Input.TextArea
@@ -522,6 +582,7 @@ const FullBuildSummary = ({
             onChange={(e) => setBuildDescription(e.target.value)}
             rows={4}
             maxLength={500}
+            className="fullbuild-summary-description-textarea"
           />
         </div>
       </Modal>
@@ -532,7 +593,7 @@ const FullBuildSummary = ({
         open={showGuideModal}
         onCancel={() => setShowGuideModal(false)}
         footer={[
-          <Button key="cancel" onClick={() => setShowGuideModal(false)}>
+          <Button key="cancel" onClick={() => setShowGuideModal(false)} className="fullbuild-summary-guide-modal-cancel-btn">
             Cancel
           </Button>,
           <Button
@@ -540,30 +601,23 @@ const FullBuildSummary = ({
             type="primary"
             onClick={handleConvertToGuide}
             loading={convertingToGuide}
+            className="fullbuild-summary-guide-modal-convert-btn"
           >
             Convert to Guide
           </Button>,
         ]}
         width={600}
+        className="fullbuild-summary-guide-modal"
       >
-        <div className="guide-form">
-          <div
-            style={{
-              marginBottom: 16,
-              padding: 12,
-              backgroundColor: "#e6f4ff",
-              borderRadius: 4,
-            }}
-          >
+        <div className="fullbuild-summary-guide-form">
+          <div className="fullbuild-summary-guide-note">
             <strong>Note:</strong> This will convert your build into a guide
             that other users can view and save. The guide will appear in the "
             {guideCategory}" category.
           </div>
 
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <label
-              style={{ display: "block", marginBottom: 4, fontWeight: "500" }}
-            >
+          <div className="fullbuild-summary-guide-input-group">
+            <label className="fullbuild-summary-guide-label">
               Guide Title *
             </label>
             <Input
@@ -571,13 +625,12 @@ const FullBuildSummary = ({
               value={guideTitle}
               onChange={(e) => setGuideTitle(e.target.value)}
               maxLength={100}
+              className="fullbuild-summary-guide-title-input"
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <label
-              style={{ display: "block", marginBottom: 4, fontWeight: "500" }}
-            >
+          <div className="fullbuild-summary-guide-input-group">
+            <label className="fullbuild-summary-guide-label">
               Description *
             </label>
             <TextArea
@@ -586,38 +639,30 @@ const FullBuildSummary = ({
               onChange={(e) => setGuideDescription(e.target.value)}
               rows={4}
               maxLength={500}
+              className="fullbuild-summary-guide-description-textarea"
             />
           </div>
 
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <label
-              style={{ display: "block", marginBottom: 4, fontWeight: "500" }}
-            >
+          <div className="fullbuild-summary-guide-input-group">
+            <label className="fullbuild-summary-guide-label">
               Category *
             </label>
             <Select
               value={guideCategory}
               onChange={(value) => setGuideCategory(value)}
               style={{ width: "100%" }}
+              className="fullbuild-summary-guide-category-select"
             >
-              <Select.Option value="Gaming">Gaming</Select.Option>
-              <Select.Option value="Workstation">Workstation</Select.Option>
-              <Select.Option value="Budget">Budget</Select.Option>
-              <Select.Option value="Development">Development</Select.Option>
-              <Select.Option value="custom">Custom</Select.Option>
+              <Select.Option value="Gaming" className="fullbuild-summary-guide-option">Gaming</Select.Option>
+              <Select.Option value="Workstation" className="fullbuild-summary-guide-option">Workstation</Select.Option>
+              <Select.Option value="Budget" className="fullbuild-summary-guide-option">Budget</Select.Option>
+              <Select.Option value="Development" className="fullbuild-summary-guide-option">Development</Select.Option>
+              <Select.Option value="custom" className="fullbuild-summary-guide-option">Custom</Select.Option>
             </Select>
           </div>
 
           {!canConvertToGuide() && (
-            <div
-              style={{
-                marginTop: 16,
-                padding: 12,
-                backgroundColor: "#fff2e8",
-                borderRadius: 4,
-                color: "#d4681f",
-              }}
-            >
+            <div className="fullbuild-summary-guide-warning">
               <strong>Warning:</strong> This build is missing some required
               components. Please ensure you have CPU, GPU, Motherboard, Memory,
               Storage, PSU, and Case selected.
