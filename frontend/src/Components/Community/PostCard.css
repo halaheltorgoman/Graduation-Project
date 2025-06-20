@@ -569,7 +569,8 @@
   padding: 4px 8px;
   border-radius: 12px;
   border: 1px solid rgba(191, 48, 217, 0.3);
-  min-width: 50px;
+  width: 50px;
+ 
 }
 
 .post_average_rating_star {

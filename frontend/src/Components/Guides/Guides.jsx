@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import "./Guides.css";
 import GuidesFilters from "../Filters/GuidesFilters";
 import GuidesCarousel from "./GuideCarousel";
@@ -16,8 +16,11 @@ import workstationImage from "../../assets/images/personalguide.jpg";
 import budgetImage from "../../assets/images/workguide.jpg";
 import developmentImage from "../../assets/images/devguide.webp";
 import { FaStar } from "react-icons/fa";
+
 function Guides() {
   const { category = "Development" } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [sortBy, setSortBy] = useState("newest");
   const [filters, setFilters] = useState({});
   const [guides, setGuides] = useState([]);
@@ -28,6 +31,7 @@ function Guides() {
   const [savedGuides, setSavedGuides] = useState([]);
   const [userRatings, setUserRatings] = useState({});
   const [selectedGuide, setSelectedGuide] = useState(null);
+  const guideRefs = useRef({});
 
   // Category image mapping
   const categoryImages = {
@@ -41,6 +45,32 @@ function Guides() {
     development: developmentImage,
   };
 
+  // Handle scroll to specific guide
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const guideId = searchParams.get('guideId') || location.state?.scrollToGuide;
+    
+    if (guideId && guides.length > 0) {
+      const timer = setTimeout(() => {
+        const guideElement = guideRefs.current[guideId];
+        if (guideElement) {
+          guideElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+          
+          // Highlight the guide temporarily
+          guideElement.style.boxShadow = '0 0 0 3px rgba(98, 28, 116, 0.5)';
+          setTimeout(() => {
+            guideElement.style.boxShadow = 'none';
+          }, 2000);
+        }
+      }, 300);
+
+      return () => clearTimeout(timer);
+    }
+  }, [guides, location]);
+
   const handleCarouselClick = useCallback((guide) => {
     setSelectedGuide(guide);
   }, []);
@@ -49,7 +79,6 @@ function Guides() {
     setSelectedGuide(null);
   }, []);
 
-  // FIXED: Fetch guides function with proper dependency management
   const fetchGuides = useCallback(async () => {
     try {
       setLoading(true);
@@ -59,17 +88,6 @@ function Guides() {
       const normalizedCategory =
         category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
       const url = `http://localhost:4000/api/guides/${normalizedCategory}`;
-
-      console.log("=== FRONTEND DEBUG ===");
-      console.log("Making request to:", url);
-      console.log("Original category:", category);
-      console.log("Normalized category:", normalizedCategory);
-      console.log("Request params:", {
-        category: normalizedCategory,
-        sortBy,
-        filters,
-        page,
-      });
 
       const response = await axios.get(url, {
         withCredentials: true,
@@ -82,15 +100,9 @@ function Guides() {
         },
       });
 
-      console.log("Raw response:", response);
-      console.log("Response status:", response.status);
-      console.log("Response data:", response.data);
-
       if (response.data && response.data.success) {
         const guidesArray = response.data.guides || [];
-        console.log("Setting guides:", guidesArray);
 
-        // FIXED: Properly handle pagination
         if (page === 1) {
           setGuides(guidesArray);
         } else {
@@ -108,15 +120,10 @@ function Guides() {
         });
         setUserRatings((prev) => ({ ...prev, ...ratingsMap }));
       } else {
-        console.error("Response indicates failure:", response.data);
         throw new Error(response.data?.message || "Failed to fetch guides");
       }
     } catch (err) {
-      console.error("=== FETCH ERROR ===");
-      console.error("Error type:", err.constructor.name);
-      console.error("Error message:", err.message);
-      console.error("Error response:", err.response);
-
+      console.error("Fetch error:", err);
       setError(err.message);
       if (page === 1) {
         setGuides([]);
@@ -125,15 +132,14 @@ function Guides() {
 
       notification.error({
         message: "Failed to load guides",
-        description: `${err.message} - Check console for details`,
-        duration: 10,
+        description: `${err.message}`,
+        duration: 5,
       });
     } finally {
       setLoading(false);
     }
-  }, [category, sortBy, filters, page]); // FIXED: Removed JSON.stringify dependencies
+  }, [category, sortBy, filters, page]);
 
-  // Fetch saved guides with better error handling
   const fetchSavedGuides = useCallback(async () => {
     try {
       const response = await axios.get(
@@ -152,51 +158,32 @@ function Guides() {
     }
   }, []);
 
-  // FIXED: Reset state properly when category changes
   useEffect(() => {
-    console.log("Category changed to:", category);
     setPage(1);
     setGuides([]);
     setError(null);
     setLoading(true);
     setHasMore(true);
-    // Clear user ratings for new category
     setUserRatings({});
   }, [category]);
 
-  // FIXED: Reset page when filters or sort change
   useEffect(() => {
-    console.log("Filters or sort changed:", { sortBy, filters });
     setPage(1);
     setGuides([]);
     setError(null);
     setHasMore(true);
-  }, [sortBy, JSON.stringify(filters)]); // Use JSON.stringify only for filters object
+  }, [sortBy, JSON.stringify(filters)]);
 
-  // FIXED: Fetch guides when dependencies change
   useEffect(() => {
-    console.log("Fetching guides due to dependency change:", {
-      category,
-      sortBy,
-      filters,
-      page,
-    });
     fetchGuides();
   }, [fetchGuides]);
 
-  // Fetch saved guides on mount
   useEffect(() => {
     fetchSavedGuides();
   }, [fetchSavedGuides]);
 
-  // Handle rating a guide
-
-  // Updated handleRateGuide function - Replace your existing handleRateGuide function with this:
   const handleRateGuide = useCallback(async (guideId, rating) => {
     try {
-      console.log("Rating guide:", guideId, "with rating:", rating);
-
-      // Validate rating (must be in 0.5 increments between 0.5 and 5)
       if (rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
         notification.error({
           message: "Invalid rating",
@@ -206,7 +193,6 @@ function Guides() {
         return;
       }
 
-      // Immediately update the UI state for better UX
       setUserRatings((prev) => ({
         ...prev,
         [guideId]: rating,
@@ -221,16 +207,12 @@ function Guides() {
         }
       );
 
-      console.log("Rating response:", response.data);
-
       if (response.data && response.data.success) {
-        // Update user ratings state with server response
         setUserRatings((prev) => ({
           ...prev,
           [guideId]: response.data.userRating,
         }));
 
-        // Update the guide in the guides list
         setGuides((prevGuides) =>
           prevGuides.map((guide) =>
             guide._id === guideId
@@ -253,8 +235,6 @@ function Guides() {
       }
     } catch (err) {
       console.error("Failed to rate guide:", err);
-
-      // Revert the optimistic update on error
       setUserRatings((prev) => {
         const newRatings = { ...prev };
         delete newRatings[guideId];
@@ -275,7 +255,6 @@ function Guides() {
     }
   }, []);
 
-  // Handle toggle save
   const handleToggleSave = useCallback(async (guideId) => {
     try {
       const response = await axios.post(
@@ -288,7 +267,6 @@ function Guides() {
       );
 
       if (response.data && response.data.success) {
-        // Update saved guides state
         setSavedGuides((prev) => {
           if (prev.includes(guideId)) {
             return prev.filter((id) => id !== guideId);
@@ -297,7 +275,6 @@ function Guides() {
           }
         });
 
-        // Update the guides list to reflect the new save count
         setGuides((prevGuides) =>
           prevGuides.map((guide) =>
             guide._id === guideId
@@ -332,14 +309,11 @@ function Guides() {
     }
   }, []);
 
-  // FIXED: Properly memoize filter and sort handlers
   const handleFilterChange = useCallback((newFilters) => {
-    console.log("Filter change:", newFilters);
     setFilters(newFilters);
   }, []);
 
   const handleSortChange = useCallback((sortValue) => {
-    console.log("Sort change:", sortValue);
     setSortBy(sortValue);
   }, []);
 
@@ -354,7 +328,6 @@ function Guides() {
     }, 0);
   }, []);
 
-  // Show error state
   if (error && !loading) {
     return (
       <div className="guides_container">
@@ -389,7 +362,6 @@ function Guides() {
     );
   }
 
-  // Show loading state
   if (loading && guides.length === 0) {
     return (
       <div className="guides_container">
@@ -438,9 +410,11 @@ function Guides() {
         ) : (
           <div className="guides-list">
             {guides.map((guide) => (
-              <div key={guide._id} className="guide_card">
-                {/* Guide Header - Similar to PostCard Header */}
-
+              <div 
+                key={guide._id} 
+                className="guide_card"
+                ref={(el) => (guideRefs.current[guide._id] = el)}
+              >
                 <div className="guide_header">
                   <div className="guide_user_info">
                     {guide.creator?.avatar ? (
@@ -479,7 +453,7 @@ function Guides() {
                     </div>
                   </div>
                 </div>
-                {/* Guide Content */}
+
                 <div className="guide_content">
                   <div className="guide_left">
                     <GuidesCarousel
@@ -490,19 +464,15 @@ function Guides() {
                   </div>
 
                   <div className="guide_right">
-                    {/* Guide Title */}
                     <h3 className="guide_title">{guide.title}</h3>
 
-                    {/* Guide Description */}
                     <div className="guide_description_section">
                       <p className="guide_desc">
                         {guide.description || "No description provided"}
                       </p>
                     </div>
 
-                    {/* Guide Meta Information */}
                     <div className="guide_meta">
-                      {/* Category Section */}
                       <div className="guide_category_section">
                         <span className="guide_category_label">Category:</span>
                         <span className="guide_category_value">
@@ -510,9 +480,7 @@ function Guides() {
                         </span>
                       </div>
 
-                      {/* Rating Section */}
                       <div className="guide_rating_section">
-                        {/* Combined Rating Display and User Rating */}
                         <div className="guide_rating_container">
                           <div className="guide_average_rating"></div>
 
@@ -541,7 +509,6 @@ function Guides() {
                         </div>
                       </div>
 
-                      {/* Price Section */}
                       <div className="guide_price_section">
                         <span className="guide_price_label">Total Price:</span>
                         <span className="guide_price_value">

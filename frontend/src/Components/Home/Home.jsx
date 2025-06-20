@@ -24,7 +24,7 @@ import build1 from "../../assets/images/gamingguide.jpg";
 import build2 from "../../assets/images/devguide.webp";
 import build3 from "../../assets/images/workguide.jpg";
 import build4 from "../../assets/images/personalguide.jpg";
-import build5 from "../../assets/images/gamingguide2.jpg";
+// import build5 from "../../assets/images/gamingguide2.jpg";
 
 import userAvatar from "../../assets/images/user.png";
 import postImage from "../../assets/images/post.png";
@@ -359,49 +359,51 @@ const FeaturedBuildsCarousel = () => {
 
   const featuredBuilds = [
     {
-      id: 1,
+      id: "victory-vault",
+      guideId: "6855846e9610a718b825557c",
       image: build1,
       title: "Victory Vault",
       rating: 4.9,
-      specs:
-        "Power, precision, and play, welcome to the ultimate gaming setup.",
-      path: "/guides/victory-vault",
+      specs: "Power, precision, and play, welcome to the ultimate gaming setup.",
+      category: "gaming", // Added category
+  
     },
     {
-      id: 2,
+       id: "compile-corner",
+      guideId: "6855ab4ec4c1daae6bec5809",
       image: build2,
       title: "Compile Corner",
       rating: 4.8,
-      specs:
-        "Crafting code and building dreams, the ultimate development workstation.",
-      path: "/guides/compile-corner",
+      specs: "Crafting code and building dreams, the ultimate development workstation.",
+      category: "development", // Added category
+  
     },
-    {
-      id: 3,
+     {
+      id: "efficiency-engine",
+      guideId: "6855ae3fc4c1daae6bec5a11",
       image: build3,
-      title: "Efficieny Engine",
+      title: "Efficiency Engine",
       rating: 4.7,
-      specs:
-        "Optimized for productivity and performance, the perfect workstation.",
-      path: "/guides/efficiency-engine",
+      specs: "Optimized for productivity and performance, the perfect workstation.",
+      category: "budget",
     },
     {
-      id: 4,
+      id: "ultra-game",
+      guideId: "6855b62ec4c1daae6bec601a",
+      image: build1,
+      title: "Ultra Game",
+      rating: 4.9,
+      specs: "Level up your experience, the ultimate gaming battleground awaits",
+      category: "gaming",
+    },
+    {
+      id: "digital-den",
+      guideId: "6855b46ac4c1daae6bec5dc1",
       image: build4,
       title: "The Digital Den",
       rating: 4.6,
-      specs:
-        "Crafting code and building dreams, the ultimate development workstation.",
-      path: "/guides/the-digital-den",
-    },
-    {
-      id: 5,
-      image: build5,
-      title: "Ultra Game",
-      rating: 4.9,
-      specs:
-        "Level up your experience, the ultimate gaming battleground awaits",
-      path: "/guides/ultra-game",
+      specs: "Crafting code and building dreams, the ultimate development workstation.",
+      category: "workstation",
     },
   ];
 
@@ -464,6 +466,13 @@ const FeaturedBuildsCarousel = () => {
     }
   };
 
+  const handleViewDetails = (guide) => {
+    navigate(`/guides/${guide.category}?guideId=${guide.guideId}`, {
+      state: { scrollToGuide: guide.guideId }
+    });
+  };
+
+
   return (
     <div className="featured-builds-container">
       <div className="featuredBuildssection-header">
@@ -510,18 +519,18 @@ const FeaturedBuildsCarousel = () => {
                     {guidebuild.specs}
                   </p>
 
-                  <Button
-                    className="featuredBuildsbuild-view-button"
-                    type="primary"
-                    style={{
-                      backgroundColor: "#621C74",
-                      borderColor: "#621C74",
-                      fontWeight: 500,
-                    }}
-                    onClick={() => navigate(guidebuild.path)}
-                  >
-                    View Build Details
-                  </Button>
+                   <Button
+    className="featuredBuildsbuild-view-button"
+    type="primary"
+    style={{
+      backgroundColor: "#621C74",
+      borderColor: "#621C74",
+      fontWeight: 500,
+    }}
+    onClick={() => handleViewDetails(guidebuild)}
+  >
+    View Build Details
+  </Button>
                 </div>
               </div>
             ))}
@@ -539,7 +548,6 @@ const FeaturedBuildsCarousel = () => {
     </div>
   );
 };
-
 //POST ON COMMUNITY
 const CommunityPostSection = () => {
   const navigate = useNavigate();

@@ -96,7 +96,12 @@ const PostCard = ({
         )}
 
         <div className="community_build_meta">
+           <div className="post_average_rating">
+              <span className="post_average_rating_star">★</span>
+              <span>{post.averageRating?.toFixed(1) || 0} </span>
+            </div>
           <div className="community_build_rating_section">
+          
             <div className="community_build_rating">
               <Rate
                 allowHalf
@@ -107,8 +112,10 @@ const PostCard = ({
               <span className="rating-text">
                 {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0}{" "}
                 reviews)
+                
               </span>
             </div>
+            
           </div>
 
           {post.build.genre && (
@@ -159,16 +166,18 @@ const PostCard = ({
             <p className="community_post_time">
               {formatPostDate(post.createdAt)}
             </p>
-            <div className="post_average_rating">
-              <span className="post_average_rating_star">★</span>
-              <span>{post.averageRating?.toFixed(1) || 0} </span>
-            </div>
+           
           </div>
+          
         </div>
+        
 
         {/* Post Description */}
+        
         <div className="postHeader_desc">
+          
           <p className="post-text-content">{post.text}</p>
+          
         </div>
 
         {/* Post Content */}

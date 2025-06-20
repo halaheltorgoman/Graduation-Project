@@ -16,6 +16,7 @@ import { useNavigation } from "../../Context/NavigationContext";
 import { debounce } from "lodash";
 import axios from "axios";
 
+
 export default function NavBar() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredComponents, setFilteredComponents] = useState([]);
