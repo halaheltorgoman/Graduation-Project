@@ -379,7 +379,7 @@ export default function NavBar() {
                                             •
                                           </span>
                                           <span className="navbar_search-result-price">
-                                            ${item.price}
+                                            EGP {item.price}
                                           </span>
                                         </>
                                       )}
