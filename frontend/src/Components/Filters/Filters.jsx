@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { MdFilterAlt } from "react-icons/md";
 import { Menu, Checkbox, Tag, Slider, message } from "antd";
@@ -164,6 +164,19 @@ function Filters({
   const [maxPrice, setMaxPrice] = useState(1000);
   const [loading, setLoading] = useState(false);
 
+  // Use refs to keep track of the current values without triggering re-renders
+  const selectedFiltersRef = useRef(selectedFilters);
+  const priceRangeRef = useRef(priceRange);
+
+  // Update refs when values change
+  useEffect(() => {
+    selectedFiltersRef.current = selectedFilters;
+  }, [selectedFilters]);
+
+  useEffect(() => {
+    priceRangeRef.current = priceRange;
+  }, [priceRange]);
+
   const fetchMaxPrice = useCallback(async () => {
     try {
       setLoading(true);
@@ -188,74 +201,75 @@ function Filters({
     onSortChange(null);
   }, [onFilterChange, onSortChange, maxPrice]);
 
-  const updateAPIFilters = useCallback(
-    (filtersList, priceRangeVal) => {
-      const apiParams = {};
+  const updateAPIFilters = useCallback(() => {
+    // Get current values from refs to avoid dependency issues
+    const filtersList = selectedFiltersRef.current;
+    const priceRangeVal = priceRangeRef.current;
 
-      // Handle standard filters
-      const filtersByCategory = filtersList.reduce((acc, filter) => {
-        if (!acc[filter.category]) acc[filter.category] = [];
-        acc[filter.category].push(filter.value);
-        return acc;
-      }, {});
+    const apiParams = {};
 
-      Object.entries(filtersByCategory).forEach(([category, values]) => {
-        switch (category) {
-          case "Manufacturer":
-            apiParams.manfacturer = values;
-            break;
-          case "Brand":
-            apiParams.brand = values;
-            break;
-          case "Socket Type":
-            apiParams.socket = values;
-            break;
-          case "Number of Cores":
-            apiParams.cores = values;
-            break;
-          case "Number of Threads":
-            apiParams.threads = values;
-            break;
-          case "Supported Socket":
-            apiParams.MB_socket = values;
-            break;
+    // Handle standard filters
+    const filtersByCategory = filtersList.reduce((acc, filter) => {
+      if (!acc[filter.category]) acc[filter.category] = [];
+      acc[filter.category].push(filter.value);
+      return acc;
+    }, {});
 
-          case "Supported Memory":
-            apiParams.supported_memory = values;
-            break;
-          case "Form Factor":
-            apiParams.MB_form = values;
-            break;
-          case "Case Size":
-            apiParams.case_type = values;
-            break;
-          case "Color":
-            apiParams.color = values;
-            break;
-          case "Type":
-            apiParams.cooling_method = values;
-            break;
-          case "Memory Type":
-            apiParams.DDR_generation = values;
-            break;
-          case "Memory Size":
-            apiParams.memory_size = values;
-            break;
-          case "Capacity":
-            apiParams.size = values;
-        }
-      });
+    Object.entries(filtersByCategory).forEach(([category, values]) => {
+      switch (category) {
+        case "Manufacturer":
+          apiParams.manfacturer = values;
+          break;
+        case "Brand":
+          apiParams.brand = values;
+          break;
+        case "Socket Type":
+          apiParams.socket = values;
+          break;
+        case "Number of Cores":
+          apiParams.cores = values;
+          break;
+        case "Number of Threads":
+          apiParams.threads = values;
+          break;
+        case "Supported Socket":
+          apiParams.MB_socket = values;
+          break;
 
-      // Handle price range
-      if (priceRangeVal && Array.isArray(priceRangeVal)) {
-        apiParams.minPrice = priceRangeVal[0];
-        apiParams.maxPrice = priceRangeVal[1];
+        case "Supported Memory":
+          apiParams.supported_memory = values;
+          break;
+        case "Form Factor":
+          apiParams.MB_form = values;
+          break;
+        case "Case Size":
+          apiParams.case_type = values;
+          break;
+        case "Color":
+          apiParams.color = values;
+          break;
+        case "Type":
+          apiParams.cooling_method = values;
+          break;
+        case "Memory Type":
+          apiParams.DDR_generation = values;
+          break;
+        case "Memory Size":
+          apiParams.memory_size = values;
+          break;
+        case "Capacity":
+          apiParams.size = values;
       }
+    });
 
-      onFilterChange(apiParams);
-    },
-    [onFilterChange]
-  );
+    // Handle price range
+    if (priceRangeVal && Array.isArray(priceRangeVal)) {
+      apiParams.minPrice = priceRangeVal[0];
+      apiParams.maxPrice = priceRangeVal[1];
+    }
+
+    onFilterChange(apiParams);
+  }, [onFilterChange]);
 
   const handleCheckboxChange = useCallback(
     (category, value, checked) => {
@@ -263,19 +277,22 @@ function Filters({
         const updated = checked
           ? [...prev, { category, value }]
           : prev.filter((f) => !(f.category === category && f.value === value));
-        updateAPIFilters(updated, priceRange);
+
+        // Schedule updateAPIFilters to run on next tick
+        setTimeout(updateAPIFilters, 0);
         return updated;
       });
     },
-    [priceRange, updateAPIFilters]
+    [updateAPIFilters]
   );
 
   const handlePriceSliderChange = useCallback(
     (range) => {
       setPriceRange(range);
-      updateAPIFilters(selectedFilters, range);
+      // Use a small timeout to break potential update loops
+      setTimeout(updateAPIFilters, 0);
     },
-    [selectedFilters, updateAPIFilters]
+    [updateAPIFilters]
   );
 
   const handleRemoveFilter = useCallback(
@@ -287,8 +304,9 @@ function Filters({
 
   const handleRemovePriceFilter = useCallback(() => {
     setPriceRange([0, maxPrice]);
-    updateAPIFilters(selectedFilters, [0, maxPrice]);
-  }, [maxPrice, selectedFilters, updateAPIFilters]);
+    // Schedule updateAPIFilters to run on next tick
+    setTimeout(updateAPIFilters, 0);
+  }, [maxPrice, updateAPIFilters]);
 
   const handleSortChange = useCallback(
     (category, value) => {
