@@ -73,6 +73,11 @@ function Builder() {
   const [configureMode, setConfigureMode] = useState(false);
   const [originalBuildId, setOriginalBuildId] = useState(null);
 
+  // Guide-specific state
+  const [fromGuide, setFromGuide] = useState(false);
+  const [guideId, setGuideId] = useState(null);
+  const [guideTitle, setGuideTitle] = useState("");
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
@@ -113,9 +118,20 @@ function Builder() {
       setSelectedComponents(location.state.selectedComponents);
       setOriginalBuildId(location.state.buildId);
 
-      message.info(
-        `Configuring ${type.toUpperCase()} - other components are pre-selected from your build`
-      );
+      // Check if this is from a guide
+      if (location.state?.fromGuide) {
+        setFromGuide(true);
+        setGuideId(location.state.guideId);
+        setGuideTitle(location.state.originalBuild?.title || "Guide Build");
+
+        message.info(
+          `Configuring ${type.toUpperCase()} from guide - changes will be saved as a new build`
+        );
+      } else {
+        message.info(
+          `Configuring ${type.toUpperCase()} - other components are pre-selected from your build`
+        );
+      }
     }
   }, [location.state, type]);
 
@@ -316,36 +332,85 @@ function Builder() {
     setBuildDescription(description || "");
   }, []);
 
-  // Modify the handleNextComponent function
+  // Modified handleNextComponent function to handle guide configurations
+  // Updated handleNextComponent function for Builder.jsx
   const handleNextComponent = useCallback(
     async (cardId) => {
       if (configureMode) {
-        // In configure mode, update the existing build instead of creating new one
         if (selectedId === cardId) {
           try {
-            // Update the specific component in the existing build
-            const { data } = await axios.put(
-              `http://localhost:4000/api/build/${originalBuildId}/update-component`,
-              {
-                componentType: type,
-                componentId: cardId,
-              },
-              { withCredentials: true }
-            );
+            if (fromGuide) {
+              // GUIDE CUSTOMIZATION: Always create a new build, never update the guide
+              console.log("Creating new build from guide customization");
 
-            // Navigate to full build view with the updated build
-            navigate(`/builder/full-build`, {
-              state: {
-                configureMode: true,
-                originalBuildId,
-                updatedBuild: data.build,
-                originalBuild: data.build, // Pass the updated build as original
-              },
-            });
+              const buildData = {
+                components: { ...selectedComponents, [type]: cardId },
+                title: `${guideTitle} - Customized`,
+                description: `Customized build based on guide: ${guideTitle}`,
+                // Store reference to original guide without modifying it
+                metadata: {
+                  basedOnGuide: guideId,
+                  originalGuideTitle: guideTitle,
+                  customizedComponent: type,
+                  customizationDate: new Date().toISOString(),
+                },
+              };
+
+              const { data } = await axios.post(
+                "http://localhost:4000/api/build/createbuild",
+                buildData,
+                { withCredentials: true }
+              );
+
+              // Navigate to the new build's full view
+              navigate(`/builder/full-build`, {
+                state: {
+                  configureMode: false,
+                  updatedBuild: data.build,
+                  fromGuideConfig: true,
+                  originalGuideId: guideId,
+                  isNewBuildFromGuide: true, // Flag to indicate this is a new build
+                },
+              });
+
+              message.success(
+                `New build created from guide! Your customized ${type} has been saved to your completed builds.`
+              );
+            } else {
+              // EXISTING BUILD UPDATE: Update the existing build
+              console.log("Updating existing build component");
+
+              const { data } = await axios.put(
+                `http://localhost:4000/api/build/${originalBuildId}/update-component`,
+                {
+                  componentType: type,
+                  componentId: cardId,
+                },
+                { withCredentials: true }
+              );
+
+              // Navigate to full build view with the updated build
+              navigate(`/builder/full-build`, {
+                state: {
+                  configureMode: true,
+                  originalBuildId,
+                  updatedBuild: data.build,
+                  originalBuild: data.build,
+                  isExistingBuildUpdate: true, // Flag to indicate this is an update
+                },
+              });
+
+              message.success(
+                `Your existing build has been updated with the new ${type}!`
+              );
+            }
           } catch (err) {
+            console.error("Component update/creation error:", err);
             message.error(
               err.response?.data?.message ||
-                "Failed to update component. Please try again."
+                `Failed to ${
+                  fromGuide ? "create new build" : "update component"
+                }. Please try again.`
             );
           }
         } else {
@@ -354,7 +419,7 @@ function Builder() {
         return;
       }
 
-      // Original next component logic for normal mode
+      // Original next component logic for normal build creation mode
       if (selectedId === cardId) {
         const currentIndex = COMPONENT_ORDER.indexOf(type);
         if (currentIndex !== -1 && currentIndex < COMPONENT_ORDER.length - 1) {
@@ -411,6 +476,9 @@ function Builder() {
       originalBuildId,
       buildTitle,
       buildDescription,
+      fromGuide,
+      guideId,
+      guideTitle,
     ]
   );
 
@@ -439,8 +507,14 @@ function Builder() {
   );
 
   const handleCancelConfigure = useCallback(() => {
-    navigate("/profile?tab=1");
-  }, [navigate]);
+    if (fromGuide) {
+      // If from guide, go back to guides
+      navigate("/guides");
+    } else {
+      // Original logic for builds
+      navigate("/profile?tab=1");
+    }
+  }, [navigate, fromGuide]);
 
   const renderFullBuild = () => (
     <FullBuildSummary
@@ -448,6 +522,8 @@ function Builder() {
       loading={fullBuildLoading}
       configureMode={configureMode}
       originalBuildId={originalBuildId}
+      fromGuideConfig={location.state?.fromGuideConfig}
+      originalGuideId={location.state?.originalGuideId}
     />
   );
 
@@ -476,8 +552,9 @@ function Builder() {
             buildTitle={buildTitle}
             buildDescription={buildDescription}
             onBuildDetailsUpdate={handleBuildDetailsUpdate}
+            fromGuide={fromGuide}
+            guideTitle={guideTitle}
           />
-
 
           <NavigationLayout
             components={components}
@@ -492,14 +569,22 @@ function Builder() {
                 <div className="configure-mode-header">
                   <div className="configure-mode-content">
                     <h3>
-                      <span className="configure-badge">Configure Mode</span>
+                      <span className="configure-badge">
+                        {fromGuide ? "Guide Configuration" : "Configure Mode"}
+                      </span>
                       {type === "full-build"
-                        ? "Review Build Changes"
+                        ? fromGuide
+                          ? "New Build Created"
+                          : "Review Build Changes"
                         : `Updating ${type.toUpperCase()}`}
                     </h3>
                     <p>
                       {type === "full-build"
-                        ? "Review your build changes and choose how to save them."
+                        ? fromGuide
+                          ? "Your customized build has been created successfully!"
+                          : "Review your build changes and choose how to save them."
+                        : fromGuide
+                        ? `Customizing ${type} from guide "${guideTitle}". Your changes will be saved as a new build.`
                         : `You're updating a component in your existing build. Select a compatible ${type} to continue.`}
                     </p>
                     <div className="configure-actions">
@@ -508,7 +593,7 @@ function Builder() {
                         onClick={handleCancelConfigure}
                         className="configure-cancel-btn"
                       >
-                        Cancel Update
+                        {fromGuide ? "Back to Guides" : "Cancel Update"}
                       </Button>
                     </div>
                   </div>
@@ -532,11 +617,11 @@ function Builder() {
                       }`}
                     >
                       <span>2</span>
-                      <p>Review Build</p>
+                      <p>{fromGuide ? "Build Created" : "Review Build"}</p>
                     </div>
                     <div className="progress-step">
                       <span>3</span>
-                      <p>Save Changes</p>
+                      <p>{fromGuide ? "Complete" : "Save Changes"}</p>
                     </div>
                   </div>
                 </div>
@@ -577,7 +662,13 @@ function Builder() {
                     }
                     showError={errorId === (component._id || component.id)}
                     configureMode={configureMode}
-                    buttonText={configureMode ? "Update & Continue" : "Next"}
+                    buttonText={
+                      fromGuide
+                        ? "Create New Build"
+                        : configureMode
+                        ? "Update & Continue"
+                        : "Next"
+                    }
                   />
                 ))
               )}
