@@ -1,6 +1,7 @@
 const Build = require("../models/Build");
 const Guide = require("../models/Guide");
 const User = require("../models/User");
+// Updated getGuidesByCategory function - replace your existing one with this:
 
 exports.getGuidesByCategory = async (req, res) => {
   try {
@@ -34,23 +35,36 @@ exports.getGuidesByCategory = async (req, res) => {
     const parsedLimit = parseInt(limit);
     const parsedPage = parseInt(page);
 
-    // Build sort object
+    // FIXED: Build sort object with proper rating support
     let sort = {};
+    let needsPriceCalculation = false;
+
     switch (sortBy) {
       case "newest":
         sort = { createdAt: -1 };
         break;
       case "rating":
+        // Highest rating first, then by creation date
         sort = { averageRating: -1, createdAt: -1 };
+        break;
+      case "rating-asc":
+        // Lowest rating first, then by creation date
+        sort = { averageRating: 1, createdAt: -1 };
         break;
       case "saves":
         sort = { savesCount: -1, createdAt: -1 };
+        break;
+      case "price-desc":
+      case "price-asc":
+        // For price sorting, we'll need to calculate prices after fetching
+        needsPriceCalculation = true;
+        sort = { createdAt: -1 }; // Default sort for now
         break;
       default:
         sort = { createdAt: -1 };
     }
 
-    // Build filter object - removed genre filter
+    // Build filter object
     const filter = {
       category: category,
       status: "Published",
@@ -85,25 +99,60 @@ exports.getGuidesByCategory = async (req, res) => {
     }
 
     console.log("Fetching guides from database...");
-    const guides = await Guide.find(filter)
-      .skip(skip)
-      .limit(parsedLimit)
-      .sort(sort)
-      .populate("creator", "username avatar")
-      .populate({
-        path: "ratings.user",
-        select: "username avatar",
-      })
-      .populate({
-        path: "build",
-        populate: {
-          path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
-        },
-      })
-      .lean()
-      .exec();
+
+    // For price sorting, we need to fetch all guides first, then sort and paginate
+    let guides;
+    if (needsPriceCalculation) {
+      // Fetch all guides for price calculation
+      guides = await Guide.find(filter)
+        .sort(sort)
+        .populate("creator", "username avatar")
+        .populate({
+          path: "ratings.user",
+          select: "username avatar",
+        })
+        .populate({
+          path: "build",
+          populate: {
+            path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
+          },
+        })
+        .lean()
+        .exec();
+    } else {
+      // Normal pagination for non-price sorting (including rating sorts)
+      guides = await Guide.find(filter)
+        .skip(skip)
+        .limit(parsedLimit)
+        .sort(sort)
+        .populate("creator", "username avatar")
+        .populate({
+          path: "ratings.user",
+          select: "username avatar",
+        })
+        .populate({
+          path: "build",
+          populate: {
+            path: "components.cpu components.gpu components.motherboard components.memory components.storage components.psu components.case components.cooler",
+          },
+        })
+        .lean()
+        .exec();
+    }
 
     console.log(`Retrieved ${guides.length} guides from database`);
+
+    // Log rating info for debugging
+    if (guides.length > 0 && (sortBy === "rating" || sortBy === "rating-asc")) {
+      console.log("Rating sort debug:");
+      guides.slice(0, 3).forEach((guide, index) => {
+        console.log(
+          `Guide ${index + 1}: ${guide.title} - Rating: ${
+            guide.averageRating || 0
+          }`
+        );
+      });
+    }
 
     if (guides.length === 0) {
       console.log("Query returned no results");
@@ -158,7 +207,7 @@ exports.getGuidesByCategory = async (req, res) => {
             return null;
           }
 
-          // Build processed guide object - removed genre field
+          // Build processed guide object
           const processedGuide = {
             _id: guide._id,
             title: guide.title,
@@ -197,9 +246,55 @@ exports.getGuidesByCategory = async (req, res) => {
       })
       .filter(Boolean); // Remove null entries
 
+    console.log(`Processed guides count: ${processedGuides.length}`);
+
+    // Apply price sorting if needed
+    if (needsPriceCalculation) {
+      if (sortBy === "price-desc") {
+        processedGuides.sort((a, b) => b.totalPrice - a.totalPrice);
+      } else if (sortBy === "price-asc") {
+        processedGuides.sort((a, b) => a.totalPrice - b.totalPrice);
+      }
+
+      // Apply pagination after sorting
+      const startIndex = skip;
+      const endIndex = skip + parsedLimit;
+      const paginatedGuides = processedGuides.slice(startIndex, endIndex);
+
+      console.log(
+        `After price sorting and pagination: ${paginatedGuides.length} guides`
+      );
+
+      // Calculate pagination based on filtered results
+      const filteredTotalCount = processedGuides.length;
+      const totalPages = Math.ceil(filteredTotalCount / parsedLimit);
+      const hasMore = parsedPage < totalPages;
+
+      const response = {
+        success: true,
+        guides: paginatedGuides,
+        hasMore,
+        pagination: {
+          currentPage: parsedPage,
+          totalPages,
+          totalGuides: filteredTotalCount,
+          hasMore,
+        },
+      };
+
+      console.log("=== RESPONSE SUMMARY (Price Sorted) ===");
+      console.log("Success:", response.success);
+      console.log("Guides count:", response.guides.length);
+      console.log("Has more:", response.hasMore);
+      console.log("Pagination:", response.pagination);
+
+      console.log("=== END GET GUIDES BY CATEGORY ===");
+      return res.json(response);
+    }
+
     console.log(`Final processed guides count: ${processedGuides.length}`);
 
-    // Calculate pagination
+    // Calculate pagination for normal sorting (including rating sorts)
     const totalPages = Math.ceil(totalCount / parsedLimit);
     const hasMore = parsedPage < totalPages;
 
@@ -226,6 +321,7 @@ exports.getGuidesByCategory = async (req, res) => {
       console.log("First guide keys:", Object.keys(response.guides[0]));
       console.log("First guide build present:", !!response.guides[0].build);
       console.log("First guide creator present:", !!response.guides[0].creator);
+      console.log("First guide rating:", response.guides[0].averageRating);
     }
 
     console.log("=== END GET GUIDES BY CATEGORY ===");
@@ -247,6 +343,7 @@ exports.getGuidesByCategory = async (req, res) => {
   }
 };
 
+// Keep all other existing functions unchanged
 exports.convertToGuide = async (req, res) => {
   try {
     console.log("=== Convert to Guide Debug ===");
@@ -258,7 +355,7 @@ exports.convertToGuide = async (req, res) => {
     const {
       title,
       description,
-      category, // Changed from genre to category
+      category,
       tags,
       difficulty,
       estimatedBuildTime,
@@ -272,7 +369,6 @@ exports.convertToGuide = async (req, res) => {
       category,
     });
 
-    // Validate required fields - removed genre, kept category
     if (!title || !description || !category) {
       console.log("Validation failed - missing required fields");
       return res.status(400).json({
@@ -305,7 +401,6 @@ exports.convertToGuide = async (req, res) => {
 
     console.log("Build components:", Object.keys(build.components || {}));
 
-    // Check if build has all required components
     const requiredComponents = [
       "cpu",
       "gpu",
@@ -332,7 +427,6 @@ exports.convertToGuide = async (req, res) => {
       });
     }
 
-    // Check if guide already exists for this build
     console.log("Checking for existing guide...");
     const existingGuide = await Guide.findOne({ build: buildId });
     console.log("Existing guide found:", !!existingGuide);
@@ -345,7 +439,6 @@ exports.convertToGuide = async (req, res) => {
       });
     }
 
-    // Create new guide - removed genre field
     console.log("Creating new guide...");
     const guideData = {
       build: buildId,
@@ -373,7 +466,6 @@ exports.convertToGuide = async (req, res) => {
     await guide.save();
     console.log("Guide saved to database");
 
-    // Populate the guide with build and component data
     console.log("Populating guide data...");
     await guide.populate([
       {
@@ -390,31 +482,6 @@ exports.convertToGuide = async (req, res) => {
     ]);
 
     console.log("Guide populated successfully");
-    console.log("Populated guide build:", guide.build ? "Present" : "Missing");
-    console.log(
-      "Populated guide creator:",
-      guide.creator ? "Present" : "Missing"
-    );
-
-    if (guide.build && guide.build.components) {
-      console.log(
-        "Populated build components:",
-        Object.keys(guide.build.components)
-      );
-      Object.keys(guide.build.components).forEach((key) => {
-        const component = guide.build.components[key];
-        console.log(
-          `${key}:`,
-          component
-            ? {
-                id: component._id,
-                title: component.title,
-                price: component.price,
-              }
-            : "null"
-        );
-      });
-    }
 
     res.json({
       success: true,
@@ -456,9 +523,6 @@ exports.isAdmin = async (req, res, next) => {
   }
 };
 
-// Remove getGenres function since we're no longer using genres
-// Categories are fixed: Gaming, Workstation, Budget, Development
-
 exports.toggleSaveGuide = async (req, res) => {
   try {
     const { guideId } = req.params;
@@ -470,7 +534,6 @@ exports.toggleSaveGuide = async (req, res) => {
       });
     }
 
-    // Find the guide - don't modify it, just find by ID
     const guide = await Guide.findById(guideId);
     if (!guide) {
       return res.status(404).json({
@@ -479,7 +542,6 @@ exports.toggleSaveGuide = async (req, res) => {
       });
     }
 
-    // Find the user
     const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({
@@ -488,32 +550,25 @@ exports.toggleSaveGuide = async (req, res) => {
       });
     }
 
-    // Check if guide is already saved by this user
     const isCurrentlySaved = user.savedGuides.includes(guideId);
     let newSaveStatus;
 
     if (isCurrentlySaved) {
-      // Remove from user's saved guides
       user.savedGuides.pull(guideId);
-      // Decrease guide's save count
       guide.savesCount = Math.max(0, (guide.savesCount || 0) - 1);
       newSaveStatus = false;
     } else {
-      // Add to user's saved guides
       user.savedGuides.addToSet(guideId);
-      // Increase guide's save count
       guide.savesCount = (guide.savesCount || 0) + 1;
       newSaveStatus = true;
     }
 
-    // Save user first, then guide with validation skip if needed
     await user.save();
 
-    // Update guide without triggering validation on category field
     await Guide.findByIdAndUpdate(
       guideId,
       { savesCount: guide.savesCount },
-      { runValidators: false } // Skip validation to avoid enum error
+      { runValidators: false }
     );
 
     res.json({
@@ -667,7 +722,7 @@ exports.getGuideById = async (req, res) => {
     });
   }
 };
-// Updated Backend Controller - Replace your rateGuide function in guideController.js:
+
 exports.rateGuide = async (req, res) => {
   try {
     const { guideId } = req.params;
@@ -677,7 +732,6 @@ exports.rateGuide = async (req, res) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    // Validate and normalize the rating value
     value = parseFloat(value);
     if (isNaN(value) || value < 0.5 || value > 5) {
       return res.status(400).json({
@@ -686,7 +740,6 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Ensure rating is in 0.5 increments
     if ((value * 2) % 1 !== 0) {
       return res.status(400).json({
         success: false,
@@ -694,7 +747,6 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Round to nearest 0.5 to ensure precision
     value = Math.round(value * 2) / 2;
 
     const guide = await Guide.findById(guideId);
@@ -705,25 +757,21 @@ exports.rateGuide = async (req, res) => {
       });
     }
 
-    // Check for existing rating
     const existingRatingIndex = guide.ratings.findIndex((r) =>
       r.user.equals(req.userId)
     );
 
     if (existingRatingIndex >= 0) {
-      // Update existing rating
       guide.ratings[existingRatingIndex].value = value;
     } else {
-      // Add new rating
       guide.ratings.push({
         user: req.userId,
         value,
       });
     }
 
-    // Calculate new average
     const sum = guide.ratings.reduce((acc, curr) => acc + curr.value, 0);
-    guide.averageRating = Math.round((sum / guide.ratings.length) * 10) / 10; // Round to 1 decimal place
+    guide.averageRating = Math.round((sum / guide.ratings.length) * 10) / 10;
 
     await guide.save();
 

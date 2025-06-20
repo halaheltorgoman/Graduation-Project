@@ -15,7 +15,7 @@ import gamingImage from "../../assets/images/gamingguide.jpg";
 import workstationImage from "../../assets/images/personalguide.jpg";
 import budgetImage from "../../assets/images/workguide.jpg";
 import developmentImage from "../../assets/images/devguide.webp";
-
+import { FaStar } from "react-icons/fa";
 function Guides() {
   const { category = "Development" } = useParams();
   const [sortBy, setSortBy] = useState("newest");
@@ -190,9 +190,21 @@ function Guides() {
   }, [fetchSavedGuides]);
 
   // Handle rating a guide
+
+  // Updated handleRateGuide function - Replace your existing handleRateGuide function with this:
   const handleRateGuide = useCallback(async (guideId, rating) => {
     try {
       console.log("Rating guide:", guideId, "with rating:", rating);
+
+      // Validate rating (must be in 0.5 increments between 0.5 and 5)
+      if (rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
+        notification.error({
+          message: "Invalid rating",
+          description: "Rating must be between 0.5 and 5 in 0.5 increments",
+          duration: 3,
+        });
+        return;
+      }
 
       // Immediately update the UI state for better UX
       setUserRatings((prev) => ({
@@ -428,6 +440,7 @@ function Guides() {
             {guides.map((guide) => (
               <div key={guide._id} className="guide_card">
                 {/* Guide Header - Similar to PostCard Header */}
+
                 <div className="guide_header">
                   <div className="guide_user_info">
                     {guide.creator?.avatar ? (
@@ -460,9 +473,12 @@ function Guides() {
                         <FaRegHeart className="unfavorited" />
                       )}
                     </span>
+                    <div className="guide_avgrating">
+                      <FaStar className="rating-star" />
+                      {guide.averageRating?.toFixed(1) || 0}
+                    </div>
                   </div>
                 </div>
-
                 {/* Guide Content */}
                 <div className="guide_content">
                   <div className="guide_left">
@@ -496,38 +512,31 @@ function Guides() {
 
                       {/* Rating Section */}
                       <div className="guide_rating_section">
-                        {/* Average Rating Display */}
-                        <div className="guide_average_rating">
-                          <Rate
-                            allowHalf
-                            disabled
-                            value={guide.averageRating || 0}
-                            className="post_rate_stars average-rating-stars"
-                          />
-                          <span className="guide_rating_text">
-                            {guide.averageRating?.toFixed(1) || 0} (
-                            {guide.totalRatings || guide.ratings?.length || 0}{" "}
-                            reviews)
-                          </span>
-                        </div>
+                        {/* Combined Rating Display and User Rating */}
+                        <div className="guide_rating_container">
+                          <div className="guide_average_rating"></div>
 
-                        {/* User Rating Section */}
-                        <div className="user_rating_section">
-                          <span className="user_rating_label">
-                            Your Rating:
-                          </span>
-                          <Rate
-                            allowHalf
-                            value={userRatings[guide._id] || 0}
-                            onChange={(value) =>
-                              handleRateGuide(guide._id, value)
-                            }
-                            className="post_rate_stars"
-                          />
-                          <span className="user_rating_value">
-                            {userRatings[guide._id]
-                              ? `${userRatings[guide._id]}/5`
-                              : "Not rated"}
+                          <div className="user_rating_section">
+                            <span className="user_rating_label">
+                              Rate this guide:
+                            </span>
+                            <Rate
+                              allowHalf
+                              value={userRatings[guide._id] || 0}
+                              onChange={(value) =>
+                                handleRateGuide(guide._id, value)
+                              }
+                              className="post_rate_stars"
+                            />
+                            {userRatings[guide._id] && (
+                              <span className="user_rating_value">
+                                Your rating: {userRatings[guide._id]}/5
+                              </span>
+                            )}
+                          </div>
+                          <span className="guide_rating_text">
+                            ({guide.totalRatings || guide.ratings?.length || 0}{" "}
+                            reviews)
                           </span>
                         </div>
                       </div>

@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useContext, useEffect } from "react";
 import "./Community.css";
 import Filters from "../Filters/Filters";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { UserOutlined, LoadingOutlined } from "@ant-design/icons";
 import { IoIosAdd } from "react-icons/io";
 import postImage from "../../assets/images/postBuild_dummy.png";
@@ -41,6 +41,8 @@ function Community() {
   const [commentLoading, setCommentLoading] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [currentPost, setCurrentPost] = useState(null);
+  const [preSelectedBuild, setPreSelectedBuild] = useState(null);
+
   const { savedComponents } = useContext(SavedComponentsContext);
   const { user, authToken } = useContext(UserContext) || {
     user: null,
@@ -55,6 +57,7 @@ function Community() {
   } = useContext(SavedPostsContext);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     setAuthChecked(true);
@@ -63,6 +66,25 @@ function Community() {
   useEffect(() => {
     fetchSavedPosts();
   }, [user?._id, fetchSavedPosts]);
+
+  // Handle incoming build share from FullBuildSummary
+  useEffect(() => {
+    if (location.state?.openCreateModal && location.state?.selectedBuild) {
+      console.log("Received build to share:", location.state.selectedBuild);
+
+      // Set the pre-selected build
+      setPreSelectedBuild(location.state.selectedBuild);
+
+      // Open the create post modal
+      setIsCreatingPost(true);
+
+      // Clear the location state to prevent re-triggering
+      navigate("/community", { replace: true });
+
+      // Show a helpful message
+      message.info("Build ready to share! Add your thoughts and post.");
+    }
+  }, [location.state, navigate]);
 
   const genres = [
     "Gaming",
@@ -75,97 +97,6 @@ function Community() {
     "Office",
     "Home Theater",
   ];
-
-  // 1. Update the fetchPosts function to wait for saved posts context
-  // const fetchPosts = async (newPage = 1) => {
-  //   try {
-  //     setLoading(true);
-  //     const params = {
-  //       page: newPage,
-  //       limit: 5,
-  //       sortBy: sortBy,
-  //       ...filters,
-  //     };
-  //     const response = await communityAPI.getPosts(params);
-
-  //     const postsWithData = response.posts.map((post) => {
-  //       const userRating = post.ratings?.find(
-  //         (r) => r.user === user?._id
-  //       )?.value;
-
-  //       return {
-  //         ...post,
-  //         savesCount: post.savesCount || 0,
-  //         // IMPORTANT: Use isPostSaved function here instead of assuming false
-  //         isBookmarked: isPostSaved(post._id),
-  //         userRating: userRating || null,
-  //         averageRating: post.averageRating || 0,
-  //         ratingsCount: post.ratings?.length || 0,
-  //       };
-  //     });
-
-  //     if (newPage === 1) {
-  //       setPosts(postsWithData);
-  //     } else {
-  //       setPosts((prev) => [...prev, ...postsWithData]);
-  //     }
-
-  //     setHasMore(response.page < response.pages);
-  //     setPage(response.page);
-  //   } catch (error) {
-  //     notification.error({
-  //       message: "Failed to load posts",
-  //       description: error.message || "Please try again later",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-  // const fetchPosts = async (newPage = 1) => {
-  //   try {
-  //     setLoading(true);
-  //     const params = {
-  //       page: newPage,
-  //       limit: 5,
-  //       sortBy: sortBy,
-  //       ...filters,
-  //     };
-  //     const response = await communityAPI.getPosts(params);
-
-  //     const postsWithData = response.posts.map((post) => {
-  //       // Find the user's rating in the post's ratings array
-  //       const userRatingObj = post.ratings?.find(
-  //         (r) => r.user && r.user._id === user?._id
-  //       );
-  //       const userRating = userRatingObj ? userRatingObj.value : null;
-
-  //       return {
-  //         ...post,
-  //         savesCount: post.savesCount || 0,
-  //         isBookmarked: isPostSaved(post._id),
-  //         userRating: userRating, // This will be null if user hasn't rated
-  //         averageRating: post.averageRating || 0,
-  //         ratingsCount: post.ratings?.length || 0,
-  //       };
-  //     });
-
-  //     if (newPage === 1) {
-  //       setPosts(postsWithData);
-  //     } else {
-  //       setPosts((prev) => [...prev, ...postsWithData]);
-  //     }
-
-  //     setHasMore(response.page < response.pages);
-  //     setPage(response.page);
-  //   } catch (error) {
-  //     notification.error({
-  //       message: "Failed to load posts",
-  //       description: error.message || "Please try again later",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const fetchPosts = async (newPage = 1) => {
     try {
@@ -229,6 +160,7 @@ function Community() {
       setLoading(false);
     }
   };
+
   // 2. Add a new effect to handle the initial load sequence
   useEffect(() => {
     // Only fetch posts after saved posts have been fetched
@@ -449,6 +381,8 @@ function Community() {
 
   const handleCloseCreatePost = () => {
     setIsCreatingPost(false);
+    // Clear the pre-selected build when closing
+    setPreSelectedBuild(null);
   };
 
   const handleCreatePostSubmit = async ({
@@ -503,6 +437,7 @@ function Community() {
       if (response.data.success) {
         message.success("Post created successfully!");
         setIsCreatingPost(false);
+        setPreSelectedBuild(null); // Clear pre-selected build
         fetchPosts(1);
       } else {
         throw new Error(response.data.message || "Failed to create post");
@@ -555,6 +490,7 @@ function Community() {
       });
     }
   };
+
   const handleSharePost = async (postId) => {
     try {
       const response = await communityAPI.sharePost(postId);
@@ -660,6 +596,7 @@ function Community() {
           genres={genres}
           savedBuilds={getAllSavedBuilds()}
           loading={createPostLoading}
+          preSelectedBuild={preSelectedBuild}
         />
         {loading && posts.length === 0 && (
           <div className="loading-container">

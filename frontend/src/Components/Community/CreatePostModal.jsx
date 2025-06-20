@@ -6,7 +6,15 @@ import axios from "axios";
 import { IoIosAdd } from "react-icons/io";
 import "./CreatePostModal.css"; // Adjust the path as necessary
 
-function CreatePostModal({ visible, onClose, onSubmit, loading }) {
+// Updated CreatePostModal function signature and useEffect
+
+function CreatePostModal({
+  visible,
+  onClose,
+  onSubmit,
+  loading,
+  preSelectedBuild,
+}) {
   const [postText, setPostText] = useState("");
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -18,10 +26,19 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
   useEffect(() => {
     if (visible) {
       fetchCompletedBuilds();
+
+      // If there's a pre-selected build from share flow
+      if (preSelectedBuild) {
+        setSelectedBuild(preSelectedBuild);
+        setShowBuildsList(true); // Show builds list so user can see selection
+
+        // Optional: Add a subtle indicator that this build was pre-selected
+        message.info("Build ready to share! Add your thoughts and post.");
+      }
     } else {
       resetForm();
     }
-  }, [visible]);
+  }, [visible, preSelectedBuild]);
 
   const fetchCompletedBuilds = async () => {
     try {
@@ -157,6 +174,15 @@ function CreatePostModal({ visible, onClose, onSubmit, loading }) {
             className="post-textarea"
             rows={2}
           />
+          {/* Show a special indicator if build is pre-selected */}
+          {preSelectedBuild && selectedBuild && (
+            <div className="pre-selected-build-indicator">
+              <div className="indicator-content">
+                <span className="indicator-icon">✓</span>
+                <span>Build "{selectedBuild.title}" is ready to share</span>
+              </div>
+            </div>
+          )}
 
           {/* Media section */}
           <div className="media-section">
