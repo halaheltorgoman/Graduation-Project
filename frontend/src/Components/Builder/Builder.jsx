@@ -478,53 +478,6 @@ function Builder() {
             onBuildDetailsUpdate={handleBuildDetailsUpdate}
           />
 
-          {/* Search Container - Only show for non-full-build pages */}
-          {type !== "full-build" && (
-            <form
-              className="browsecomponents_search-container"
-              onSubmit={handleSearchSubmit}
-              style={{ marginBottom: "1rem" }}
-            >
-              <input
-                type="text"
-                placeholder={`Search ${
-                  type === "all" ? "components" : type
-                }...`}
-                className="browsecomponents_search-input"
-                value={searchInput}
-                onChange={handleSearchInputChange}
-              />
-              <button type="submit" className="browsecomponents_search-button">
-                <CiSearch size={20} />
-              </button>
-            </form>
-          )}
-
-          {/* Search Info - Only show when there's a search query */}
-          {searchQuery && type !== "full-build" && (
-            <div
-              className="browsecomponents_search-info"
-              style={{ marginBottom: "1rem" }}
-            >
-              <p>
-                Showing results for "{searchQuery}"
-                {components.length > 0 && ` (${components.length} found)`}
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setSearchInput("");
-                  const newSearchParams = new URLSearchParams(searchParams);
-                  newSearchParams.delete("q");
-                  newSearchParams.set("page", "1");
-                  setSearchParams(newSearchParams);
-                }}
-                className="clear-search-btn"
-              >
-                Clear search
-              </button>
-            </div>
-          )}
 
           <NavigationLayout
             components={components}
