@@ -37,5 +37,7 @@ router.put(
   authMiddleware,
   buildController.updateBuildComponent
 );
+// Add the delete route
+router.delete("/:buildId", authMiddleware, buildController.deleteBuild);
 
 module.exports = router;

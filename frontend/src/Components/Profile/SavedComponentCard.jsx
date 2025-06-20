@@ -1,10 +1,21 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import BuildDummy from "../../assets/images/build_dummy.svg";
 import { FaShare, FaTrash, FaHeart, FaBookmark } from "react-icons/fa";
+import { useNavigation } from "../../Context/NavigationContext";
+import { usePageNavigation } from "../../Hooks/usePageNavigationHook"; // Import the hook
 import "./ProfileBuildCard.css";
 
 function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const navigate = useNavigate();
+  const { navigateToComponentDetail } = useNavigation();
+
+  // Use the page navigation hook
+  const { handleComponentClick } = usePageNavigation("saved-components", {
+    enableScrollRestoration: true,
+    enableStateRestoration: true,
+  });
 
   const handleDeleteComponent = () => {
     if (onDeleteComponent) {
@@ -18,6 +29,85 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
     }
   };
 
+  const handleNavigateToDetails = (e) => {
+    console.log("=== CLICK HANDLER TRIGGERED ===");
+    console.log("Event:", e);
+    console.log("Component data:", component);
+
+    // Prevent any event bubbling
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Ensure we have the required data
+    const componentId = component._id || component.id;
+    const componentType = component.type || component.category;
+
+    if (!componentId) {
+      console.error("Missing component ID:", component);
+      alert("Cannot navigate: Missing component ID");
+      return;
+    }
+
+    if (!componentType) {
+      console.error("Missing component type/category:", component);
+      alert("Cannot navigate: Missing component type");
+      return;
+    }
+
+    // First try using the page navigation hook
+    try {
+      console.log("Using page navigation hook");
+      handleComponentClick(component, {
+        returnUrl: "/profile/saved-components",
+        fromPage: "saved-components",
+      });
+      return;
+    } catch (error) {
+      console.error("Page navigation hook failed:", error);
+    }
+
+    // Fallback to navigation context
+    if (
+      navigateToComponentDetail &&
+      typeof navigateToComponentDetail === "function"
+    ) {
+      console.log("Using navigation context");
+      try {
+        navigateToComponentDetail(component, {
+          sourcePage: "saved-components",
+          scrollPosition: window.pageYOffset,
+          additionalState: {
+            returnUrl: "/profile/saved-components",
+            fromPage: "saved-components",
+          },
+        });
+        return;
+      } catch (error) {
+        console.error("Navigation context failed:", error);
+      }
+    }
+
+    // Final fallback to direct navigation
+    const normalizedType = componentType.toLowerCase();
+    const navigationPath = `/components/${normalizedType}/${componentId}`;
+
+    console.log(`Direct navigation to: ${navigationPath}`);
+
+    navigate(navigationPath, {
+      state: {
+        fromPage: "saved-components",
+        returnUrl: "/profile/saved-components",
+        component: component,
+        sourcePageData: {
+          sourcePage: "saved-components",
+          scrollPosition: window.pageYOffset,
+        },
+      },
+    });
+  };
+
   const imageUrl =
     component.image_source?.url || component.image_source || BuildDummy;
   const componentName =
@@ -29,10 +119,45 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
   const price = component.price || component.current_price || "N/A";
   const brand = component.brand || component.manufacturer || "Unknown";
 
+  // Debug component data
+  console.log("SavedComponentCard render - Component data:", {
+    id: component._id || component.id,
+    type: component.type,
+    category: component.category,
+    title: component.title,
+    name: component.name,
+  });
+
   return (
     <div className={`profile_buildCard ${isExpanded ? "expanded" : ""}`}>
       <div className="profile_buildCard_main">
-        <div className="profile_buildCard_info">
+        <div
+          className="profile_buildCard_info"
+          onClick={(e) => {
+            console.log("Card clicked!", e);
+            handleNavigateToDetails(e);
+          }}
+          onMouseDown={(e) => console.log("Mouse down on card", e)}
+          onMouseUp={(e) => console.log("Mouse up on card", e)}
+          style={{
+            cursor: "pointer",
+            userSelect: "none",
+            pointerEvents: "auto",
+            position: "relative",
+            zIndex: 1,
+            // Add visual feedback for debugging
+            outline: "1px solid transparent",
+            transition: "outline 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            console.log("Mouse entered card info");
+            e.target.style.outline = "1px solid #007bff";
+          }}
+          onMouseLeave={(e) => {
+            console.log("Mouse left card info");
+            e.target.style.outline = "1px solid transparent";
+          }}
+        >
           <img
             src={imageUrl}
             alt={componentName}
@@ -40,8 +165,9 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
             onError={(e) => {
               e.target.src = BuildDummy;
             }}
+            style={{ pointerEvents: "none" }}
           />
-          <div className="build-info">
+          <div className="build-info" style={{ pointerEvents: "none" }}>
             <h3 className="profile_buildCard_title">{componentName}</h3>
             <div className="component-meta">
               <span className="component-type">{componentType}</span>
@@ -59,12 +185,22 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
         <div className="profile_buildCard_buttons">
           <button
             className="profile_buildCard_Edit"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log("View/Close button clicked");
+              setIsExpanded(!isExpanded);
+            }}
           >
             {isExpanded ? "Close" : "View"}
           </button>
           {!isExpanded && (
-            <button className="profile_buildCard_Share">
+            <button
+              className="profile_buildCard_Share"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Share button clicked");
+              }}
+            >
               <FaShare />
             </button>
           )}
@@ -78,10 +214,25 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
                 src={imageUrl}
                 alt={componentName}
                 className="component-large-image"
+                onClick={handleNavigateToDetails}
+                style={{
+                  cursor: "pointer",
+                  userSelect: "none",
+                  pointerEvents: "auto",
+                }}
               />
             </div>
             <div className="component-info-section">
-              <h2>{componentName}</h2>
+              <h2
+                onClick={handleNavigateToDetails}
+                style={{
+                  cursor: "pointer",
+                  userSelect: "none",
+                  pointerEvents: "auto",
+                }}
+              >
+                {componentName}
+              </h2>
               <div className="component-specs">
                 <div className="spec-row">
                   <span className="spec-label">Type:</span>
@@ -144,11 +295,26 @@ function SavedComponentCard({ component, onDeleteComponent, onUseComponent }) {
           <div className="component-card-actions">
             <button
               className="use-component-button"
-              onClick={handleUseComponent}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleUseComponent();
+              }}
             >
               Use in Build
             </button>
-            <button className="delete-button" onClick={handleDeleteComponent}>
+            <button
+              className="view-details-button"
+              onClick={handleNavigateToDetails}
+            >
+              View Full Details
+            </button>
+            <button
+              className="delete-button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteComponent();
+              }}
+            >
               <FaTrash /> Remove from Saved
             </button>
           </div>

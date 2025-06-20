@@ -1,3 +1,4 @@
+// Profile.js (updated)
 import React, { useState, useEffect, useContext } from "react";
 import { Tabs } from "antd";
 import { UserOutlined } from "@ant-design/icons";
@@ -7,7 +8,9 @@ import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 import CompletedBuildsTab from "./CompletedBuildsTab";
 import SavedPostsTab from "./SavedPostsTab";
 import SavedComponentsTab from "./SavedComponentsTab";
+import SavedGuidesTab from "./SavedGuidesTab"; // Add this import
 import EditProfilePopUp from "./EditProfilePopUp";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Profile.css";
 
 function Profile() {
@@ -18,8 +21,37 @@ function Profile() {
   const [userName, setUserName] = useState("User Name");
   const [loadingBuilds, setLoadingBuilds] = useState(false);
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useContext(UserContext);
   const { savedComponents } = useContext(SavedComponentsContext);
+
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    const tabPaths = {
+      1: "builds",
+      2: "saved-posts",
+      3: "saved-components",
+      4: "saved-guides", // Add this new tab mapping
+    };
+    navigate(`?tab=${tabPaths[key]}`, { replace: true });
+  };
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const tabParam = searchParams.get("tab");
+
+    const tabKeys = {
+      builds: "1",
+      "saved-posts": "2",
+      "saved-components": "3",
+      "saved-guides": "4", // Add this new tab mapping
+    };
+
+    if (tabParam && tabKeys[tabParam]) {
+      setActiveTab(tabKeys[tabParam]);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -83,7 +115,7 @@ function Profile() {
         <Tabs
           centered
           activeKey={activeTab}
-          onChange={setActiveTab}
+          onChange={handleTabChange}
           items={[
             {
               label: "Completed Builds",
@@ -101,6 +133,11 @@ function Profile() {
               children: (
                 <SavedComponentsTab savedComponents={savedComponents} />
               ),
+            },
+            {
+              label: "Saved Guides",
+              key: "4",
+              children: <SavedGuidesTab />,
             },
           ]}
         />

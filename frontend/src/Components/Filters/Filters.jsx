@@ -26,8 +26,6 @@ const COMPONENT_FILTERS = {
   },
   gpu: {
     Manufacturer: ["NVIDIA", "AMD", "Intel"],
-
-    // "Memory Type": ["GDDR5", "GDDR6", "GDDR6X"],
     Brand: [
       "MSI",
       "SAPPHIRE",
@@ -40,14 +38,12 @@ const COMPONENT_FILTERS = {
       "PNY",
     ],
   },
-
   motherboard: {
     Brand: ["MSI", "ASUS", "Gigabyte"],
     "Supported Socket": ["LGA 1700", "AM5", "LGA 1200", "AM4"],
     "Supported Memory": ["DDR4", "DDR5"],
     "Form Factor": ["ATX", "Micro-ATX", "Extended-ATX"],
   },
-
   case: {
     Brand: [
       "NZXT",
@@ -160,8 +156,8 @@ function Filters({
   const [filterCategories, setFilterCategories] = useState({});
   const [selectedSort, setSelectedSort] = useState(initialSort);
   const [selectedFilters, setSelectedFilters] = useState([]);
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [maxPrice, setMaxPrice] = useState(1000);
+  const [priceRange, setPriceRange] = useState([0, 50000]); // Default EGP range
+  const [maxPrice, setMaxPrice] = useState(50000); // Default max price in EGP
   const [loading, setLoading] = useState(false);
 
   // Use refs to keep track of the current values without triggering re-renders
@@ -178,16 +174,38 @@ function Filters({
   }, [priceRange]);
 
   const fetchMaxPrice = useCallback(async () => {
+    if (!type || type === "all") {
+      return;
+    }
+
     try {
       setLoading(true);
+      console.log(`Fetching max price for type: ${type}`);
+
       const { data } = await axios.get(
         `http://localhost:4000/api/components/${type}/max-price`
       );
-      setMaxPrice(data.maxPrice || 1000);
-      setPriceRange([0, data.maxPrice || 1000]);
+
+      console.log("Max price response:", data);
+
+      // Ensure we have a valid number, default to 50000 EGP if not
+      const fetchedMaxPrice =
+        data.maxPrice && !isNaN(data.maxPrice)
+          ? Math.ceil(data.maxPrice)
+          : 50000;
+
+      console.log(`Setting max price to: ${fetchedMaxPrice}`);
+
+      setMaxPrice(fetchedMaxPrice);
+      setPriceRange([0, fetchedMaxPrice]);
     } catch (error) {
-      message.error("Failed to fetch price range");
       console.error("Error fetching max price:", error);
+      message.error("Failed to fetch price range, using default values");
+
+      // Set default values on error
+      const defaultMax = 50000;
+      setMaxPrice(defaultMax);
+      setPriceRange([0, defaultMax]);
     } finally {
       setLoading(false);
     }
@@ -235,7 +253,6 @@ function Filters({
         case "Supported Socket":
           apiParams.MB_socket = values;
           break;
-
         case "Supported Memory":
           apiParams.supported_memory = values;
           break;
@@ -259,17 +276,28 @@ function Filters({
           break;
         case "Capacity":
           apiParams.size = values;
+          break;
       }
     });
 
-    // Handle price range
-    if (priceRangeVal && Array.isArray(priceRangeVal)) {
-      apiParams.minPrice = priceRangeVal[0];
-      apiParams.maxPrice = priceRangeVal[1];
+    // Handle price range - ensure we send valid numbers
+    if (
+      priceRangeVal &&
+      Array.isArray(priceRangeVal) &&
+      priceRangeVal.length === 2
+    ) {
+      const [minPrice, maxPriceVal] = priceRangeVal;
+
+      // Only send price filters if they're different from the full range
+      if (minPrice > 0 || maxPriceVal < maxPrice) {
+        apiParams.minPrice = Math.max(0, minPrice);
+        apiParams.maxPrice = Math.min(maxPrice, maxPriceVal);
+      }
     }
 
+    console.log("Sending API params:", apiParams);
     onFilterChange(apiParams);
-  }, [onFilterChange]);
+  }, [onFilterChange, maxPrice]);
 
   const handleCheckboxChange = useCallback(
     (category, value, checked) => {
@@ -288,11 +316,27 @@ function Filters({
 
   const handlePriceSliderChange = useCallback(
     (range) => {
+      console.log("Price slider changed to:", range);
+
+      // Ensure range is valid
+      if (!Array.isArray(range) || range.length !== 2) {
+        console.error("Invalid price range:", range);
+        return;
+      }
+
+      const [min, max] = range;
+
+      // Validate the range values
+      if (isNaN(min) || isNaN(max) || min < 0 || max > maxPrice || min > max) {
+        console.error("Invalid price range values:", { min, max, maxPrice });
+        return;
+      }
+
       setPriceRange(range);
       // Use a small timeout to break potential update loops
-      setTimeout(updateAPIFilters, 0);
+      setTimeout(updateAPIFilters, 100);
     },
-    [updateAPIFilters]
+    [updateAPIFilters, maxPrice]
   );
 
   const handleRemoveFilter = useCallback(
@@ -303,9 +347,10 @@ function Filters({
   );
 
   const handleRemovePriceFilter = useCallback(() => {
+    console.log("Removing price filter, resetting to:", [0, maxPrice]);
     setPriceRange([0, maxPrice]);
     // Schedule updateAPIFilters to run on next tick
-    setTimeout(updateAPIFilters, 0);
+    setTimeout(updateAPIFilters, 100);
   }, [maxPrice, updateAPIFilters]);
 
   const handleSortChange = useCallback(
@@ -321,9 +366,16 @@ function Filters({
     [onSortChange]
   );
 
+  // Initialize max price when component mounts or type changes
   useEffect(() => {
+    console.log("Type changed to:", type);
     if (type && type !== "all") {
       fetchMaxPrice();
+    } else {
+      // Reset to defaults for "all" type
+      const defaultMax = 50000;
+      setMaxPrice(defaultMax);
+      setPriceRange([0, defaultMax]);
     }
   }, [type, fetchMaxPrice]);
 
@@ -394,7 +446,10 @@ function Filters({
     })
   );
 
-  const isPriceFilterActive = priceRange[0] > 0 || priceRange[1] < maxPrice;
+  const isPriceFilterActive =
+    Array.isArray(priceRange) &&
+    priceRange.length === 2 &&
+    (priceRange[0] > 0 || priceRange[1] < maxPrice);
 
   return (
     <div className="filter_container">
@@ -428,8 +483,8 @@ function Filters({
                 ))}
                 {isPriceFilterActive && (
                   <Tag closable onClose={handleRemovePriceFilter}>
-                    Price: ${priceRange[0].toLocaleString()} - $
-                    {priceRange[1].toLocaleString()}
+                    Price: EGP {priceRange[0]?.toLocaleString() || 0} - EGP{" "}
+                    {priceRange[1]?.toLocaleString() || maxPrice}
                   </Tag>
                 )}
                 {selectedSort && (
@@ -462,10 +517,11 @@ function Filters({
           </div>
           <div className="filter_divider" />
           <div className="filter_price_slider">
-            <h4>Price Range</h4>
+            <h4>Price Range </h4>
+
             <Slider
               range
-              step={50}
+              step={100} // Increased step for EGP
               min={0}
               max={maxPrice}
               value={priceRange}
@@ -473,9 +529,12 @@ function Filters({
               className="custom-slider"
               disabled={loading}
               tooltip={{
-                formatter: (value) => `$${value.toLocaleString()}`,
+                formatter: (value) => `EGP ${value?.toLocaleString() || 0}`,
               }}
             />
+            {loading && (
+              <div className="price-loader">Loading price range...</div>
+            )}
           </div>
         </div>
       </div>

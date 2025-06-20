@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 import { Tabs, Card, Button, Spin } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -18,86 +19,82 @@ const COMPONENT_CATEGORIES = [
 ];
 
 function SavedComponentsTab() {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState("all");
   const { savedComponents, removeSavedComponent } = useContext(
     SavedComponentsContext
   );
-  const [loading, setLoading] = useState(false);
 
-  const ComponentCard = ({ component, category }) => {
-    const handleRemove = async () => {
-      try {
-        await removeSavedComponent(component._id, category);
-      } catch (error) {
-        console.error("Error removing component:", error);
-      }
-    };
+  const handleCardClick = (component) => {
+    // Navigate to the correct component details path
+    navigate(`/browsecomponents/${component.category}/${component._id}`);
+  };
 
-    return (
-      <Card
-        hoverable
-        className="profilesavedcomponent-card"
-        cover={
-          <>
-            <div className="profilesavedcomponent-delete-container">
-              <Button
-                icon={<DeleteOutlined />}
-                className="profilesavedcomponent-delete-btn"
-                onClick={handleRemove}
-              />
-            </div>
-            <img
-              alt={component.title || component.product_name}
-              src={component.image_source || BuildDummy}
-              className="profilesavedcomponent-card-image"
-              onError={(e) => {
-                e.target.src = BuildDummy;
-              }}
+  const handleRemove = (e, componentId, category) => {
+    e.stopPropagation();
+    removeSavedComponent(componentId, category);
+  };
+
+  const ComponentCard = ({ component, category }) => (
+    <Card
+      hoverable
+      className="profilesavedcomponent-card"
+      onClick={() => handleCardClick(component)}
+      cover={
+        <>
+          <div className="profilesavedcomponent-delete-container">
+            <Button
+              icon={<DeleteOutlined />}
+              className="profilesavedcomponent-delete-btn"
+              onClick={(e) => handleRemove(e, component._id, category)}
             />
-          </>
+          </div>
+          <img
+            alt={component.title || component.product_name}
+            src={component.image_source || BuildDummy}
+            className="profilesavedcomponent-card-image"
+            onError={(e) => {
+              e.target.src = BuildDummy;
+            }}
+          />
+        </>
+      }
+    >
+      <Card.Meta
+        title={
+          <div className="profilesavedcomponent-title">
+            {component.title || component.product_name || "Unknown Component"}
+          </div>
         }
-      >
-        <Card.Meta
-          title={
-            <div className="profilesavedcomponent-title">
-              {component.title || component.product_name || "Unknown Component"}
-            </div>
-          }
-          description={
-            <div className="profilesavedcomponentspectitle">
-              <p>
-                <strong>Specifications:</strong>
-              </p>
-              <div className="profilesavedcomponent-specs">
-                {component.specifications ? (
-                  Object.entries(component.specifications).map(
-                    ([key, value]) => (
-                      <div
-                        key={key}
-                        className="profilesavedcomponent-spec-item"
-                      >
-                        <span className="profilesavedcomponent-spec-key">
-                          {key}:
-                        </span>{" "}
-                        {value}
-                      </div>
-                    )
-                  )
-                ) : (
-                  <p>No specifications available</p>
-                )}
-              </div>
-              {component.price && (
-                <p className="profilesavedcomponent-price">
-                  Price: ${component.price}
-                </p>
+        description={
+          <div className="profilesavedcomponentspectitle">
+            <p>
+              <strong>Specifications:</strong>
+            </p>
+            <div className="profilesavedcomponent-specs">
+              {component.specifications ? (
+                Object.entries(component.specifications).map(([key, value]) => (
+                  <div key={key} className="profilesavedcomponent-spec-item">
+                    <span className="profilesavedcomponent-spec-key">
+                      {key}:
+                    </span>{" "}
+                    {value}
+                  </div>
+                ))
+              ) : (
+                <p>No specifications available</p>
               )}
             </div>
-          }
-        />
-      </Card>
-    );
-  };
+            {component.price && (
+              <p className="profilesavedcomponent-price">
+                Price: ${component.price}
+              </p>
+            )}
+          </div>
+        }
+      />
+    </Card>
+  );
 
   const renderComponents = () => {
     if (!savedComponents || typeof savedComponents !== "object") {
@@ -153,14 +150,6 @@ function SavedComponentsTab() {
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="profilesavedcomponent-loading">
-        <Spin size="large" />
-      </div>
-    );
-  }
 
   return (
     <div className="profilesavedcomponent-container">

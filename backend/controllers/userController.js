@@ -36,18 +36,52 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+
 exports.updateMyProfile = async (req, res) => {
   try {
     const { username, bio } = req.body;
     const updates = {};
 
-    if (username) {
-      if (username.length < 3 || username.length > 20) {
+    // Get current user to check if username is actually changing
+    const currentUser = await User.findById(req.userId).select("username");
+    if (!currentUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (username && username !== currentUser.username) {
+      // Validate username format
+      if (username.length < 3 || username.length > 30) {
         return res.status(400).json({
           success: false,
-          message: "Username must be 3-20 characters",
+          message: "Username must be 3-30 characters",
         });
       }
+
+      // Check if username contains only allowed characters
+      if (!/^[a-zA-Z0-9_.-]+$/.test(username)) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Username can only contain letters, numbers, dots, hyphens and underscores",
+        });
+      }
+
+      // Check if username already exists (case-insensitive)
+      const existingUser = await User.findOne({
+        username: { $regex: new RegExp(`^${username}$`, "i") },
+        _id: { $ne: req.userId },
+      });
+
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Username already taken",
+        });
+      }
+
       updates.username = username;
     }
 
@@ -56,6 +90,15 @@ exports.updateMyProfile = async (req, res) => {
     }
 
     if (req.file) {
+      // If user has existing avatar, delete it from cloudinary
+      if (currentUser.avatar?.public_id) {
+        try {
+          await cloudinary.uploader.destroy(currentUser.avatar.public_id);
+        } catch (error) {
+          console.error("Error deleting old avatar:", error);
+        }
+      }
+
       updates.avatar = {
         public_id: req.file.public_id,
         url: req.file.path,
@@ -79,7 +122,7 @@ exports.updateMyProfile = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Profile updated",
+      message: "Profile updated successfully",
       profile: {
         username: user.username,
         avatar: user.avatar?.url,
@@ -117,10 +160,12 @@ exports.updateAvatar = async (req, res) => {
         .status(400)
         .json({ success: false, message: "No image provided" });
     }
+
     const user = await User.findById(req.userId);
     if (user.avatar?.public_id) {
       await cloudinary.uploader.destroy(user.avatar.public_id);
     }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.userId,
       {

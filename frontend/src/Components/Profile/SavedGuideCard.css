@@ -14,14 +14,6 @@
 }
 
 /* Component card styles */
-.profilesavedcomponent-card {
-  width: 200px;
-  margin: 13px;
-  background-color: rgba(79, 65, 87, 0.586);
-  position: relative; /* Added for delete button positioning */
-  border: none;
-  transition: all 0.3s ease;
-}
 
 .profilesavedcomponent-card:hover {
   box-shadow: 2px 5px 10px rgb(126, 77, 149);
@@ -34,11 +26,6 @@
   padding: 10px;
   /* margin-top: 20px; */
 }
-
-/* .profilesavedcomponent-card-actions {
-  display: flex;
-  justify-content: center;
-} */
 
 .profilesavedcomponent-delete-container {
   /* position: absolute; */
@@ -115,4 +102,104 @@
 
 .profilesavedcomponentspectitle {
   color: rgba(255, 255, 255, 0.815) !important;
+}
+
+.build-info .not-editing {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.preview-metrics {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.preview-metrics span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.preview-metrics span:first-child {
+  color: #a84fcd;
+  font-weight: 600;
+}
+
+.profilefullbuild_title_field {
+  color: white !important;
+}
+
+.profilefullbuild_desc_field {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.profilefullbuild_desc_edit_icon {
+  color: white;
+}
+
+/* Guide meta information */
+.guide_meta_info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.guide_meta_item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guide_meta_label {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+.guide_meta_value {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Rating section */
+.guide_rating_section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.guide_rate_stars .ant-rate-star {
+  color: #a84fcd !important;
+}
+
+.guide_rating_text {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+
+/* Right side - Components */
+.profilefullbuild_secondary {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profilefullbuild_component_type {
+  color: white;
+}
+
+.profilefullbuild_component_title {
+  color: white;
 }
