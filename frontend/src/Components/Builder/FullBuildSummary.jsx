@@ -487,7 +487,7 @@ const FullBuildSummary = ({
           {priceLoading
             ? "Calculating..."
             : totalPrice !== null
-            ? `$${totalPrice.toLocaleString()}`
+            ? `EGP ${totalPrice.toLocaleString()}`
             : "--"}
         </span>
       </div>
@@ -697,12 +697,7 @@ const FullBuildSummary = ({
               >
                 Development
               </Select.Option>
-              <Select.Option
-                value="custom"
-                className="fullbuild-summary-guide-option"
-              >
-                Custom
-              </Select.Option>
+             
             </Select>
           </div>
 
