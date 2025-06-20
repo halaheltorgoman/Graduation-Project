@@ -382,7 +382,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
             </div>
           </div>
           <p className="text-xl text-gray-300">
-            ${item.price?.toFixed(2)}{" "}
+            EGP {item.price?.toFixed(2)}{" "}
             <span className="text-sm text-gray-400">Average Price</span>
           </p>
         </div>

@@ -418,11 +418,21 @@ const FullBuildSummary = ({
 
       <div className="fullbuild-summary-table">
         <div className="fullbuild-summary-row fullbuild-summary-header">
-          <div className="fullbuild-summary-col fullbuild-summary-col-type">Type</div>
-          <div className="fullbuild-summary-col fullbuild-summary-col-image">Image</div>
-          <div className="fullbuild-summary-col fullbuild-summary-col-name">Name</div>
-          <div className="fullbuild-summary-col fullbuild-summary-col-brand">Brand</div>
-          <div className="fullbuild-summary-col fullbuild-summary-col-price">Price</div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-type">
+            Type
+          </div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-image">
+            Image
+          </div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-name">
+            Name
+          </div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-brand">
+            Brand
+          </div>
+          <div className="fullbuild-summary-col fullbuild-summary-col-price">
+            Price
+          </div>
           <div className="fullbuild-summary-col fullbuild-summary-col-refresh">
             <span className="fullbuild-summary-refresh-text">Replace</span>
           </div>
@@ -431,7 +441,9 @@ const FullBuildSummary = ({
           if (!comp) return null;
           return (
             <div className="fullbuild-summary-row" key={compType}>
-              <div className="fullbuild-summary-col fullbuild-summary-col-type">{compType.toUpperCase()}</div>
+              <div className="fullbuild-summary-col fullbuild-summary-col-type">
+                {compType.toUpperCase()}
+              </div>
               <div className="fullbuild-summary-col fullbuild-summary-col-image">
                 {comp?.image_source && (
                   <img
@@ -452,7 +464,7 @@ const FullBuildSummary = ({
               </div>
               <div className="fullbuild-summary-col fullbuild-summary-col-price_val">
                 {comp?.price !== undefined && comp?.price !== null
-                  ? `$${comp.price.toLocaleString()}`
+                  ? `EGP ${comp.price.toLocaleString()}`
                   : "--"}
               </div>
               <div className="fullbuild-summary-col fullbuild-summary-col-refresh">
@@ -522,7 +534,11 @@ const FullBuildSummary = ({
           className="fullbuild-summary-share-btn"
           onClick={() => openModal("share")}
         >
-          <img src={logo} alt="share" className="fullbuild-summary-share-icon" />
+          <img
+            src={logo}
+            alt="share"
+            className="fullbuild-summary-share-icon"
+          />
           Save & Share
         </Button>
       </div>
@@ -533,7 +549,11 @@ const FullBuildSummary = ({
         open={showModal}
         onCancel={() => setShowModal(false)}
         footer={[
-          <Button key="cancel" onClick={() => setShowModal(false)} className="fullbuild-summary-modal-cancel-btn">
+          <Button
+            key="cancel"
+            onClick={() => setShowModal(false)}
+            className="fullbuild-summary-modal-cancel-btn"
+          >
             Cancel
           </Button>,
           <Button
@@ -560,9 +580,7 @@ const FullBuildSummary = ({
         )}
 
         <div className="fullbuild-summary-modal-input-group">
-          <label className="fullbuild-summary-modal-label">
-            Build Title
-          </label>
+          <label className="fullbuild-summary-modal-label">Build Title</label>
           <Input
             placeholder="Enter build title"
             value={buildTitle}
@@ -593,7 +611,11 @@ const FullBuildSummary = ({
         open={showGuideModal}
         onCancel={() => setShowGuideModal(false)}
         footer={[
-          <Button key="cancel" onClick={() => setShowGuideModal(false)} className="fullbuild-summary-guide-modal-cancel-btn">
+          <Button
+            key="cancel"
+            onClick={() => setShowGuideModal(false)}
+            className="fullbuild-summary-guide-modal-cancel-btn"
+          >
             Cancel
           </Button>,
           <Button
@@ -644,20 +666,43 @@ const FullBuildSummary = ({
           </div>
 
           <div className="fullbuild-summary-guide-input-group">
-            <label className="fullbuild-summary-guide-label">
-              Category *
-            </label>
+            <label className="fullbuild-summary-guide-label">Category *</label>
             <Select
               value={guideCategory}
               onChange={(value) => setGuideCategory(value)}
               style={{ width: "100%" }}
               className="fullbuild-summary-guide-category-select"
             >
-              <Select.Option value="Gaming" className="fullbuild-summary-guide-option">Gaming</Select.Option>
-              <Select.Option value="Workstation" className="fullbuild-summary-guide-option">Workstation</Select.Option>
-              <Select.Option value="Budget" className="fullbuild-summary-guide-option">Budget</Select.Option>
-              <Select.Option value="Development" className="fullbuild-summary-guide-option">Development</Select.Option>
-              <Select.Option value="custom" className="fullbuild-summary-guide-option">Custom</Select.Option>
+              <Select.Option
+                value="Gaming"
+                className="fullbuild-summary-guide-option"
+              >
+                Gaming
+              </Select.Option>
+              <Select.Option
+                value="Workstation"
+                className="fullbuild-summary-guide-option"
+              >
+                Workstation
+              </Select.Option>
+              <Select.Option
+                value="Budget"
+                className="fullbuild-summary-guide-option"
+              >
+                Budget
+              </Select.Option>
+              <Select.Option
+                value="Development"
+                className="fullbuild-summary-guide-option"
+              >
+                Development
+              </Select.Option>
+              <Select.Option
+                value="custom"
+                className="fullbuild-summary-guide-option"
+              >
+                Custom
+              </Select.Option>
             </Select>
           </div>
 
