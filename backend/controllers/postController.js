@@ -2,7 +2,6 @@ const Post = require("../models/Post");
 const Build = require("../models/Build");
 const User = require("../models/User");
 const { cloudinary } = require("../config/cloudinary");
-
 exports.createPost = async (req, res) => {
   try {
     const { text, buildId } = req.body;
@@ -51,21 +50,28 @@ exports.createPost = async (req, res) => {
       })
       .populate("build");
 
+    // Transform the response to ensure avatar is a string URL
+    const responsePost = {
+      id: populatedPost.id,
+      text: populatedPost.text,
+      images: populatedPost.images,
+      build: populatedPost.build,
+      user: {
+        id: populatedPost.user.id,
+        username: populatedPost.user.username,
+        avatar:
+          populatedPost.user.avatar &&
+          typeof populatedPost.user.avatar === "object"
+            ? populatedPost.user.avatar.url
+            : populatedPost.user.avatar,
+      },
+      createdAt: populatedPost.createdAt,
+    };
+
     res.status(201).json({
       success: true,
       message: "Post created successfully",
-      post: {
-        _id: populatedPost._id,
-        text: populatedPost.text,
-        images: populatedPost.images,
-        build: populatedPost.build,
-        user: {
-          _id: populatedPost.user._id,
-          username: populatedPost.user.username,
-          avatar: populatedPost.user.avatar,
-        },
-        createdAt: populatedPost.createdAt,
-      },
+      post: responsePost,
     });
   } catch (err) {
     if (req.files?.length) {
@@ -77,7 +83,6 @@ exports.createPost = async (req, res) => {
         console.error("Error cleaning up images:", cleanupError);
       }
     }
-
     console.error("Error creating post:", err);
     res.status(500).json({
       success: false,

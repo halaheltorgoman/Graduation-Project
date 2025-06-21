@@ -17,6 +17,110 @@ import budgetImage from "../../assets/images/workguide.jpg";
 import developmentImage from "../../assets/images/devguide.webp";
 import { FaStar } from "react-icons/fa";
 
+// Avatar Component - Enhanced version from PostCard
+const AvatarComponent = ({ creator, size = "default" }) => {
+  const [avatarError, setAvatarError] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(true);
+
+  // Enhanced avatar handling with better debugging
+  const getUserAvatar = useCallback(() => {
+    console.log("Creator data for avatar:", {
+      creator: creator,
+      creatorAvatar: creator?.avatar,
+      avatarType: typeof creator?.avatar,
+    });
+
+    // Check if creator exists
+    if (!creator) {
+      console.log("No creator object found");
+      return null;
+    }
+
+    // Primary source: creator.avatar
+    let avatar = creator.avatar;
+
+    // Handle different avatar formats
+    if (avatar) {
+      // If avatar is an object with url property (Cloudinary format)
+      if (typeof avatar === "object" && avatar.url) {
+        console.log("Using avatar.url:", avatar.url);
+        return avatar.url;
+      }
+
+      // If avatar is already a string URL
+      if (typeof avatar === "string" && avatar.trim() !== "") {
+        console.log("Using avatar string:", avatar);
+        return avatar;
+      }
+    }
+
+    // Fallback sources
+    const fallbackSources = [
+      creator.profilePicture,
+      creator.image,
+      creator.profile?.avatar,
+    ];
+
+    for (let source of fallbackSources) {
+      if (source) {
+        if (typeof source === "object" && source.url) {
+          console.log("Using fallback object avatar:", source.url);
+          return source.url;
+        }
+        if (typeof source === "string" && source.trim() !== "") {
+          console.log("Using fallback string avatar:", source);
+          return source;
+        }
+      }
+    }
+
+    console.log("No avatar found for creator:", creator?.username);
+    return null;
+  }, [creator]);
+
+  const handleAvatarError = (e) => {
+    console.error("Avatar failed to load:", e.target.src);
+    setAvatarError(true);
+    setAvatarLoading(false);
+  };
+
+  const handleAvatarLoad = () => {
+    console.log("Avatar loaded successfully");
+    setAvatarError(false);
+    setAvatarLoading(false);
+  };
+
+  const userAvatar = getUserAvatar();
+  const avatarClass =
+    size === "large" ? "guide_user_avatar_large" : "guide_user_avatar";
+
+  if (userAvatar && !avatarError) {
+    return (
+      <div className={`${avatarClass}_container`}>
+        {avatarLoading && (
+          <div className={`${avatarClass}_loading`}>
+            <Spin size="small" />
+          </div>
+        )}
+        <img
+          src={userAvatar}
+          alt={`${creator?.username || "User"}'s avatar`}
+          className={avatarClass}
+          onError={handleAvatarError}
+          onLoad={handleAvatarLoad}
+          style={{ display: avatarLoading ? "none" : "block" }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`${avatarClass}_placeholder`}>
+      <UserOutlined className={`${avatarClass}_icon`} />
+    </div>
+  );
+};
+
 function Guides() {
   const { category = "Development" } = useParams();
   const location = useLocation();
@@ -48,21 +152,22 @@ function Guides() {
   // Handle scroll to specific guide
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    const guideId = searchParams.get('guideId') || location.state?.scrollToGuide;
-    
+    const guideId =
+      searchParams.get("guideId") || location.state?.scrollToGuide;
+
     if (guideId && guides.length > 0) {
       const timer = setTimeout(() => {
         const guideElement = guideRefs.current[guideId];
         if (guideElement) {
           guideElement.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
+            behavior: "smooth",
+            block: "center",
           });
-          
+
           // Highlight the guide temporarily
-          guideElement.style.boxShadow = '0 0 0 3px rgba(98, 28, 116, 0.5)';
+          guideElement.style.boxShadow = "0 0 0 3px rgba(98, 28, 116, 0.5)";
           setTimeout(() => {
-            guideElement.style.boxShadow = 'none';
+            guideElement.style.boxShadow = "none";
           }, 2000);
         }
       }, 300);
@@ -410,22 +515,14 @@ function Guides() {
         ) : (
           <div className="guides-list">
             {guides.map((guide) => (
-              <div 
-                key={guide._id} 
+              <div
+                key={guide._id}
                 className="guide_card"
                 ref={(el) => (guideRefs.current[guide._id] = el)}
               >
                 <div className="guide_header">
                   <div className="guide_user_info">
-                    {guide.creator?.avatar ? (
-                      <img
-                        src={guide.creator.avatar}
-                        alt="User avatar"
-                        className="guide_user_avatar"
-                      />
-                    ) : (
-                      <UserOutlined className="guide_user_avatar" />
-                    )}
+                    <AvatarComponent creator={guide.creator} />
                     <div className="guide_user_details">
                       <p className="guide_user_name">
                         {guide.creator?.username || "Unknown User"}

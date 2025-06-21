@@ -24,7 +24,6 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-
 .comment-modal.text-only {
   width: 50%;
   max-width: 600px;
@@ -63,13 +62,15 @@
   flex-direction: column;
   padding: 25px;
   overflow-y: auto;
-  background-color: transparent !important; /* Add this */
+  overflow-x: hidden; /* Prevent horizontal overflow */
+  background-color: transparent !important;
+  min-width: 0; /* Allow flex item to shrink below content size */
 }
 
 .modal-comments-header {
   margin-bottom: 20px;
   padding-bottom: 15px;
-  background-color: transparent !important; /* Add this */
+  background-color: transparent !important;
 }
 
 .modal-comments-header h3 {
@@ -82,8 +83,10 @@
 .modal-comments-list {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden; /* Prevent horizontal overflow */
   padding-right: 10px;
   margin-bottom: 20px;
+  min-width: 0; /* Allow flex item to shrink */
 }
 
 .no-comments {
@@ -98,12 +101,37 @@
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #3b3b45;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .comment-user {
   display: flex;
   align-items: center;
   margin-bottom: 10px;
+  justify-content: space-between; /* Distribute space between user info and time */
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0; /* Allow shrinking */
+}
+
+.comment-user-avatar-container {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.comment-user-avatar-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
 }
 
 .comment-user-avatar {
@@ -114,39 +142,53 @@
   margin-right: 12px;
 }
 
+.comment-user-avatar-placeholder {
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
 .comment-default-avatar {
   font-size: 1.2rem;
   background-color: #bf30d9;
   color: white;
   border-radius: 50%;
   padding: 8px;
-  margin-right: 12px;
 }
 
 .comment-username {
   color: white;
   font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
 .comment-text {
   color: #e0e0e0;
-  line-height: 2;
-  margin-left: 45px !important;
-  margin-bottom: 8px !important;
-  margin-top: 9px !important;
+  line-height: 1.6;
+  margin: 8px 0 8px 52px; /* Left margin to align with username */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .comment-time {
   color: #aaa;
   font-size: 0.8rem;
-  margin-left: 680px;
-  display: block;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+  text-align: right;
 }
 
 /* Comment Input */
 .modal-comment-input {
   margin-top: auto;
   background-color: transparent !important;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .modal-comment-input .ant-input {
@@ -154,9 +196,11 @@
   border: 3px solid #3d3d3d !important;
   color: white !important;
   margin-bottom: 15px;
-  /* border-radius: 8px; */
   padding: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
+
 .modal-comment-input .ant-input:focus {
   border-color: #bf30d9;
   box-shadow: 0 0 0 2px rgba(191, 48, 217, 0.2);
@@ -182,12 +226,12 @@
   cursor: not-allowed;
 }
 
-/* .login-prompt {
+.login-prompt {
   color: #aaa;
   text-align: center;
   margin-top: 10px;
   font-size: 0.9rem;
-} */
+}
 
 /* Scrollbar styling */
 .modal-comments-list::-webkit-scrollbar {
@@ -211,14 +255,33 @@
     flex-direction: column;
     max-height: 85vh;
   }
-  
+
   .modal-post-content {
     border-right: none;
     border-bottom: 1px solid #2d2d3d;
   }
-  
+
   .comment-modal.text-only {
     width: 80%;
+  }
+
+  .comment-user {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .comment-user-info {
+    width: 100%;
+  }
+
+  .comment-time {
+    align-self: flex-end;
+    margin-left: 0;
+  }
+
+  .comment-text {
+    margin-left: 0;
   }
 }
 
@@ -226,13 +289,12 @@
   .comment-modal {
     width: 95%;
   }
-  
+
   .modal-comments-section {
     padding: 15px;
   }
-  
-  .comment-text, .comment-time {
-    margin-left: 42px;
+
+  .comment-text {
+    margin-left: 0;
   }
 }
-

@@ -46,13 +46,6 @@ const userSchema = new Schema(
       },
     ],
 
-    savedBuilds: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ], //saved builds from community/guides
-
     // ADD THIS: savedGuides array for saving guides
     savedGuides: [
       {

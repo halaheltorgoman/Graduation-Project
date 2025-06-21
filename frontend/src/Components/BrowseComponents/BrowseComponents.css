@@ -4,7 +4,6 @@
   flex-direction: row;
   gap: 1em;
   justify-content: space-around;
-  
 }
 
 .browsecomponents_filter {
@@ -100,7 +99,7 @@
 /* Title & Price */
 .component_title {
   font-size: 15px;
-font-weight: 500;
+  font-weight: 500;
   margin-top: 10px;
   text-align: center;
 }
@@ -162,8 +161,8 @@ font-weight: 500;
   display: flex;
   justify-content: flex-end; /* Align pagination to the end (right) */
   padding: 10px;
+  margin-top: 1em;
 }
-
 .pagination_wrapper {
   display: flex;
   justify-content: flex-end;
@@ -393,16 +392,14 @@ font-weight: 500;
   }
 }
 
-
 /* Search bar styles */
 .browsecomponents_search-container {
   display: flex;
-  justify-content:flex-end; /* Align to the right */
+  justify-content: flex-end; /* Align to the right */
   margin-bottom: 1.5em;
   width: 100%;
   margin-top: 1.5rem;
   padding: 0 2em;
-
 }
 
 .browsecomponents_search-input {
@@ -442,12 +439,99 @@ font-weight: 500;
   .browsecomponents_search-container {
     justify-content: center;
   }
-  
+
   .browsecomponents_search-input {
     width: 70%;
   }
-  
+
   .browsecomponents_search-input:focus {
     width: 80%;
   }
+}
+/* Updated pagination styles */
+.browsecomponents_pagination {
+  display: flex;
+  justify-content: flex-end; /* Align pagination to the end (right) */
+  padding: 10px;
+  margin-top: 2em; /* Increased margin from top */
+}
+
+.pagination_wrapper {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* Remove background from page numbers */
+.ant-pagination-item {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Remove background on active page */
+.ant-pagination-item-active {
+  background: transparent !important;
+  border: 1px solid white !important; /* Add white border if needed */
+}
+
+/* Make text color white */
+.ant-pagination-item a {
+  color: white !important;
+}
+
+/* Change hover effect */
+.ant-pagination-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Remove default background from arrows */
+.ant-pagination-prev,
+.ant-pagination-next {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Make arrow icons white */
+.ant-pagination-prev button,
+.ant-pagination-next button {
+  color: white !important;
+}
+
+/* Change hover color for arrows */
+.ant-pagination-prev:hover button,
+.ant-pagination-next:hover button {
+  color: lightgray !important;
+}
+
+/* Change jump arrows (skip 5 pages) to white */
+.ant-pagination-jump-prev .ant-pagination-item-container .anticon,
+.ant-pagination-jump-next .ant-pagination-item-container .anticon {
+  color: lightgray !important;
+}
+
+/* Change hover color for jump arrows */
+.ant-pagination-jump-prev:hover .ant-pagination-item-container .anticon,
+.ant-pagination-jump-next:hover .ant-pagination-item-container .anticon {
+  color: lightgray !important;
+}
+
+/* Change jump arrows (skip 5 pages) to white */
+.ant-pagination-jump-prev
+  .ant-pagination-item-container
+  .ant-pagination-item-ellipsis,
+.ant-pagination-jump-next
+  .ant-pagination-item-container
+  .ant-pagination-item-ellipsis {
+  color: white !important;
+}
+
+/* Make the "1 of 15 components" text white */
+.ant-pagination-total-text {
+  color: white !important;
+}
+
+/* Alternative selector for the pagination total text if the above doesn't work */
+.browsecomponents_pagination .ant-pagination-total-text,
+.browsecomponents_pagination .ant-pagination .ant-pagination-total-text {
+  color: white !important;
 }

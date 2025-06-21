@@ -1,3 +1,4 @@
+// Updated PostCard.js - Enhanced avatar handling with debugging
 import React, { useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Rate, Spin } from "antd";
@@ -47,11 +48,85 @@ const PostCard = ({
 }) => {
   const [showBuildModal, setShowBuildModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [avatarError, setAvatarError] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(true);
+
   const hasImages = post.images && post.images.length > 0;
   const hasBuild = !!post.build;
   const isTextOnly = !hasImages && !hasBuild;
   const isImageOnly = hasImages && !hasBuild;
   const multipleImages = hasImages && post.images.length > 1;
+
+  // Enhanced avatar handling with better debugging
+  const getUserAvatar = () => {
+    console.log("Post data for avatar:", {
+      postId: post._id,
+      user: post.user,
+      userAvatar: post.user?.avatar,
+      avatarType: typeof post.user?.avatar,
+    });
+
+    // Check if user exists
+    if (!post.user) {
+      console.log("No user object found in post");
+      return null;
+    }
+
+    // Primary source: post.user.avatar
+    let avatar = post.user.avatar;
+
+    // Handle different avatar formats
+    if (avatar) {
+      // If avatar is an object with url property (Cloudinary format)
+      if (typeof avatar === "object" && avatar.url) {
+        console.log("Using avatar.url:", avatar.url);
+        return avatar.url;
+      }
+
+      // If avatar is already a string URL
+      if (typeof avatar === "string" && avatar.trim() !== "") {
+        console.log("Using avatar string:", avatar);
+        return avatar;
+      }
+    }
+
+    // Fallback sources
+    const fallbackSources = [
+      post.avatar,
+      post.userAvatar,
+      post.user?.profilePicture,
+      post.user?.image,
+      post.user?.profile?.avatar,
+    ];
+
+    for (let source of fallbackSources) {
+      if (source) {
+        if (typeof source === "object" && source.url) {
+          console.log("Using fallback object avatar:", source.url);
+          return source.url;
+        }
+        if (typeof source === "string" && source.trim() !== "") {
+          console.log("Using fallback string avatar:", source);
+          return source;
+        }
+      }
+    }
+
+    console.log("No avatar found for user:", post.user?.username);
+    return null;
+  };
+
+  const handleAvatarError = (e) => {
+    console.error("Avatar failed to load:", e.target.src);
+    setAvatarError(true);
+    setAvatarLoading(false);
+  };
+
+  const handleAvatarLoad = () => {
+    console.log("Avatar loaded successfully");
+    setAvatarError(false);
+    setAvatarLoading(false);
+  };
 
   const handleBuildClick = () => {
     if (hasBuild && post.build?.components) {
@@ -75,6 +150,37 @@ const PostCard = ({
     document.body.style.overflow = "auto";
   };
 
+  const userAvatar = getUserAvatar();
+
+  // Avatar component with better loading states
+  const AvatarComponent = () => {
+    if (userAvatar && !avatarError) {
+      return (
+        <div className="community_user_avatar_container">
+          {avatarLoading && (
+            <div className="community_user_avatar_loading">
+              <Spin size="small" />
+            </div>
+          )}
+          <img
+            src={userAvatar}
+            alt={`${post.user?.username || "User"}'s avatar`}
+            className="community_user_avatar"
+            onError={handleAvatarError}
+            onLoad={handleAvatarLoad}
+            style={{ display: avatarLoading ? "none" : "block" }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="community_user_avatar_placeholder">
+        <UserOutlined className="community_user_avatar_icon" />
+      </div>
+    );
+  };
+
   const buildContent = hasBuild && (
     <div className="community_post_content">
       <div
@@ -96,12 +202,11 @@ const PostCard = ({
         )}
 
         <div className="community_build_meta">
-           <div className="post_average_rating">
-              <span className="post_average_rating_star">★</span>
-              <span>{post.averageRating?.toFixed(1) || 0} </span>
-            </div>
+          <div className="post_average_rating">
+            <span className="post_average_rating_star">★</span>
+            <span>{post.averageRating?.toFixed(1) || 0} </span>
+          </div>
           <div className="community_build_rating_section">
-          
             <div className="community_build_rating">
               <Rate
                 allowHalf
@@ -112,10 +217,8 @@ const PostCard = ({
               <span className="rating-text">
                 {post.userRating?.toFixed(1) || 0} ({post.ratingsCount || 0}{" "}
                 reviews)
-                
               </span>
             </div>
-            
           </div>
 
           {post.build.genre && (
@@ -144,21 +247,18 @@ const PostCard = ({
         {/* Post Header */}
         <div className="community_post_header">
           <div className="postHeader_userInfo">
-            {post.user?.avatar ? (
-              <img
-                src={post.user.avatar}
-                alt="User avatar"
-                className="community_user_avatar"
-              />
-            ) : (
-              <UserOutlined className="community_user_avatar" />
-            )}
+            <AvatarComponent />
             <div className="community_user_info">
               <p className="community_user_name">
-                {post.user?.username || "Unknown User"}
+                {post.user?.username || post.username || "Unknown User"}
               </p>
               <p className="community_user_username">
-                @{post.user?.username?.toLowerCase() || "anonymous"}
+                @
+                {(
+                  post.user?.username ||
+                  post.username ||
+                  "anonymous"
+                ).toLowerCase()}
               </p>
             </div>
           </div>
@@ -166,18 +266,12 @@ const PostCard = ({
             <p className="community_post_time">
               {formatPostDate(post.createdAt)}
             </p>
-           
           </div>
-          
         </div>
-        
 
         {/* Post Description */}
-        
         <div className="postHeader_desc">
-          
           <p className="post-text-content">{post.text}</p>
-          
         </div>
 
         {/* Post Content */}

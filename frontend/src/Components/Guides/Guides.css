@@ -470,7 +470,6 @@
   }
 }
 
-
 /* Updated favorite section to include rating below */
 .guide_favorite {
   display: flex;
@@ -517,4 +516,133 @@
 .guide_avgrating .rating-star {
   color: #ffd700;
   font-size: 0.9rem;
+}
+/* Enhanced Guide Avatar Styles - Matching PostCard Style */
+
+/* Avatar Container - Matching PostCard size and structure */
+.guide_user_avatar_container {
+  position: relative;
+  width: 60px; /* Matching PostCard size */
+  height: 60px; /* Matching PostCard size */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.guide_user_avatar_loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* Actual avatar image - matching PostCard styling */
+.guide_user_avatar {
+  width: 60px; /* Matching PostCard size */
+  height: 60px; /* Matching PostCard size */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2); /* Matching PostCard border */
+  transition: all 0.3s ease;
+  background: transparent; /* No background for actual images */
+}
+
+/* Placeholder when no avatar is set - matching PostCard purple background */
+.guide_user_avatar_placeholder {
+  width: 55px; /* Matching PostCard size */
+  height: 55px; /* Matching PostCard size */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(
+    191,
+    48,
+    217,
+    1
+  ); /* Matching PostCard purple background */
+  border: 2px solid rgba(191, 48, 217, 0.3);
+  transition: all 0.3s ease;
+}
+
+.guide_user_avatar_icon {
+  font-size: 24px; /* Matching PostCard icon size */
+  color: white; /* White icon on purple background */
+}
+
+/* Hover effects - matching PostCard */
+.guide_user_avatar:hover {
+  border-color: #bf30d9;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+.guide_user_avatar_placeholder:hover {
+  background-color: rgba(191, 48, 217, 0.8);
+  border-color: #bf30d9;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+/* Error state styling - matching PostCard */
+.guide_user_avatar.error {
+  display: none;
+}
+
+/* Loading state - matching PostCard */
+.guide_user_avatar.loading {
+  opacity: 0.5;
+}
+
+/* Remove old large avatar styles since we're now using consistent sizing */
+.guide_user_avatar_large_container,
+.guide_user_avatar_large,
+.guide_user_avatar_large_placeholder,
+.guide_user_avatar_large_loading,
+.guide_user_avatar_large_icon {
+  /* These can be removed or updated to use the standard avatar styles */
+}
+
+/* Responsive adjustments - matching PostCard responsive behavior */
+@media (max-width: 768px) {
+  .guide_user_avatar_container {
+    width: 50px;
+    height: 50px;
+  }
+
+  .guide_user_avatar {
+    width: 50px;
+    height: 50px;
+  }
+
+  .guide_user_avatar_placeholder {
+    width: 45px;
+    height: 45px;
+  }
+
+  .guide_user_avatar_icon {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .guide_user_avatar_container {
+    width: 45px;
+    height: 45px;
+  }
+
+  .guide_user_avatar {
+    width: 45px;
+    height: 45px;
+  }
+
+  .guide_user_avatar_placeholder {
+    width: 40px;
+    height: 40px;
+  }
+
+  .guide_user_avatar_icon {
+    font-size: 18px;
+  }
 }

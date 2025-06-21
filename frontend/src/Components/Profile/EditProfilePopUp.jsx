@@ -9,7 +9,7 @@ import {
 import "./EditProfilePopUp.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { UserContext } from "../../Context/UserContext"; // Add this import
+import { UserContext } from "../../Context/UserContext";
 
 const { TextArea } = Input;
 
@@ -23,7 +23,7 @@ const EditProfilePopUp = ({
   userName,
 }) => {
   const navigate = useNavigate();
-  const { setUser, user } = useContext(UserContext); // Add UserContext
+  const { setUser, user } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [localImageUrl, setLocalImageUrl] = useState("");
@@ -31,6 +31,7 @@ const EditProfilePopUp = ({
   const [userNameInput, setUserNameInput] = useState(userName);
   const [isEditingName, setIsEditingName] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null); // Store the actual file
 
   useEffect(() => {
     setLocalImageUrl(imageUrl);
@@ -55,44 +56,43 @@ const EditProfilePopUp = ({
         formData.append("bio", bioInput);
       }
 
-      // Handle image upload if there's a new local image
-      if (
-        localImageUrl &&
-        localImageUrl !== imageUrl &&
-        localImageUrl.startsWith("data:")
-      ) {
-        // Convert base64 to blob for upload
-        const response = await fetch(localImageUrl);
-        const blob = await response.blob();
-        formData.append("avatar", blob, "avatar.jpg");
+      // Add the actual file if one was selected
+      if (selectedFile) {
+        formData.append("avatar", selectedFile);
       }
 
-      const response = await axios.put(
-        "http://localhost:4000/api/users/profile",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          withCredentials: true,
+      // Only make API call if there are changes
+      if (userNameInput !== userName || bioInput !== userBio || selectedFile) {
+        const response = await axios.put(
+          "http://localhost:4000/api/users/profile",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+            withCredentials: true,
+          }
+        );
+
+        if (response.data.success) {
+          // Update parent state with new values
+          setImageUrl(response.data.profile.avatar || localImageUrl);
+          setUserBio(response.data.profile.bio || bioInput);
+          setUserName(response.data.profile.username || userNameInput);
+
+          // Update UserContext with new username
+          if (userNameInput !== userName && user) {
+            setUser({
+              ...user,
+              username: response.data.profile.username || userNameInput.trim(),
+            });
+          }
+
+          message.success("Profile updated successfully!");
+          setOpenEditProfilePopUp(false);
         }
-      );
-
-      if (response.data.success) {
-        // Update parent state with new values
-        setImageUrl(response.data.profile.avatar || localImageUrl);
-        setUserBio(response.data.profile.bio || bioInput);
-        setUserName(response.data.profile.username || userNameInput);
-
-        // **IMPORTANT FIX**: Update UserContext with new username
-        if (userNameInput !== userName && user) {
-          setUser({
-            ...user,
-            username: response.data.profile.username || userNameInput.trim(),
-          });
-        }
-
-        message.success("Profile updated successfully!");
+      } else {
+        message.info("No changes to save");
         setOpenEditProfilePopUp(false);
       }
     } catch (error) {
@@ -111,16 +111,25 @@ const EditProfilePopUp = ({
   };
 
   const beforeUpload = (file) => {
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      setError("Only JPG/PNG files are allowed!");
-      message.error("Only JPG/PNG files are allowed!");
-      return Upload.LIST_IGNORE;
+    // Check file type
+    const isJpgOrPng =
+      file.type === "image/jpeg" ||
+      file.type === "image/png" ||
+      file.type === "image/webp";
+    if (!isJpgOrPng) {
+      setError("Only JPG, PNG, and WebP files are allowed!");
+      message.error("Only JPG, PNG, and WebP files are allowed!");
+      return false;
     }
-    if (file.size / 1024 / 1024 >= 2) {
-      setError("Image must be smaller than 2MB!");
-      message.error("Image must be smaller than 2MB!");
-      return Upload.false;
+
+    // Check file size (5MB limit to match backend)
+    const isLt5M = file.size / 1024 / 1024 < 5;
+    if (!isLt5M) {
+      setError("Image must be smaller than 5MB!");
+      message.error("Image must be smaller than 5MB!");
+      return false;
     }
+
     setError("");
     return true;
   };
@@ -130,30 +139,37 @@ const EditProfilePopUp = ({
       setLoading(true);
       return;
     }
-    if (info.file.status === "done" && info.file.originFileObj) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setLocalImageUrl(reader.result);
-        setLoading(false);
-      };
-      reader.readAsDataURL(info.file.originFileObj);
+
+    if (info.file.status === "done" || info.file.status === "error") {
+      setLoading(false);
     }
   };
 
-  const customRequest = ({ file, onSuccess }) => {
-    setLoading(true);
-    setTimeout(() => {
-      if (beforeUpload(file) !== Upload.LIST_IGNORE) {
-        setLoading(false);
+  const customRequest = async ({ file, onSuccess, onError }) => {
+    try {
+      // Validate file first
+      if (!beforeUpload(file)) {
+        onError(new Error("File validation failed"));
         return;
       }
-      onSuccess("ok");
-      handleChange({ file: { status: "done", originFileObj: file } });
-      const fileInput = document.querySelector(
-        ".ant-upload input[type='file']"
-      );
-      if (fileInput) fileInput.value = "";
-    }, 1500);
+
+      setLoading(true);
+
+      // Store the actual file for later upload
+      setSelectedFile(file);
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLocalImageUrl(e.target.result);
+        setLoading(false);
+        onSuccess("ok");
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      setLoading(false);
+      onError(error);
+    }
   };
 
   const handleChangePassword = () => {
@@ -186,11 +202,12 @@ const EditProfilePopUp = ({
           <Upload
             name="avatar"
             showUploadList={false}
-            beforeUpload={beforeUpload}
             customRequest={customRequest}
+            onChange={handleChange}
+            accept="image/*"
           >
             <div className="edit-icon">
-              <button>
+              <button type="button">
                 <p>Upload Image</p>
                 <EditOutlined />
               </button>
@@ -204,6 +221,7 @@ const EditProfilePopUp = ({
         <form>
           <div className="edit_userInfo">
             <div className="username-field-container">
+              <label>Username</label>
               <TextArea
                 value={userNameInput}
                 onChange={(e) => setUserNameInput(e.target.value)}

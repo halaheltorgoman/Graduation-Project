@@ -3,6 +3,8 @@ const Build = require("../models/Build");
 const User = require("../models/User");
 const mongoose = require("mongoose");
 
+// Updated getSharedBuilds function in communityController.js
+// Updated getSharedBuilds function with proper avatar population
 exports.getSharedBuilds = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -28,7 +30,7 @@ exports.getSharedBuilds = async (req, res) => {
       .sort(sort)
       .skip(skip)
       .limit(limit)
-      .populate("user", "username avatar")
+      .populate("user", "username avatar") // Ensure avatar is populated
       .populate({
         path: "build",
         populate: {
@@ -36,18 +38,62 @@ exports.getSharedBuilds = async (req, res) => {
         },
       })
       .populate("ratings.user", "username")
-      .populate("comments.user", "username");
+      .populate("comments.user", "username avatar"); // Include avatar for comments
 
     const total = await Post.countDocuments(query);
 
+    // Transform posts to ensure consistent avatar structure
+    const transformedPosts = posts.map((post) => {
+      const postObj = post.toObject();
+
+      // Ensure user avatar is properly structured
+      if (postObj.user && postObj.user.avatar) {
+        // If avatar is stored as an object with url property
+        if (
+          typeof postObj.user.avatar === "object" &&
+          postObj.user.avatar.url
+        ) {
+          postObj.user.avatar = postObj.user.avatar.url;
+        }
+      }
+
+      // Also fix comment avatars if they exist
+      if (postObj.comments && postObj.comments.length > 0) {
+        postObj.comments = postObj.comments.map((comment) => {
+          if (comment.user && comment.user.avatar) {
+            if (
+              typeof comment.user.avatar === "object" &&
+              comment.user.avatar.url
+            ) {
+              comment.user.avatar = comment.user.avatar.url;
+            }
+          }
+          return comment;
+        });
+      }
+
+      return postObj;
+    });
+
+    // Debug: Log the first post's user data to check avatar
+    if (transformedPosts.length > 0) {
+      console.log("First post user data:", {
+        userId: transformedPosts[0].user._id,
+        username: transformedPosts[0].user.username,
+        avatar: transformedPosts[0].user.avatar,
+        avatarType: typeof transformedPosts[0].user.avatar,
+      });
+    }
+
     res.json({
       success: true,
-      posts,
+      posts: transformedPosts,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalPosts: total,
     });
   } catch (err) {
+    console.error("Error in getSharedBuilds:", err);
     res.status(500).json({
       success: false,
       message: "Failed to fetch community posts",

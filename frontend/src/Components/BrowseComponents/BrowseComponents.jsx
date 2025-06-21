@@ -959,7 +959,6 @@ function BrowseComponents() {
             onChange={handlePageChange}
             showSizeChanger={false}
             disabled={isLoading}
-            showQuickJumper
             showTotal={(total, range) =>
               `${range[0]}-${range[1]} of ${total} ${
                 searchQuery ? "results" : "components"

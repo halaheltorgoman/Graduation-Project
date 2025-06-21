@@ -570,10 +570,85 @@
   border-radius: 12px;
   border: 1px solid rgba(191, 48, 217, 0.3);
   width: 50px;
- 
 }
 
 .post_average_rating_star {
   color: #ffd700;
   font-size: 12px;
+}
+/* Updated Avatar CSS - Bigger image, purple background only for placeholder */
+
+.community_user_avatar_container {
+  position: relative;
+  width: 60px; /* Increased from 45px */
+  height: 60px; /* Increased from 45px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.community_user_avatar_loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+
+/* Actual avatar image - bigger size, no purple background */
+.community_user_avatar {
+  width: 60px; /* Increased from 45px */
+  height: 60px; /* Increased from 45px */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.2); /* Subtle border instead of purple */
+  transition: all 0.3s ease;
+  background: transparent; /* No background for actual images */
+}
+
+/* Placeholder when no avatar is set - purple background only here */
+.community_user_avatar_placeholder {
+  width: 55px; /* Increased from 45px */
+  height: 55px; /* Increased from 45px */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(
+    191,
+    48,
+    217,
+    1
+  ); /* Purple background only for placeholder */
+  border: 2px solid rgba(191, 48, 217, 0.3);
+  transition: all 0.3s ease;
+}
+
+.community_user_avatar_icon {
+  font-size: 24px; /* Increased from previous size */
+  color: white; /* White icon on purple background */
+}
+
+/* Hover effects */
+.community_user_avatar:hover {
+  border-color: #bf30d9;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+.community_user_avatar_placeholder:hover {
+  background-color: rgba(191, 48, 217, 0.8);
+  border-color: #bf30d9;
+  transform: scale(1.05);
+  transition: all 0.3s ease;
+}
+
+/* Error state styling */
+.community_user_avatar.error {
+  display: none;
+}
+
+/* Loading state */
+.community_user_avatar.loading {
+  opacity: 0.5;
 }
