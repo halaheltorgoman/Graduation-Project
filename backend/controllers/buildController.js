@@ -2,7 +2,7 @@ const Build = require("../models/Build");
 const CommunityPost = require("../models/Post");
 const User = require("../models/User");
 const buildService = require("../services/buildService");
-
+const mongoose = require("mongoose");
 exports.getNextComponents = async (req, res) => {
   try {
     const {
@@ -841,97 +841,51 @@ exports.finalizeBuild = async (req, res) => {
     });
   }
 };
-// Add this method to your buildController.js file
 
-// BACKEND - Enhanced deleteBuild controller with better debugging
 exports.deleteBuild = async (req, res) => {
   try {
     const { buildId } = req.params;
 
-    console.log(
-      `[DELETE BUILD] Starting deletion process for buildId: ${buildId}`
-    );
-    console.log(`[DELETE BUILD] User ID: ${req.userId}`);
-
     if (!req.userId) {
-      console.log("[DELETE BUILD] ERROR: No user ID in request");
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
-    if (!buildId) {
-      console.log("[DELETE BUILD] ERROR: No build ID provided");
-      return res
-        .status(400)
-        .json({ success: false, message: "Build ID is required" });
-    }
-
-    // Find the build
+    // Find the build to ensure it exists and user owns it
     const build = await Build.findById(buildId);
-    console.log(`[DELETE BUILD] Build found:`, build ? "Yes" : "No");
-
     if (!build) {
-      console.log(
-        `[DELETE BUILD] ERROR: Build ${buildId} not found in database`
-      );
       return res.status(404).json({
         success: false,
         message: "Build not found",
       });
     }
 
-    console.log(`[DELETE BUILD] Build owner: ${build.user}`);
-    console.log(`[DELETE BUILD] Request user: ${req.userId}`);
-    console.log(`[DELETE BUILD] Owner match:`, build.user.equals(req.userId));
-
     // Check if user owns the build
     if (!build.user.equals(req.userId)) {
-      console.log(
-        "[DELETE BUILD] ERROR: User not authorized to delete this build"
-      );
       return res.status(403).json({
         success: false,
         message: "Unauthorized to delete this build",
       });
     }
 
-    console.log("[DELETE BUILD] Starting database operations...");
-
     // Remove build from user's builds array
-    const userUpdateResult = await User.findByIdAndUpdate(req.userId, {
+    await User.findByIdAndUpdate(req.userId, {
       $pull: { builds: buildId },
     });
-    console.log(
-      "[DELETE BUILD] User builds array updated:",
-      userUpdateResult ? "Success" : "Failed"
-    );
 
-    // Delete any associated community post
-    const communityPostDeleteResult = await CommunityPost.deleteOne({
-      build: buildId,
-    });
-    console.log(
-      "[DELETE BUILD] Community post deletion result:",
-      communityPostDeleteResult
-    );
+    // If the build is shared, remove the associated community post
+    if (build.isShared) {
+      await CommunityPost.deleteOne({ build: buildId });
+    }
 
-    // Delete the build
-    const buildDeleteResult = await Build.findByIdAndDelete(buildId);
-    console.log(
-      "[DELETE BUILD] Build deletion result:",
-      buildDeleteResult ? "Success" : "Failed"
-    );
-
-    console.log(
-      `[DELETE BUILD] SUCCESS: Build ${buildId} deleted successfully by user ${req.userId}`
-    );
+    // Delete the build from the Build collection
+    await Build.findByIdAndDelete(buildId);
 
     res.json({
       success: true,
       message: "Build deleted successfully",
-      deletedBuildId: buildId,
     });
   } catch (err) {
-    console.error("[DELETE BUILD] ERROR:", err);
+    console.error("Delete build error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to delete build",

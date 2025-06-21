@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { UserContext } from "../../Context/UserContext";
 import BuildDummy from "../../assets/images/build_dummy.svg";
 import { FiRefreshCw } from "react-icons/fi";
 import { FaShare } from "react-icons/fa";
-import { Input, Modal, message } from "antd";
-import {
-  EditOutlined,
-  CheckOutlined,
-  ExclamationCircleOutlined,
-} from "@ant-design/icons";
+import { Input, Spin, message } from "antd";
+import { EditOutlined, CheckOutlined } from "@ant-design/icons";
+import TabContent from "./ProfileTabContent";
+import axios from "axios";
 import "./ProfileBuildCard.css";
 import "../Builder/Builder.css";
 
 const { TextArea } = Input;
-const { confirm } = Modal;
 
 const COMPONENT_ORDER = [
   { key: "cpu", label: "CPU" },
@@ -26,6 +24,7 @@ const COMPONENT_ORDER = [
   { key: "psu", label: "Power Supply" },
 ];
 
+// CompletedBuildCard component merged inline
 function CompletedBuildCard({ build, onDeleteBuild, onSaveChanges }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [title, setTitle] = useState(build.title || "Untitled Build");
@@ -52,55 +51,12 @@ function CompletedBuildCard({ build, onDeleteBuild, onSaveChanges }) {
   };
 
   const handleSaveChanges = () => {
-    console.log(
-      "[BUILD CARD] Saving changes for build:",
-      build._id || build.id
-    );
     if (onSaveChanges) {
       onSaveChanges(build._id || build.id, { title, description });
     }
   };
 
-  const handleDeleteBuild = () => {
-    const buildId = build._id || build.id;
-    console.log("[BUILD CARD] Delete button clicked for build:", buildId);
-
-    if (!buildId) {
-      console.error("[BUILD CARD] ERROR: No build ID found");
-      message.error("Invalid build ID");
-      return;
-    }
-
-    confirm({
-      title: "Are you sure you want to delete this build?",
-      icon: <ExclamationCircleOutlined />,
-      content: "This action cannot be undone.",
-      okText: "Yes, Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk() {
-        console.log("[BUILD CARD] User confirmed deletion for build:", buildId);
-        if (onDeleteBuild) {
-          onDeleteBuild(buildId);
-        } else {
-          console.error(
-            "[BUILD CARD] ERROR: onDeleteBuild function not provided"
-          );
-        }
-      },
-      onCancel() {
-        console.log("[BUILD CARD] User cancelled deletion");
-      },
-    });
-  };
-
   const imageUrl = build.image_source?.url || build.image_source || BuildDummy;
-
-  console.log("[BUILD CARD] Rendering build card for:", {
-    buildId: build._id || build.id,
-    title: build.title,
-    hasDeleteHandler: !!onDeleteBuild,
-  });
 
   return (
     <div className={`profile_buildCard ${isExpanded ? "expanded" : ""}`}>
@@ -221,7 +177,7 @@ function CompletedBuildCard({ build, onDeleteBuild, onSaveChanges }) {
             <div className="profilefullbuild_buttons">
               <button
                 className="profilefullbuild_delete_btn"
-                onClick={handleDeleteBuild}
+                onClick={() => onDeleteBuild(build._id || build.id)}
               >
                 Delete Build
               </button>
@@ -238,5 +194,4 @@ function CompletedBuildCard({ build, onDeleteBuild, onSaveChanges }) {
     </div>
   );
 }
-
 export default CompletedBuildCard;

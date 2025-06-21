@@ -6,24 +6,30 @@ import ProfileBuildCard from "./ProfileBuildCard";
 const TabContent = ({
   handleDeleteFolder,
   setOpenPopUp,
-
   tabKey,
   folders,
   setFolders,
   loading,
-  onUnsavePost, // <-- new prop for tab 2
+  onUnsavePost, // for tab 2
+  onDeleteBuild, // for tab 1 (delete build)
+  onSaveChanges, // for tab 1 (save changes)
   // ...other props
 }) => {
-  const onDeleteBuild = (folderIndex, buildId) => {
+  const handleBuildDelete = (folderIndex, buildId) => {
     if (tabKey === "2" && onUnsavePost) {
+      // For saved posts tab
       onUnsavePost(folderIndex, buildId);
+    } else if (tabKey === "1" && onDeleteBuild) {
+      // For completed builds tab - call the actual delete function
+      onDeleteBuild(buildId);
     } else {
+      // Fallback for other tabs - just remove from local state
       setFolders((prevFolders) => {
         const updatedFolders = { ...prevFolders };
         const builds =
           updatedFolders[tabKey]?.[folderIndex]?.profileBuilds || [];
         updatedFolders[tabKey][folderIndex].profileBuilds = builds.filter(
-          (build) => build.id !== buildId
+          (build) => (build._id || build.id) !== buildId
         );
         return updatedFolders;
       });
@@ -49,11 +55,12 @@ const TabContent = ({
                       key={profileBuild._id || profileBuild.id}
                       build={profileBuild}
                       onDeleteBuild={() =>
-                        onDeleteBuild(
+                        handleBuildDelete(
                           folderIndex,
                           profileBuild._id || profileBuild.id
                         )
                       }
+                      onSaveChanges={onSaveChanges} // Pass save changes handler
                       isPost={profileBuild.isPost}
                     />
                   ))

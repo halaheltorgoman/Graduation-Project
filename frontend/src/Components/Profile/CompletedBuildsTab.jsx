@@ -54,54 +54,54 @@ function CompletedBuildsTab() {
 
   const handleDeleteBuild = async (buildId) => {
     try {
-      const { data } = await axios.delete(
-        `http://localhost:4000/api/build/${buildId}`,
+      const response = await axios.delete(
+        `http://localhost:4000/api/build/${buildId}/delete`,
         { withCredentials: true }
       );
 
-      if (data.success) {
-        // Remove the build from local state
-        setFolders((prevFolders) =>
-          prevFolders.map((folder) => ({
-            ...folder,
-            profileBuilds: folder.profileBuilds.filter(
-              (build) => build._id !== buildId && build.id !== buildId
+      if (response.data.success) {
+        // Remove the build from the local state
+        setFolders((prevFolders) => [
+          {
+            ...prevFolders[0],
+            profileBuilds: prevFolders[0].profileBuilds.filter(
+              (build) => (build._id || build.id) !== buildId
             ),
-          }))
-        );
+          },
+        ]);
         message.success("Build deleted successfully");
       }
     } catch (err) {
       console.error("Error deleting build:", err);
-      message.error(err.response?.data?.message || "Failed to delete build");
+      message.error("Failed to delete build");
     }
   };
 
   const handleSaveChanges = async (buildId, changes) => {
     try {
-      const { data } = await axios.put(
-        `http://localhost:4000/api/build/createbuild/${buildId}/finalize`,
+      const response = await axios.put(
+        `http://localhost:4000/api/build/${buildId}/finalize`,
         changes,
         { withCredentials: true }
       );
 
-      if (data.success) {
+      if (response.data.success) {
         // Update the build in local state
-        setFolders((prevFolders) =>
-          prevFolders.map((folder) => ({
-            ...folder,
-            profileBuilds: folder.profileBuilds.map((build) =>
-              build._id === buildId || build.id === buildId
+        setFolders((prevFolders) => [
+          {
+            ...prevFolders[0],
+            profileBuilds: prevFolders[0].profileBuilds.map((build) =>
+              (build._id || build.id) === buildId
                 ? { ...build, ...changes }
                 : build
             ),
-          }))
-        );
+          },
+        ]);
         message.success("Build updated successfully");
       }
     } catch (err) {
       console.error("Error updating build:", err);
-      message.error(err.response?.data?.message || "Failed to update build");
+      message.error("Failed to update build");
     }
   };
 
@@ -121,8 +121,8 @@ function CompletedBuildsTab() {
       setFolders={(newFolders) => setFolders(newFolders[1])}
       handleDeleteFolder={handleDeleteFolder}
       handleSaveFolder={handleSaveFolder}
-      handleDeleteBuild={handleDeleteBuild}
-      handleSaveChanges={handleSaveChanges}
+      onDeleteBuild={handleDeleteBuild}
+      onSaveChanges={handleSaveChanges}
       loading={loading}
     />
   );
