@@ -1,6 +1,6 @@
-// Profile.js (updated)
+// Profile.js (updated with better navigation handling)
 import React, { useState, useEffect, useContext } from "react";
-import { Tabs } from "antd";
+import { Tabs, message } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import axios from "axios";
 import { UserContext } from "../../Context/UserContext";
@@ -8,7 +8,7 @@ import { SavedComponentsContext } from "../../Context/SavedComponentContext";
 import CompletedBuildsTab from "./CompletedBuildsTab";
 import SavedPostsTab from "./SavedPostsTab";
 import SavedComponentsTab from "./SavedComponentsTab";
-import SavedGuidesTab from "./SavedGuidesTab"; // Add this import
+import SavedGuidesTab from "./SavedGuidesTab";
 import EditProfilePopUp from "./EditProfilePopUp";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./Profile.css";
@@ -32,11 +32,12 @@ function Profile() {
       1: "builds",
       2: "saved-posts",
       3: "saved-components",
-      4: "saved-guides", // Add this new tab mapping
+      4: "saved-guides",
     };
     navigate(`?tab=${tabPaths[key]}`, { replace: true });
   };
 
+  // Handle navigation from other components
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get("tab");
@@ -45,13 +46,32 @@ function Profile() {
       builds: "1",
       "saved-posts": "2",
       "saved-components": "3",
-      "saved-guides": "4", // Add this new tab mapping
+      "saved-guides": "4",
     };
 
     if (tabParam && tabKeys[tabParam]) {
       setActiveTab(tabKeys[tabParam]);
     }
-  }, [location.search]);
+
+    // Handle state messages from navigation
+    if (location.state?.message) {
+      message.success(location.state.message, 4);
+
+      // Set active tab from state if provided
+      if (location.state.activeTab) {
+        setActiveTab(location.state.activeTab);
+      }
+
+      // Clear the state to prevent message from showing again on refresh
+      navigate(location.pathname + location.search, {
+        replace: true,
+        state: {
+          ...location.state,
+          message: undefined, // Clear the message
+        },
+      });
+    }
+  }, [location, navigate]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -120,7 +140,15 @@ function Profile() {
             {
               label: "Completed Builds",
               key: "1",
-              children: <CompletedBuildsTab loading={loadingBuilds} />,
+              children: (
+                <CompletedBuildsTab
+                  loading={loadingBuilds}
+                  highlightBuild={location.state?.highlightBuild}
+                  fromGuideCustomization={
+                    location.state?.fromGuideCustomization
+                  }
+                />
+              ),
             },
             {
               label: "Saved Posts",

@@ -30,10 +30,37 @@ const FullBuildSummary = ({
   const [guideGenre, setGuideGenre] = useState("");
   const [guideCategory, setGuideCategory] = useState("Gaming");
   const [convertingToGuide, setConvertingToGuide] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useContext(UserContext);
   const buildId = fullBuild?._id;
+
+  // FIXED: Extract guide customization context more comprehensively
+  const isFromGuideCustomization = location.state?.fromGuide || false;
+  const originalGuideData = location.state?.originalGuideData || null;
+  const protectOriginalGuide = location.state?.protectOriginalGuide || false;
+
+  // Debug logging for guide customization context
+  useEffect(() => {
+    if (isFromGuideCustomization) {
+      console.log("🔒 GUIDE CUSTOMIZATION CONTEXT DETECTED:");
+      console.log("🔒 From Guide:", isFromGuideCustomization);
+      console.log("🔒 Original Guide Data:", originalGuideData);
+      console.log("🔒 Protect Original Guide:", protectOriginalGuide);
+      console.log("🔒 Configure Mode:", configureMode);
+      console.log("🔒 Original Build ID:", originalBuildId);
+      console.log("🔒 Current Build ID:", buildId);
+      console.log("🔒 Location State:", location.state);
+    }
+  }, [
+    isFromGuideCustomization,
+    originalGuideData,
+    protectOriginalGuide,
+    configureMode,
+    originalBuildId,
+    buildId,
+  ]);
 
   useEffect(() => {
     const fetchTotalPrice = async () => {
@@ -145,15 +172,51 @@ const FullBuildSummary = ({
   };
 
   const handleUpdateCurrentBuild = async () => {
-    if (!originalBuildId) {
-      message.error("No original build ID found");
+    // FIXED: Better logic for determining target build ID
+    let targetBuildId;
+
+    if (isFromGuideCustomization) {
+      // When customizing from guide, use the current build ID (newly created build)
+      targetBuildId = buildId;
+      console.log(
+        "🔒 GUIDE CUSTOMIZATION: Using current build ID:",
+        targetBuildId
+      );
+    } else if (configureMode && originalBuildId) {
+      // Regular update mode with original build
+      targetBuildId = originalBuildId;
+      console.log("🔒 REGULAR UPDATE: Using original build ID:", targetBuildId);
+    } else {
+      // Fallback to current build ID
+      targetBuildId = buildId;
+      console.log("🔒 FALLBACK: Using current build ID:", targetBuildId);
+    }
+
+    if (!targetBuildId) {
+      message.error("No build ID found");
+      console.error("🔒 ERROR: No target build ID found", {
+        isFromGuideCustomization,
+        buildId,
+        originalBuildId,
+        configureMode,
+      });
       return;
     }
 
     setSaving(true);
     try {
-      await axios.put(
-        `http://localhost:4000/api/build/createbuild/${originalBuildId}/finalize`,
+      console.log("🔒 UPDATING BUILD - Context:", {
+        targetBuildId,
+        isFromGuideCustomization,
+        originalGuideData,
+        buildTitle,
+        buildDescription,
+        buildId,
+        originalBuildId,
+      });
+
+      const response = await axios.put(
+        `http://localhost:4000/api/build/createbuild/${targetBuildId}/finalize`,
         {
           title: buildTitle,
           description: buildDescription,
@@ -162,14 +225,51 @@ const FullBuildSummary = ({
         { withCredentials: true }
       );
 
-      message.success("Build updated successfully!");
-      setShowModal(false);
-      navigate("/profile?tab=1", {
-        state: {
-          message: "Your build has been updated!",
-          updatedBuildId: originalBuildId,
-        },
-      });
+      if (response.data.success) {
+        message.success("Build updated successfully!");
+        setShowModal(false);
+
+        // Clear form fields
+        setBuildTitle("");
+        setBuildDescription("");
+
+        console.log("🔒 BUILD UPDATED SUCCESSFULLY - Navigating...");
+
+        // Determine navigation based on where the user came from
+        if (isFromGuideCustomization && originalGuideData) {
+          // If this came from customizing a guide, navigate to completed builds tab
+          console.log("🔒 GUIDE CUSTOMIZATION: Navigating to completed builds");
+          console.log("🔒 Original guide:", originalGuideData.title);
+          console.log("🔒 Updated build ID:", targetBuildId);
+
+          // Use correct navigation format that matches Profile.js expectations
+          navigate("/profile?tab=builds", {
+            state: {
+              activeTab: "1", // This should match the completed builds tab index
+              message: `Build customized from guide "${originalGuideData.title}" has been saved to your completed builds!`,
+              updatedBuildId: targetBuildId,
+              fromGuideCustomization: true,
+              originalGuideTitle: originalGuideData.title,
+              highlightBuild: targetBuildId,
+            },
+            replace: true,
+          });
+        } else {
+          // Regular update flow
+          console.log("🔒 REGULAR UPDATE: Navigating to completed builds");
+          navigate("/profile?tab=builds", {
+            state: {
+              activeTab: "1", // This should match the completed builds tab index
+              message: "Your build has been updated!",
+              updatedBuildId: targetBuildId,
+              highlightBuild: targetBuildId,
+            },
+            replace: true,
+          });
+        }
+      } else {
+        throw new Error(response.data.message || "Failed to update build");
+      }
     } catch (err) {
       console.error("Update build error:", err);
       message.error(
@@ -184,7 +284,7 @@ const FullBuildSummary = ({
   const handleCompleteBuild = async () => {
     setSaving(true);
     try {
-      await axios.put(
+      const response = await axios.put(
         `http://localhost:4000/api/build/createbuild/${buildId}/finalize`,
         {
           title: buildTitle || `My Build ${new Date().toLocaleDateString()}`,
@@ -193,12 +293,40 @@ const FullBuildSummary = ({
         },
         { withCredentials: true }
       );
-      message.success("Build saved to Completed Builds!");
-      setShowModal(false);
-      setBuildTitle("");
-      setBuildDescription("");
-      navigate("/profile?tab=1");
+
+      if (response.data.success) {
+        message.success("Build saved to Completed Builds!");
+        setShowModal(false);
+        setBuildTitle("");
+        setBuildDescription("");
+
+        // Navigate based on context
+        if (isFromGuideCustomization && originalGuideData) {
+          console.log("🔒 GUIDE CUSTOMIZATION: Completing customized build");
+          navigate("/profile?tab=builds", {
+            state: {
+              activeTab: "1",
+              message: `Build customized from guide "${originalGuideData.title}" has been saved to your completed builds!`,
+              fromGuideCustomization: true,
+              originalGuideTitle: originalGuideData.title,
+              highlightBuild: response.data.build._id,
+            },
+            replace: true,
+          });
+        } else {
+          navigate("/profile?tab=builds", {
+            state: {
+              activeTab: "1",
+              highlightBuild: response.data.build._id,
+            },
+            replace: true,
+          });
+        }
+      } else {
+        throw new Error(response.data.message || "Failed to complete build");
+      }
     } catch (err) {
+      console.error("Complete build error:", err);
       message.error(err.response?.data?.message || "Failed to complete build.");
     } finally {
       setSaving(false);
@@ -260,9 +388,19 @@ const FullBuildSummary = ({
       initialDescription =
         fullBuild?.description || originalBuild?.description || "";
     } else if (type === "update") {
-      initialTitle = originalBuild?.title || fullBuild?.title || "";
-      initialDescription =
-        originalBuild?.description || fullBuild?.description || "";
+      // For updates from guide customization, use a more descriptive title
+      if (isFromGuideCustomization && originalGuideData) {
+        // Use the current build's title or create a descriptive one
+        initialTitle =
+          fullBuild?.title || `Build from ${originalGuideData.title}`;
+        initialDescription =
+          fullBuild?.description ||
+          `Customized build based on guide: ${originalGuideData.title}`;
+      } else {
+        initialTitle = originalBuild?.title || fullBuild?.title || "";
+        initialDescription =
+          originalBuild?.description || fullBuild?.description || "";
+      }
     } else if (type === "share") {
       initialTitle =
         fullBuild?.title || `My Build ${new Date().toLocaleDateString()}`;
@@ -310,7 +448,9 @@ const FullBuildSummary = ({
       case "save":
         return "Save as New Build";
       case "update":
-        return "Update Current Build";
+        return isFromGuideCustomization
+          ? "Save Customized Build"
+          : "Update Current Build";
       case "complete":
         return "Complete Build";
       case "share":
@@ -323,7 +463,9 @@ const FullBuildSummary = ({
   const getModalButtonText = () => {
     switch (modalType) {
       case "update":
-        return "Update Current Build";
+        return isFromGuideCustomization
+          ? "Save Customized Build"
+          : "Update Current Build";
       case "complete":
         return "Save Build";
       case "share":
@@ -336,7 +478,11 @@ const FullBuildSummary = ({
   const getModalDescription = () => {
     switch (modalType) {
       case "update":
-        return "This will update your existing build with the new component selection.";
+        return isFromGuideCustomization
+          ? `This will save your customized build to your completed builds. The original guide "${
+              originalGuideData?.title || "guide"
+            }" will remain unchanged.`
+          : "This will update your existing build with the new component selection.";
       case "complete":
         return "Save your build to your completed builds collection.";
       case "share":
@@ -369,13 +515,23 @@ const FullBuildSummary = ({
   };
 
   const handleRefreshComponent = (componentType) => {
+    // Pass along the guide customization context when refreshing components
+    const navigationState = {
+      configureMode: true,
+      selectedComponents: fullBuild.components,
+      buildId: buildId,
+      originalBuild: fullBuild,
+    };
+
+    // If this is from guide customization, preserve that context
+    if (isFromGuideCustomization) {
+      navigationState.fromGuide = true;
+      navigationState.originalGuideData = originalGuideData;
+      navigationState.protectOriginalGuide = true;
+    }
+
     navigate(`/builder/${componentType}`, {
-      state: {
-        configureMode: true,
-        selectedComponents: fullBuild.components,
-        buildId: buildId,
-        originalBuild: fullBuild,
-      },
+      state: navigationState,
     });
   };
 
@@ -413,8 +569,26 @@ const FullBuildSummary = ({
       }`}
     >
       <h2 className="fullbuild-summary-title">
-        {configureMode ? "Build Update Summary" : "Your Build Summary"}
+        {configureMode
+          ? isFromGuideCustomization
+            ? `Customizing Guide: ${
+                originalGuideData?.title || "Unknown Guide"
+              }`
+            : "Build Update Summary"
+          : "Your Build Summary"}
       </h2>
+
+      {/* Show guide customization notice */}
+      {isFromGuideCustomization && (
+        <div className="guide-customization-notice">
+          <p>
+            🔒 You are customizing a component from the guide "
+            {originalGuideData?.title}". Your changes will be saved as a new
+            build in your completed builds. The original guide will remain
+            unchanged.
+          </p>
+        </div>
+      )}
 
       <div className="fullbuild-summary-table">
         <div className="fullbuild-summary-row fullbuild-summary-header">
@@ -500,7 +674,9 @@ const FullBuildSummary = ({
               className="fullbuild-summary-update-btn"
               onClick={() => openModal("update")}
             >
-              Update Current Build
+              {isFromGuideCustomization
+                ? "Save Customized Build"
+                : "Update Current Build"}
             </Button>
           </>
         ) : (
@@ -572,12 +748,20 @@ const FullBuildSummary = ({
           {getModalDescription()}
         </div>
 
-        {configureMode && originalBuild && modalType === "update" && (
-          <div className="fullbuild-summary-current-build-info">
-            <strong>Current Build:</strong>{" "}
-            {originalBuild.title || "Untitled Build"}
-          </div>
-        )}
+        {configureMode &&
+          (originalBuild || isFromGuideCustomization) &&
+          modalType === "update" && (
+            <div className="fullbuild-summary-current-build-info">
+              <strong>
+                {isFromGuideCustomization
+                  ? "Based on Guide:"
+                  : "Current Build:"}
+              </strong>{" "}
+              {isFromGuideCustomization
+                ? originalGuideData?.title || "Unknown Guide"
+                : originalBuild?.title || "Untitled Build"}
+            </div>
+          )}
 
         <div className="fullbuild-summary-modal-input-group">
           <label className="fullbuild-summary-modal-label">Build Title</label>
@@ -697,7 +881,6 @@ const FullBuildSummary = ({
               >
                 Development
               </Select.Option>
-             
             </Select>
           </div>
 

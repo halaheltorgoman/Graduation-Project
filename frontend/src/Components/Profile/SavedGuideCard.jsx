@@ -219,11 +219,6 @@ const SavedGuideCard = ({ guide, onUnsaveGuide }) => {
                       title={`Customize ${label} - This will create a new build, leaving the original guide unchanged`}
                     >
                       <FiRefreshCw />
-                      <span className="customize_tooltip">
-                        Customize {label}
-                        <br />
-                        <small>(Creates new build)</small>
-                      </span>
                     </button>
                   </div>
                   {idx < COMPONENT_ORDER.length - 1 && (
