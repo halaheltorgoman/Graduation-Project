@@ -132,11 +132,6 @@ const SavedGuideCard = ({ guide, onUnsaveGuide }) => {
           >
             {isExpanded ? "Close" : "View"}
           </button>
-          {!isExpanded && (
-            <button className="profile_buildCard_Share">
-              <FaShare />
-            </button>
-          )}
         </div>
       </div>
       {isExpanded && (
@@ -234,12 +229,6 @@ const SavedGuideCard = ({ guide, onUnsaveGuide }) => {
                 onClick={handleToggleSave}
               >
                 Unsave Guide
-              </button>
-              <button
-                className="profilefullbuild_save_btn"
-                onClick={() => navigate(`/guides/${guide._id}`)}
-              >
-                View Full Guide
               </button>
             </div>
           </div>

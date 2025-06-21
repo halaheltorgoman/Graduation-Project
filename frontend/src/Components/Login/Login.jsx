@@ -186,7 +186,6 @@ const Login = () => {
           </div>
 
           <div className="form-options">
-            <Checkbox>Remember me</Checkbox>
             <Link to="/forgot-password" className="forgot-password">
               Forgot Password?
             </Link>

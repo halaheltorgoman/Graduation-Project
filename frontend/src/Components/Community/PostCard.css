@@ -404,6 +404,24 @@
   border-radius: 12px;
 }
 
+/* Single image container - centered */
+.single_image_container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.single_image_container .community_post_image {
+  width: auto;
+  max-width: 80%;
+  height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
 /* Image Slider */
 .image_slider {
   position: relative;
@@ -472,6 +490,12 @@
 
   .image_slider .community_post_image {
     height: 200px;
+  }
+
+  .single_image_container .community_post_image {
+    max-width: 100%;
+    height: 200px;
+    object-fit: cover;
   }
 }
 
@@ -576,8 +600,8 @@
   color: #ffd700;
   font-size: 12px;
 }
-/* Updated Avatar CSS - Bigger image, purple background only for placeholder */
 
+/* Updated Avatar CSS - Bigger image, purple background only for placeholder */
 .community_user_avatar_container {
   position: relative;
   width: 60px; /* Increased from 45px */
@@ -652,9 +676,6 @@
 .community_user_avatar.loading {
   opacity: 0.5;
 }
-
-
-
 
 /* Update the slider arrow styles to match PostCarousel */
 .slider_arrow {

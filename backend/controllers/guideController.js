@@ -3,6 +3,7 @@ const Guide = require("../models/Guide");
 const User = require("../models/User");
 // Updated getGuidesByCategory function - replace your existing one with this:
 
+// Fixed getGuidesByCategory function - replace in your backend controller
 exports.getGuidesByCategory = async (req, res) => {
   try {
     console.log("=== GET GUIDES BY CATEGORY START ===");
@@ -20,6 +21,7 @@ exports.getGuidesByCategory = async (req, res) => {
       query: req.query,
       params: req.params,
       url: req.originalUrl,
+      userId: req.userId, // Add userId to debug
     });
 
     // Validate category parameter
@@ -172,6 +174,7 @@ exports.getGuidesByCategory = async (req, res) => {
     // Process guides and calculate prices
     console.log("Processing guides...");
     let userId = req.userId ? req.userId.toString() : null;
+    console.log("Processing for userId:", userId);
 
     // Get user's saved guides if authenticated
     let savedGuideIds = [];
@@ -207,6 +210,36 @@ exports.getGuidesByCategory = async (req, res) => {
             return null;
           }
 
+          // FIXED: Find user's rating for this guide
+          let userRating = null;
+          if (userId && guide.ratings && Array.isArray(guide.ratings)) {
+            const userRatingObj = guide.ratings.find((rating) => {
+              // Handle both populated and non-populated user refs
+              const ratingUserId =
+                rating.user && typeof rating.user === "object"
+                  ? rating.user._id?.toString()
+                  : rating.user?.toString();
+
+              console.log(`Checking rating for guide ${guide._id}:`, {
+                ratingUserId,
+                currentUserId: userId,
+                match: ratingUserId === userId,
+                ratingValue: rating.value,
+              });
+
+              return ratingUserId === userId;
+            });
+
+            if (userRatingObj) {
+              userRating = userRatingObj.value;
+              console.log(
+                `Found user rating for guide ${guide._id}: ${userRating}`
+              );
+            } else {
+              console.log(`No user rating found for guide ${guide._id}`);
+            }
+          }
+
           // Build processed guide object
           const processedGuide = {
             _id: guide._id,
@@ -230,14 +263,12 @@ exports.getGuidesByCategory = async (req, res) => {
             ratings: guide.ratings || [],
             totalPrice,
             isSaved: savedGuideIds.includes(guide._id.toString()),
-            userRating:
-              userId && guide.ratings
-                ? guide.ratings.find(
-                    (r) => r.user && r.user.toString() === userId
-                  )?.value || null
-                : null,
+            userRating: userRating, // FIXED: Properly set user rating
           };
 
+          console.log(
+            `Processed guide ${guide._id} with userRating: ${userRating}`
+          );
           return processedGuide;
         } catch (processErr) {
           console.error(`Error processing guide ${index + 1}:`, processErr);
@@ -247,6 +278,16 @@ exports.getGuidesByCategory = async (req, res) => {
       .filter(Boolean); // Remove null entries
 
     console.log(`Processed guides count: ${processedGuides.length}`);
+
+    // Log user ratings for debugging
+    if (userId) {
+      console.log("User ratings in processed guides:");
+      processedGuides.forEach((guide) => {
+        if (guide.userRating) {
+          console.log(`Guide ${guide._id}: userRating = ${guide.userRating}`);
+        }
+      });
+    }
 
     // Apply price sorting if needed
     if (needsPriceCalculation) {
@@ -322,6 +363,7 @@ exports.getGuidesByCategory = async (req, res) => {
       console.log("First guide build present:", !!response.guides[0].build);
       console.log("First guide creator present:", !!response.guides[0].creator);
       console.log("First guide rating:", response.guides[0].averageRating);
+      console.log("First guide userRating:", response.guides[0].userRating);
     }
 
     console.log("=== END GET GUIDES BY CATEGORY ===");

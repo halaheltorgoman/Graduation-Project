@@ -234,9 +234,7 @@ const Signup = () => {
             Password must be at least 8 characters.
           </p>
 
-          <div className="form-options">
-            <Checkbox>Remember me</Checkbox>
-          </div>
+          <div className="form-options"></div>
 
           <Button
             htmlType="submit"

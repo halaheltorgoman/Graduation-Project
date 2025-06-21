@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 
 // Updated getSharedBuilds function in communityController.js
 // Updated getSharedBuilds function with proper avatar population
+// Fixed getSharedBuilds function with proper avatar population and working load button
 exports.getSharedBuilds = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -42,31 +43,28 @@ exports.getSharedBuilds = async (req, res) => {
 
     const total = await Post.countDocuments(query);
 
-    // Transform posts to ensure consistent avatar structure
+    // Transform posts to ensure consistent avatar structure - but keep it simple
     const transformedPosts = posts.map((post) => {
       const postObj = post.toObject();
 
-      // Ensure user avatar is properly structured
-      if (postObj.user && postObj.user.avatar) {
-        // If avatar is stored as an object with url property
-        if (
-          typeof postObj.user.avatar === "object" &&
-          postObj.user.avatar.url
-        ) {
-          postObj.user.avatar = postObj.user.avatar.url;
-        }
+      // Only transform avatar if it exists and is an object with url property
+      if (
+        postObj.user?.avatar &&
+        typeof postObj.user.avatar === "object" &&
+        postObj.user.avatar.url
+      ) {
+        postObj.user.avatar = postObj.user.avatar.url;
       }
 
-      // Also fix comment avatars if they exist
-      if (postObj.comments && postObj.comments.length > 0) {
+      // Fix comment avatars if they exist
+      if (postObj.comments?.length > 0) {
         postObj.comments = postObj.comments.map((comment) => {
-          if (comment.user && comment.user.avatar) {
-            if (
-              typeof comment.user.avatar === "object" &&
-              comment.user.avatar.url
-            ) {
-              comment.user.avatar = comment.user.avatar.url;
-            }
+          if (
+            comment.user?.avatar &&
+            typeof comment.user.avatar === "object" &&
+            comment.user.avatar.url
+          ) {
+            comment.user.avatar = comment.user.avatar.url;
           }
           return comment;
         });
@@ -75,15 +73,15 @@ exports.getSharedBuilds = async (req, res) => {
       return postObj;
     });
 
-    // Debug: Log the first post's user data to check avatar
-    if (transformedPosts.length > 0) {
-      console.log("First post user data:", {
-        userId: transformedPosts[0].user._id,
-        username: transformedPosts[0].user.username,
-        avatar: transformedPosts[0].user.avatar,
-        avatarType: typeof transformedPosts[0].user.avatar,
-      });
-    }
+    // Debug: Log pagination info
+    console.log("Pagination info:", {
+      page,
+      limit,
+      skip,
+      totalPosts: total,
+      totalPages: Math.ceil(total / limit),
+      currentPostsCount: transformedPosts.length,
+    });
 
     res.json({
       success: true,

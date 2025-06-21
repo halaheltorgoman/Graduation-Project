@@ -116,50 +116,94 @@
 .username-field-container {
   position: relative;
   width: 90%;
+  display: flex;
+  flex-direction: column;
+}
+
+.username-field-container label {
+  display: block;
+  color: white;
+  font-size: 14px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+/* Wrapper for textarea and icon positioning */
+.username-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .username-textarea {
   width: 100%;
-  /* padding: 0.9rem 1.2rem; */
+  padding: 0.9rem 3rem 0.9rem 1.2rem !important; /* Added right padding for icon space */
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
   border-radius: 25px !important;
   font-size: 1rem;
   background-color: rgba(255, 255, 255, 0.1) !important;
   color: rgba(255, 255, 255, 0.945) !important;
   transition: all 0.3s ease;
+  resize: none !important; /* Prevent manual resizing */
+  min-height: 44px; /* Set minimum height for consistent centering */
+  line-height: 1.4;
 }
 
 .username-textarea:not(.editing) {
   border: 2px solid #b5b2b5 !important;
   background: transparent !important;
   cursor: default;
+  padding-right: 3rem !important; /* Maintain padding for icon */
+}
+
+.username-textarea:focus {
+  outline: none;
+  border: 1px solid rgba(98, 28, 116, 0.8) !important;
+  box-shadow: 0 0 0 2px rgba(98, 28, 116, 0.2);
 }
 
 .username-edit-icon {
   position: absolute;
   right: 8px;
-  top: 8px;
+  top: 50%;
+  transform: translateY(-50%);
   color: white;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 6px;
+  border-radius: 50%;
   transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .username-edit-icon:hover {
-  transform: scale(1.1);
+  transform: translateY(-50%) scale(1.1);
+  background: rgba(98, 28, 116, 0.9);
+  box-shadow: 0 2px 8px rgba(98, 28, 116, 0.5);
+  border-color: rgba(98, 28, 116, 0.8);
+}
+
+.username-edit-icon svg {
+  font-size: 12px;
 }
 
 /* Error message styles - positioned below username field */
 .username-error-message {
   color: #ff6b6b;
   font-size: 12px;
-  margin-top: 4px;
+  margin-top: 8px;
   margin-left: 8px;
   opacity: 0.9;
   font-weight: 400;
   text-align: left;
   width: 100%;
+  display: block;
 }
 
 /* Buttons section */
@@ -167,6 +211,7 @@
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  margin-top: 1rem;
 }
 
 .change-password {
@@ -220,6 +265,54 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(180, 144, 189, 0.756);
   background-color: #7d2496;
+}
+
+/* Alternative: If you prefer the icon to be positioned relative to the label */
+.username-field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.username-field-header label {
+  margin-bottom: 0;
+}
+
+.username-edit-icon-alt {
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.username-edit-icon-alt:hover {
+  transform: scale(1.1);
+  background: rgba(98, 28, 116, 0.8);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .username-field-container {
+    width: 95%;
+  }
+
+  .username-edit-icon {
+    right: 8px;
+    width: 28px;
+    height: 28px;
+  }
+
+  .username-textarea {
+    padding-right: 2.5rem;
+  }
 }
 
 /* Remove old error styles */

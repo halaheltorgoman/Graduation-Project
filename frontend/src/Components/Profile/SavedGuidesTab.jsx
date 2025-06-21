@@ -10,6 +10,14 @@ const SavedGuidesTab = () => {
   const [loading, setLoading] = useState(true);
   const { user } = useContext(UserContext);
 
+  // Define the 4 predefined folders
+  const PREDEFINED_FOLDERS = [
+    { name: "Gaming", key: "gaming" },
+    { name: "Development", key: "development" },
+    { name: "Workstation", key: "workstation" },
+    { name: "Budget", key: "budget" },
+  ];
+
   useEffect(() => {
     const fetchSavedGuides = async () => {
       try {
@@ -22,7 +30,7 @@ const SavedGuidesTab = () => {
         );
         if (response.data.success) {
           setSavedGuides(response.data.guides);
-          organizGuidesByCategory(response.data.guides);
+          organizeGuidesByCategory(response.data.guides);
         }
       } catch (error) {
         console.error("Error fetching saved guides:", error);
@@ -36,50 +44,76 @@ const SavedGuidesTab = () => {
     }
   }, [user]);
 
-  const organizGuidesByCategory = (guides) => {
-    // Group guides by category
-    const groupedByCategory = guides.reduce((acc, guide) => {
-      const category = guide.category || "Uncategorized";
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(guide);
-      return acc;
-    }, {});
+  const organizeGuidesByCategory = (guides) => {
+    // Create folders structure with predefined categories
+    const folders = PREDEFINED_FOLDERS.map((folder) => {
+      // Filter guides that belong to this category
+      const categoryGuides = guides.filter((guide) => {
+        const guideCategory = guide.category?.toLowerCase() || "";
+        return guideCategory === folder.key.toLowerCase();
+      });
 
-    // Convert to folder structure
-    const folders = Object.entries(groupedByCategory).map(
-      ([category, guides]) => ({
-        name: category,
-        guides: guides,
-        count: guides.length,
-      })
-    );
-
-    // Sort folders by name
-    folders.sort((a, b) => a.name.localeCompare(b.name));
+      return {
+        name: folder.name,
+        key: folder.key,
+        guides: categoryGuides,
+        count: categoryGuides.length,
+      };
+    });
 
     setCategorizedFolders(folders);
   };
 
+  // Initialize folders on component mount, even before guides are loaded
+  useEffect(() => {
+    // Set up default empty folders immediately
+    const defaultFolders = PREDEFINED_FOLDERS.map((folder) => ({
+      name: folder.name,
+      key: folder.key,
+      guides: [],
+      count: 0,
+    }));
+    setCategorizedFolders(defaultFolders);
+  }, []);
+
   const handleUnsaveGuide = (guideId) => {
-    setSavedGuides((prev) => {
-      const updatedGuides = prev.filter((guide) => guide._id !== guideId);
-      organizGuidesByCategory(updatedGuides);
-      return updatedGuides;
-    });
+    // Update saved guides by removing the unsaved guide
+    const updatedGuides = savedGuides.filter((guide) => guide._id !== guideId);
+    setSavedGuides(updatedGuides);
+
+    // Re-organize folders with updated guides
+    // This will maintain all 4 folders but update their guide contents
+    organizeGuidesByCategory(updatedGuides);
   };
 
-  //   if (savedGuides.length === 0) {
-  //     return (
-  //       <div className="tab-empty-container">
-  //         <Empty
-  //           description="You haven't saved any guides yet"
-  //           image={Empty.PRESENTED_IMAGE_SIMPLE}
-  //         />
-  //       </div>
-  //     );
-  //   }
+  if (loading) {
+    return (
+      <div className="saved-guides-container">
+        <div className="profile_folders">
+          <Collapse
+            ghost
+            items={categorizedFolders.map((folder, folderIndex) => ({
+              key: folderIndex.toString(),
+              label: (
+                <div className="folder-label">
+                  <span className="folder-name">{folder.name}</span>
+                  <span className="folder-count">(0)</span>
+                </div>
+              ),
+              children: (
+                <div className="profile_folderContent saved-guides-folder-content">
+                  <div className="loading-folder-content">
+                    <Spin size="small" />
+                    <span style={{ marginLeft: "8px" }}>Loading guides...</span>
+                  </div>
+                </div>
+              ),
+            }))}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="saved-guides-container">
@@ -104,7 +138,9 @@ const SavedGuidesTab = () => {
                     />
                   ))
                 ) : (
-                  <p>No guides in this category</p>
+                  <div className="empty-folder-message">
+                    <p>No {folder.name} guides in this folder</p>
+                  </div>
                 )}
               </div>
             ),

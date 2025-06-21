@@ -18,6 +18,16 @@ const VerifyForgotPassword = () => {
   const inputRefs = useRef([]);
   const timerRef = useRef(null);
 
+  // Redirect if no email provided
+  useEffect(() => {
+    if (!email) {
+      messageApi.error(
+        "Email is required. Please start the password reset process again."
+      );
+      navigate("/forgot-password");
+    }
+  }, [email, navigate, messageApi]);
+
   // Clear timer on unmount
   useEffect(() => {
     return () => {
@@ -101,7 +111,8 @@ const VerifyForgotPassword = () => {
 
       if (response.data.success) {
         messageApi.success("OTP verified successfully!");
-        navigate("/forgot-password", {
+        // FIXED: Navigate to reset-password instead of forgot-password
+        navigate("/reset-password", {
           state: { email },
         });
       } else {
@@ -133,6 +144,7 @@ const VerifyForgotPassword = () => {
       if (response.data.success) {
         showAlertMessage("New OTP has been sent to your email");
         startTimer(); // Reset the timer
+        setCode(["", "", "", "", "", ""]); // Clear the input fields
       } else {
         showAlertMessage(response.data.message || "Failed to resend OTP");
       }
@@ -146,6 +158,11 @@ const VerifyForgotPassword = () => {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
   };
+
+  // Don't render if no email (will redirect)
+  if (!email) {
+    return null;
+  }
 
   return (
     <div className="verifyforgotpassword-container">
@@ -183,8 +200,8 @@ const VerifyForgotPassword = () => {
           autoComplete="off"
         >
           <p className="verifyforgotpassword-instructions">
-            We've sent a 6-digit verification code to{" "}
-            <strong>{email || "your email"}</strong>. Please enter it below.
+            We've sent a 6-digit verification code to <strong>{email}</strong>.
+            Please enter it below.
           </p>
 
           <div className="verifyforgotpassword-code-container">

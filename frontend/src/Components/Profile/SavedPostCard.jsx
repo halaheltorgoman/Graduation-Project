@@ -10,7 +10,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 import { SavedPostsContext } from "../../Context/SavedPostsContext";
-import { Input } from "antd";
+import { Input, message } from "antd";
 import { EditOutlined, CheckOutlined } from "@ant-design/icons";
 import "./ProfileBuildCard.css";
 import "../Builder/Builder.css";
@@ -59,13 +59,56 @@ function SavedPostCard({ build, onDeleteBuild }) {
     }
   };
 
+  // Updated handleRefreshComponent with post protection (like guides)
   const handleRefreshComponent = (componentType) => {
+    // Show confirmation message that this will create a new build
+    const postTitle = build.title || build.build?.title || "Saved Post";
+    message.info(
+      `🔒 Customizing ${componentType.toUpperCase()} from saved post "${postTitle}". This will create a new build in your completed builds. The original post will remain unchanged.`,
+      5
+    );
+
+    console.log("🔒 POST PROTECTION: Starting component customization");
+    console.log("🔒 Original post ID:", build._id);
+    console.log("🔒 Component to customize:", componentType);
+    console.log("🔒 Original post will remain UNCHANGED");
+
+    // Navigate to builder with post protection flags (similar to guide protection)
     navigate(`/builder/${componentType}`, {
       state: {
+        // Core configuration
         configureMode: true,
-        selectedComponents: build.components,
-        buildId: build._id || build.id,
-        originalBuild: build,
+        selectedComponents: build.build?.components || {},
+
+        // Post protection flags (similar to guide protection)
+        fromSavedPost: true, // CRITICAL: This ensures post protection logic
+        savedPostId: build._id,
+        savedPostTitle: postTitle,
+        originalPostData: build,
+
+        // Additional protection metadata
+        originalPostBuildData: {
+          id: build._id,
+          title: postTitle,
+          description: build.build?.description || "",
+          originalBuildId: build.build?._id,
+          postAuthor: build.user?.username || build.author || "Unknown",
+          postContent: build.content || build.text || "",
+        },
+
+        // Explicit protection flags
+        protectOriginalPost: true,
+        createNewBuildFromPost: true,
+        doNotModifyPost: true,
+
+        // Debug info
+        debugInfo: {
+          action: "customize_saved_post_component",
+          timestamp: new Date().toISOString(),
+          componentType,
+          postId: build._id,
+          confirmation: "POST_WILL_NOT_BE_MODIFIED",
+        },
       },
     });
   };
@@ -234,17 +277,9 @@ function SavedPostCard({ build, onDeleteBuild }) {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Enter build title..."
                 autoSize={{ minRows: 1, maxRows: 2 }}
-                disabled={!isEditingTitle}
-                className={`profilefullbuild_title_field ${
-                  isEditingTitle ? "editing" : "not-editing"
-                }`}
+                disabled={true} // Disabled since this is a saved post
+                className="profilefullbuild_title_field not-editing"
               />
-              <span
-                className="profilefullbuild_title_edit_icon"
-                onClick={() => setIsEditingTitle(!isEditingTitle)}
-              >
-                {isEditingTitle ? <CheckOutlined /> : <EditOutlined />}
-              </span>
             </div>
 
             {/* Build Image */}
@@ -265,19 +300,20 @@ function SavedPostCard({ build, onDeleteBuild }) {
               <TextArea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add build description..."
+                placeholder="Build description..."
                 autoSize={{ minRows: 3, maxRows: 5 }}
-                disabled={!isEditingDesc}
-                className={`profilefullbuild_desc_field ${
-                  isEditingDesc ? "editing" : "not-editing"
-                }`}
+                disabled={true} // Disabled since this is a saved post
+                className="profilefullbuild_desc_field not-editing"
               />
-              <span
-                className="profilefullbuild_desc_edit_icon"
-                onClick={() => setIsEditingDesc(!isEditingDesc)}
-              >
-                {isEditingDesc ? <CheckOutlined /> : <EditOutlined />}
-              </span>
+            </div>
+
+            {/* Post Protection Notice (similar to guide protection) */}
+            <div className="post_protection_notice">
+              <p className="post_protection_text">
+                🔒 This is a saved post. Customizing components will create a
+                new build in your completed builds. The original post will
+                remain unchanged.
+              </p>
             </div>
           </>
         )}
@@ -299,9 +335,10 @@ function SavedPostCard({ build, onDeleteBuild }) {
                     {comp?.title || comp?.product_name || "N/A"}
                   </p>
                   <button
-                    className="profilefullbuild_refresh_button"
+                    className="profilefullbuild_refresh_button post_customization_button"
                     onClick={() => handleRefreshComponent(key)}
-                    aria-label={`Replace ${label}`}
+                    aria-label={`Customize ${label} (creates new build)`}
+                    title={`Customize ${label} - This will create a new build, leaving the original post unchanged`}
                   >
                     <FiRefreshCw />
                   </button>
@@ -354,11 +391,6 @@ function SavedPostCard({ build, onDeleteBuild }) {
           >
             {isExpanded ? "Close" : "View"}
           </button>
-          {!isExpanded && (
-            <button className="profile_buildCard_Share">
-              <FaShare />
-            </button>
-          )}
         </div>
       </div>
       {isExpanded && (

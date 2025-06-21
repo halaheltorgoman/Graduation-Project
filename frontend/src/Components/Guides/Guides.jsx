@@ -216,14 +216,49 @@ function Guides() {
 
         setHasMore(response.data.hasMore || false);
 
-        // Extract user ratings from guides data if available
+        // FIXED: More robust user ratings extraction
         const ratingsMap = {};
         guidesArray.forEach((guide) => {
-          if (guide.userRating !== undefined) {
-            ratingsMap[guide._id] = guide.userRating;
+          console.log(`Processing guide ${guide._id} for ratings:`, {
+            title: guide.title,
+            userRating: guide.userRating,
+            userRatingType: typeof guide.userRating,
+            userRatingValid:
+              guide.userRating !== undefined &&
+              guide.userRating !== null &&
+              !isNaN(guide.userRating) &&
+              guide.userRating > 0,
+          });
+
+          // FIXED: Store the userRating directly from backend response
+          if (
+            guide.userRating !== undefined &&
+            guide.userRating !== null &&
+            !isNaN(guide.userRating) &&
+            guide.userRating > 0
+          ) {
+            ratingsMap[guide._id] = Number(guide.userRating);
+            console.log(
+              `Stored rating for guide ${guide._id}: ${guide.userRating}`
+            );
           }
         });
-        setUserRatings((prev) => ({ ...prev, ...ratingsMap }));
+
+        console.log("Final user ratings map:", ratingsMap);
+
+        // FIXED: Update user ratings state properly
+        if (page === 1) {
+          // For first page, completely replace ratings
+          setUserRatings(ratingsMap);
+          console.log("Set initial user ratings:", ratingsMap);
+        } else {
+          // For subsequent pages, merge with existing ratings
+          setUserRatings((prev) => {
+            const merged = { ...prev, ...ratingsMap };
+            console.log("Merged user ratings:", merged);
+            return merged;
+          });
+        }
       } else {
         throw new Error(response.data?.message || "Failed to fetch guides");
       }
@@ -244,6 +279,152 @@ function Guides() {
       setLoading(false);
     }
   }, [category, sortBy, filters, page]);
+
+  // FIXED: Simplified and more reliable getUserRating function
+  const getUserRating = useCallback(
+    (guide) => {
+      console.log(`Getting user rating for guide ${guide._id}:`, {
+        fromState: userRatings[guide._id],
+        fromGuideData: guide.userRating,
+        stateType: typeof userRatings[guide._id],
+        guideType: typeof guide.userRating,
+      });
+
+      // Priority 1: Check userRatings state (most up-to-date after user interactions)
+      const stateRating = userRatings[guide._id];
+      if (
+        stateRating !== undefined &&
+        stateRating !== null &&
+        stateRating > 0
+      ) {
+        console.log(`Using rating from state: ${stateRating}`);
+        return Number(stateRating);
+      }
+
+      // Priority 2: Check guide.userRating (from backend, persisted rating)
+      const guideRating = guide.userRating;
+      if (
+        guideRating !== undefined &&
+        guideRating !== null &&
+        guideRating > 0
+      ) {
+        console.log(`Using rating from guide data: ${guideRating}`);
+        // FIXED: Also update the state to keep it in sync
+        setUserRatings((prev) => ({
+          ...prev,
+          [guide._id]: Number(guideRating),
+        }));
+        return Number(guideRating);
+      }
+
+      console.log("No rating found, returning 0");
+      return 0;
+    },
+    [userRatings]
+  );
+
+  // FIXED: Enhanced handleRateGuide with better state management
+  const handleRateGuide = useCallback(
+    async (guideId, rating) => {
+      try {
+        if (rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
+          notification.error({
+            message: "Invalid rating",
+            description: "Rating must be between 0.5 and 5 in 0.5 increments",
+            duration: 3,
+          });
+          return;
+        }
+
+        console.log(`Rating guide ${guideId} with ${rating} stars`);
+
+        // FIXED: Optimistically update the rating immediately
+        setUserRatings((prev) => {
+          const updated = {
+            ...prev,
+            [guideId]: rating,
+          };
+          console.log("Optimistically updated ratings:", updated);
+          return updated;
+        });
+
+        const response = await axios.post(
+          `http://localhost:4000/api/guides/${guideId}/rate`,
+          { value: rating },
+          {
+            withCredentials: true,
+            timeout: 5000,
+          }
+        );
+
+        if (response.data && response.data.success) {
+          console.log("Rating response:", response.data);
+
+          // FIXED: Update both userRatings state and guides data with server response
+          const serverRating = response.data.userRating || rating;
+
+          setUserRatings((prev) => {
+            const updated = {
+              ...prev,
+              [guideId]: serverRating,
+            };
+            console.log("Updated ratings after server response:", updated);
+            return updated;
+          });
+
+          // FIXED: Update the guides array to include the new userRating
+          setGuides((prevGuides) =>
+            prevGuides.map((guide) =>
+              guide._id === guideId
+                ? {
+                    ...guide,
+                    averageRating: response.data.averageRating,
+                    totalRatings: response.data.totalRatings,
+                    ratings: response.data.ratings,
+                    userRating: serverRating, // FIXED: Update userRating in guide object
+                  }
+                : guide
+            )
+          );
+
+          notification.success({
+            message: "Guide rated successfully",
+            description: `You rated this guide ${rating} stars`,
+            duration: 3,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to rate guide:", err);
+
+        // FIXED: Revert optimistic update on error
+        setUserRatings((prev) => {
+          const reverted = { ...prev };
+          // Find the original rating or remove if it was new
+          const originalGuide = guides.find((g) => g._id === guideId);
+          if (originalGuide && originalGuide.userRating) {
+            reverted[guideId] = originalGuide.userRating;
+          } else {
+            delete reverted[guideId];
+          }
+          console.log("Reverted ratings after error:", reverted);
+          return reverted;
+        });
+
+        let errorMessage = "Failed to rate guide";
+        if (err.response?.status === 401) {
+          errorMessage = "Please log in to rate guides";
+        } else if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        }
+
+        notification.error({
+          message: errorMessage,
+          duration: 4,
+        });
+      }
+    },
+    [guides]
+  );
 
   const fetchSavedGuides = useCallback(async () => {
     try {
@@ -269,6 +450,7 @@ function Guides() {
     setError(null);
     setLoading(true);
     setHasMore(true);
+    // FIXED: Reset user ratings when changing category to avoid confusion
     setUserRatings({});
   }, [category]);
 
@@ -277,6 +459,7 @@ function Guides() {
     setGuides([]);
     setError(null);
     setHasMore(true);
+    // Don't reset ratings when just changing filters/sort
   }, [sortBy, JSON.stringify(filters)]);
 
   useEffect(() => {
@@ -287,78 +470,10 @@ function Guides() {
     fetchSavedGuides();
   }, [fetchSavedGuides]);
 
-  const handleRateGuide = useCallback(async (guideId, rating) => {
-    try {
-      if (rating < 0.5 || rating > 5 || (rating * 2) % 1 !== 0) {
-        notification.error({
-          message: "Invalid rating",
-          description: "Rating must be between 0.5 and 5 in 0.5 increments",
-          duration: 3,
-        });
-        return;
-      }
-
-      setUserRatings((prev) => ({
-        ...prev,
-        [guideId]: rating,
-      }));
-
-      const response = await axios.post(
-        `http://localhost:4000/api/guides/${guideId}/rate`,
-        { value: rating },
-        {
-          withCredentials: true,
-          timeout: 5000,
-        }
-      );
-
-      if (response.data && response.data.success) {
-        setUserRatings((prev) => ({
-          ...prev,
-          [guideId]: response.data.userRating,
-        }));
-
-        setGuides((prevGuides) =>
-          prevGuides.map((guide) =>
-            guide._id === guideId
-              ? {
-                  ...guide,
-                  averageRating: response.data.averageRating,
-                  totalRatings: response.data.totalRatings,
-                  ratings: response.data.ratings,
-                  userRating: response.data.userRating,
-                }
-              : guide
-          )
-        );
-
-        notification.success({
-          message: "Guide rated successfully",
-          description: `You rated this guide ${rating} stars`,
-          duration: 3,
-        });
-      }
-    } catch (err) {
-      console.error("Failed to rate guide:", err);
-      setUserRatings((prev) => {
-        const newRatings = { ...prev };
-        delete newRatings[guideId];
-        return newRatings;
-      });
-
-      let errorMessage = "Failed to rate guide";
-      if (err.response?.status === 401) {
-        errorMessage = "Please log in to rate guides";
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      }
-
-      notification.error({
-        message: errorMessage,
-        duration: 4,
-      });
-    }
-  }, []);
+  // FIXED: Debug effect to monitor userRatings state changes
+  useEffect(() => {
+    console.log("User ratings state updated:", userRatings);
+  }, [userRatings]);
 
   const handleToggleSave = useCallback(async (guideId) => {
     try {
@@ -514,109 +629,123 @@ function Guides() {
           </div>
         ) : (
           <div className="guides-list">
-            {guides.map((guide) => (
-              <div
-                key={guide._id}
-                className="guide_card"
-                ref={(el) => (guideRefs.current[guide._id] = el)}
-              >
-                <div className="guide_header">
-                  <div className="guide_user_info">
-                    <AvatarComponent creator={guide.creator} />
-                    <div className="guide_user_details">
-                      <p className="guide_user_name">
-                        {guide.creator?.username || "Unknown User"}
-                      </p>
-                      <p className="guide_user_username">
-                        @{guide.creator?.username?.toLowerCase() || "anonymous"}
-                      </p>
+            {guides.map((guide) => {
+              const currentUserRating = getUserRating(guide);
+              console.log(
+                `Rendering guide ${guide._id} with rating: ${currentUserRating}`
+              );
+
+              return (
+                <div
+                  key={guide._id}
+                  className="guide_card"
+                  ref={(el) => (guideRefs.current[guide._id] = el)}
+                >
+                  <div className="guide_header">
+                    <div className="guide_user_info">
+                      <AvatarComponent creator={guide.creator} />
+                      <div className="guide_user_details">
+                        <p className="guide_user_name">
+                          {guide.creator?.username || "Unknown User"}
+                        </p>
+                        <p className="guide_user_username">
+                          @
+                          {guide.creator?.username?.toLowerCase() ||
+                            "anonymous"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="guide_favorite">
+                      <span
+                        className="favorite-icon"
+                        onClick={() => handleToggleSave(guide._id)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {savedGuides.includes(guide._id) ? (
+                          <FaHeart className="favorited" />
+                        ) : (
+                          <FaRegHeart className="unfavorited" />
+                        )}
+                      </span>
+                      <div className="guide_avgrating">
+                        <FaStar className="rating-star" />
+                        {guide.averageRating?.toFixed(1) || 0}
+                      </div>
                     </div>
                   </div>
-                  <div className="guide_favorite">
-                    <span
-                      className="favorite-icon"
-                      onClick={() => handleToggleSave(guide._id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {savedGuides.includes(guide._id) ? (
-                        <FaHeart className="favorited" />
-                      ) : (
-                        <FaRegHeart className="unfavorited" />
-                      )}
-                    </span>
-                    <div className="guide_avgrating">
-                      <FaStar className="rating-star" />
-                      {guide.averageRating?.toFixed(1) || 0}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="guide_content">
-                  <div className="guide_left">
-                    <GuidesCarousel
-                      guide={guide}
-                      categoryImages={categoryImages}
-                      onClick={() => handleCarouselClick(guide)}
-                    />
-                  </div>
-
-                  <div className="guide_right">
-                    <h3 className="guide_title">{guide.title}</h3>
-
-                    <div className="guide_description_section">
-                      <p className="guide_desc">
-                        {guide.description || "No description provided"}
-                      </p>
+                  <div className="guide_content">
+                    <div className="guide_left">
+                      <GuidesCarousel
+                        guide={guide}
+                        categoryImages={categoryImages}
+                        onClick={() => handleCarouselClick(guide)}
+                      />
                     </div>
 
-                    <div className="guide_meta">
-                      <div className="guide_category_section">
-                        <span className="guide_category_label">Category:</span>
-                        <span className="guide_category_value">
-                          {guide.category || "Not specified"}
-                        </span>
+                    <div className="guide_right">
+                      <h3 className="guide_title">{guide.title}</h3>
+
+                      <div className="guide_description_section">
+                        <p className="guide_desc">
+                          {guide.description || "No description provided"}
+                        </p>
                       </div>
 
-                      <div className="guide_rating_section">
-                        <div className="guide_rating_container">
-                          <div className="guide_average_rating"></div>
+                      <div className="guide_meta">
+                        <div className="guide_category_section">
+                          <span className="guide_category_label">
+                            Category:
+                          </span>
+                          <span className="guide_category_value">
+                            {guide.category || "Not specified"}
+                          </span>
+                        </div>
 
-                          <div className="user_rating_section">
-                            <span className="user_rating_label">
-                              Rate this guide:
-                            </span>
-                            <Rate
-                              allowHalf
-                              value={userRatings[guide._id] || 0}
-                              onChange={(value) =>
-                                handleRateGuide(guide._id, value)
-                              }
-                              className="post_rate_stars"
-                            />
-                            {userRatings[guide._id] && (
-                              <span className="user_rating_value">
-                                Your rating: {userRatings[guide._id]}/5
+                        <div className="guide_rating_section">
+                          <div className="guide_rating_container">
+                            <div className="guide_average_rating"></div>
+
+                            <div className="user_rating_section">
+                              <span className="user_rating_label">
+                                Rate this guide:
                               </span>
-                            )}
+                              <Rate
+                                allowHalf
+                                value={currentUserRating}
+                                onChange={(value) =>
+                                  handleRateGuide(guide._id, value)
+                                }
+                                className="post_rate_stars"
+                              />
+                              {currentUserRating > 0 && (
+                                <span className="user_rating_value">
+                                  Your rating: {currentUserRating}/5
+                                </span>
+                              )}
+                            </div>
+                            <span className="guide_rating_text">
+                              (
+                              {guide.totalRatings || guide.ratings?.length || 0}{" "}
+                              reviews)
+                            </span>
                           </div>
-                          <span className="guide_rating_text">
-                            ({guide.totalRatings || guide.ratings?.length || 0}{" "}
-                            reviews)
+                        </div>
+
+                        <div className="guide_price_section">
+                          <span className="guide_price_label">
+                            Total Price:
+                          </span>
+                          <span className="guide_price_value">
+                            EGP {calculateTotalPrice(guide).toLocaleString()}
                           </span>
                         </div>
                       </div>
-
-                      <div className="guide_price_section">
-                        <span className="guide_price_label">Total Price:</span>
-                        <span className="guide_price_value">
-                          EGP {calculateTotalPrice(guide).toLocaleString()}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -632,7 +761,7 @@ function Guides() {
             onClose={handleCloseModal}
             onRateGuide={handleRateGuide}
             onToggleSave={handleToggleSave}
-            userRating={userRatings[selectedGuide._id]}
+            userRating={getUserRating(selectedGuide)}
             isSaved={savedGuides.includes(selectedGuide._id)}
           />
         )}

@@ -222,19 +222,24 @@ const EditProfilePopUp = ({
           <div className="edit_userInfo">
             <div className="username-field-container">
               <label>Username</label>
-              <TextArea
-                value={userNameInput}
-                onChange={(e) => setUserNameInput(e.target.value)}
-                placeholder="Enter Username"
-                autoSize={{ minRows: 1, maxRows: 2 }}
-                disabled={!isEditingName}
-                className={`username-textarea ${
-                  isEditingName ? "editing" : ""
-                }`}
-                maxLength={30}
-              />
-              <div className="username-edit-icon" onClick={handleUsernameEdit}>
-                {isEditingName ? <CheckOutlined /> : <EditOutlined />}
+              <div className="username-input-wrapper">
+                <TextArea
+                  value={userNameInput}
+                  onChange={(e) => setUserNameInput(e.target.value)}
+                  placeholder="Enter Username"
+                  autoSize={{ minRows: 1, maxRows: 2 }}
+                  disabled={!isEditingName}
+                  className={`username-textarea ${
+                    isEditingName ? "editing" : ""
+                  }`}
+                  maxLength={30}
+                />
+                <div
+                  className="username-edit-icon"
+                  onClick={handleUsernameEdit}
+                >
+                  {isEditingName ? <CheckOutlined /> : <EditOutlined />}
+                </div>
               </div>
               {/* Error message moved here - below the username field */}
               {error && <div className="username-error-message">{error}</div>}

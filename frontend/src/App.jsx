@@ -17,7 +17,7 @@ import Profile from "./Components/Profile/Profile";
 import Login from "./Components/Login/Login";
 import Signup from "./Components/Signup/Signup";
 import AIAssistant from "./Components/AIAssistant/AIAssistant";
-import VerifyForgotPassword from "./Components/VerifyForgotPassword/VerifyForgotPassword";
+import VerifyForgotPassword from "./Components/ForgotPassword/VerifyForgotPassword";
 import ComponentDetails from "./Components/ComponentDetails/ComponentDetails";
 import Verifysignupemail from "./Components/Verifysignupemail/Verifysignupemail";
 import Signupverification from "./Components/Signupverification/Signupverification";
@@ -75,13 +75,17 @@ const router = createBrowserRouter([
   },
   { path: "login", element: <Login /> },
   { path: "signup", element: <Signup /> },
-
   { path: "home", element: <Home /> },
   { path: "signup-verification", element: <Signupverification /> },
   { path: "verify-signup-email", element: <Verifysignupemail /> },
-  { path: "forgot-password", element: <Forgotpassword /> },
+
+  // FIXED FORGOT PASSWORD FLOW
+  // Step 1: User enters email
+  { path: "forgot-password", element: <ForgotPasswordEmail /> },
+  // Step 2: User verifies OTP from email
   { path: "verify-forgot-password", element: <VerifyForgotPassword /> },
-  { path: "forgot-password-email", element: <ForgotPasswordEmail /> },
+  // Step 3: User resets password
+  { path: "reset-password", element: <Forgotpassword /> },
 ]);
 
 function App() {

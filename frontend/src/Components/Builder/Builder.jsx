@@ -72,7 +72,9 @@ function Builder() {
   const [sortBy, setSortBy] = useState(null);
   const [configureMode, setConfigureMode] = useState(false);
   const [originalBuildId, setOriginalBuildId] = useState(null);
-
+  const [fromSavedPost, setFromSavedPost] = useState(false);
+  const [savedPostId, setSavedPostId] = useState(null);
+  const [savedPostTitle, setSavedPostTitle] = useState("");
   // Guide-specific state
   const [fromGuide, setFromGuide] = useState(false);
   const [guideId, setGuideId] = useState(null);
@@ -112,6 +114,7 @@ function Builder() {
   }, [urlSearchQuery]);
 
   // Initialize configure mode from location state
+  // Update the initialization useEffect to handle saved post data
   useEffect(() => {
     if (location.state?.configureMode && location.state?.selectedComponents) {
       setConfigureMode(true);
@@ -127,14 +130,25 @@ function Builder() {
         message.info(
           `Configuring ${type.toUpperCase()} from guide - changes will be saved as a new build`
         );
-      } else {
+      }
+      // Check if this is from a saved post
+      else if (location.state?.fromSavedPost) {
+        setFromSavedPost(true);
+        setSavedPostId(location.state.savedPostId);
+        setSavedPostTitle(location.state.savedPostTitle || "Saved Post");
+
+        message.info(
+          `Configuring ${type.toUpperCase()} from saved post - changes will be saved as a new build`
+        );
+      }
+      // Regular build configuration
+      else {
         message.info(
           `Configuring ${type.toUpperCase()} - other components are pre-selected from your build`
         );
       }
     }
   }, [location.state, type]);
-
   // Fetch components with search support
   const fetchComponents = useCallback(async () => {
     if (type === "full-build") {
@@ -334,6 +348,7 @@ function Builder() {
 
   // Modified handleNextComponent function to handle guide configurations
   // Updated handleNextComponent function for Builder.jsx
+  // Updated handleNextComponent function with saved post support
   const handleNextComponent = useCallback(
     async (cardId) => {
       if (configureMode) {
@@ -376,6 +391,43 @@ function Builder() {
               message.success(
                 `New build created from guide! Your customized ${type} has been saved to your completed builds.`
               );
+            } else if (fromSavedPost) {
+              // SAVED POST CUSTOMIZATION: Always create a new build, never update the original post
+              console.log("Creating new build from saved post customization");
+
+              const buildData = {
+                components: { ...selectedComponents, [type]: cardId },
+                title: `${savedPostTitle} - Customized`,
+                description: `Customized build based on saved post: ${savedPostTitle}`,
+                // Store reference to original post without modifying it
+                metadata: {
+                  basedOnSavedPost: savedPostId,
+                  originalPostTitle: savedPostTitle,
+                  customizedComponent: type,
+                  customizationDate: new Date().toISOString(),
+                },
+              };
+
+              const { data } = await axios.post(
+                "http://localhost:4000/api/build/createbuild",
+                buildData,
+                { withCredentials: true }
+              );
+
+              // Navigate to the new build's full view
+              navigate(`/builder/full-build`, {
+                state: {
+                  configureMode: false,
+                  updatedBuild: data.build,
+                  fromSavedPostConfig: true,
+                  originalSavedPostId: savedPostId,
+                  isNewBuildFromSavedPost: true, // Flag to indicate this is a new build
+                },
+              });
+
+              message.success(
+                `New build created from saved post! Your customized ${type} has been saved to your completed builds.`
+              );
             } else {
               // EXISTING BUILD UPDATE: Update the existing build
               console.log("Updating existing build component");
@@ -406,12 +458,19 @@ function Builder() {
             }
           } catch (err) {
             console.error("Component update/creation error:", err);
-            message.error(
-              err.response?.data?.message ||
-                `Failed to ${
-                  fromGuide ? "create new build" : "update component"
-                }. Please try again.`
-            );
+            let errorMessage = "Failed to process request. Please try again.";
+
+            if (fromGuide) {
+              errorMessage =
+                "Failed to create new build from guide. Please try again.";
+            } else if (fromSavedPost) {
+              errorMessage =
+                "Failed to create new build from saved post. Please try again.";
+            } else {
+              errorMessage = "Failed to update component. Please try again.";
+            }
+
+            message.error(err.response?.data?.message || errorMessage);
           }
         } else {
           setSelectedId(cardId);
@@ -479,6 +538,9 @@ function Builder() {
       fromGuide,
       guideId,
       guideTitle,
+      fromSavedPost,
+      savedPostId,
+      savedPostTitle,
     ]
   );
 
@@ -506,16 +568,19 @@ function Builder() {
     [navigate, type, searchParams, searchQuery]
   );
 
+  // Update the handleCancelConfigure function
   const handleCancelConfigure = useCallback(() => {
     if (fromGuide) {
       // If from guide, go back to guides
       navigate("/guides");
+    } else if (fromSavedPost) {
+      // If from saved post, go back to saved posts tab
+      navigate("/profile?tab=2"); // Assuming tab 2 is saved posts
     } else {
       // Original logic for builds
       navigate("/profile?tab=1");
     }
-  }, [navigate, fromGuide]);
-
+  }, [navigate, fromGuide, fromSavedPost]);
   const renderFullBuild = () => (
     <FullBuildSummary
       fullBuild={fullBuild}

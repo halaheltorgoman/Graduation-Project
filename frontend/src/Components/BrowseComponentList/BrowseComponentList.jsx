@@ -31,14 +31,16 @@ const BrowseComponentList = ({
     <div className="browsecomponents_products">
       <div className="grid grid-cols-4 gap-4">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, index) => (
+          // Show shimmer loading state
+          Array.from({ length: 8 }).map((_, index) => (
             <ComponentShimmer key={index} />
           ))
-        ) : components.length > 0 ? (
+        ) : components && components.length > 0 ? (
+          // Show actual components
           components.map((component) => (
             <div
               key={component._id}
-              className="component_card grid grid-cols-4 gap-4 cursor-pointer"
+              className="component_card cursor-pointer"
               onClick={() => handleCardClick(component)}
             >
               <div className="componentCard_firstSec">
@@ -90,9 +92,12 @@ const BrowseComponentList = ({
               </div>
             </div>
           ))
-        ) : (
-          <p>No components found.</p>
-        )}
+        ) : !isLoading && components && components.length === 0 ? (
+          // Show "No components found" only when explicitly not loading and empty results
+          <div className="col-span-4 text-center py-8">
+            <p className="text-gray-500 text-lg">No components found.</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-// Updated PostCard.js - Enhanced avatar handling with debugging
 import React, { useState } from "react";
 import { UserOutlined } from "@ant-design/icons";
 import { Rate, Spin } from "antd";
@@ -56,6 +55,7 @@ const PostCard = ({
   const isTextOnly = !hasImages && !hasBuild;
   const isImageOnly = hasImages && !hasBuild;
   const multipleImages = hasImages && post.images.length > 1;
+  const singleImage = hasImages && post.images.length === 1;
 
   // Enhanced avatar handling with better debugging
   const getUserAvatar = () => {
@@ -287,7 +287,17 @@ const PostCard = ({
               buildContent
             ) : (
               <div className="community_images_container">
-                {multipleImages ? (
+                {singleImage && !hasBuild ? (
+                  // Single image without build - centered
+                  <div className="single_image_container">
+                    <img
+                      src={post.images[0].url}
+                      alt="Post content"
+                      className="community_post_image"
+                    />
+                  </div>
+                ) : multipleImages ? (
+                  // Multiple images - slider
                   <div className="image_slider">
                     <button
                       className="slider_arrow left"
@@ -311,6 +321,7 @@ const PostCard = ({
                     </div>
                   </div>
                 ) : (
+                  // Fallback for side by side (shouldn't reach here with current logic)
                   <div className="side_by_side_images">
                     {post.images.map((image, index) => (
                       <img
@@ -355,14 +366,6 @@ const PostCard = ({
                 <span>{post.savesCount || 0}</span>
               </div>
             )}
-
-            <div
-              className="community_post_action"
-              onClick={() => onSharePost(post._id)}
-            >
-              <RiShare2Line className="community_post_action_icon" />
-              <span>{post.shareCount || 0}</span>
-            </div>
           </div>
         </div>
       </div>

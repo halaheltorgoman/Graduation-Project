@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Form, Input, Alert, message } from "antd";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Forgotpassword.css";
@@ -13,6 +13,16 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [messageApi, contextHolder] = message.useMessage();
   const { email } = location.state || {};
+
+  // Redirect if no email provided
+  useEffect(() => {
+    if (!email) {
+      messageApi.error(
+        "Email is required. Please start the password reset process again."
+      );
+      navigate("/forgot-password");
+    }
+  }, [email, navigate, messageApi]);
 
   const showAlertMessage = (message, type = "error") => {
     setApiError({ message, type });
@@ -65,6 +75,7 @@ const ForgotPassword = () => {
     if (value.length < 8) {
       return Promise.reject("Password must be at least 8 characters!");
     }
+    // Uncomment these lines if you want stronger password validation:
     // if (!/[A-Z]/.test(value)) {
     //   return Promise.reject(
     //     "Password must contain at least one uppercase letter!"
@@ -94,6 +105,11 @@ const ForgotPassword = () => {
       return Promise.reject("The two passwords do not match!");
     },
   });
+
+  // Don't render if no email (will redirect)
+  if (!email) {
+    return null;
+  }
 
   return (
     <div className="forgot-container">
@@ -132,14 +148,10 @@ const ForgotPassword = () => {
           autoComplete="off"
         >
           <p className="forgot-instructions">
-            Create a new password for your account.
+            Create a new password for <strong>{email}</strong>
           </p>
 
-          <Form.Item
-            name="password"
-            rules={[{ validator: validatePassword }]}
-           
-          >
+          <Form.Item name="password" rules={[{ validator: validatePassword }]}>
             <Input.Password className="form-input" placeholder="New Password" />
           </Form.Item>
 
