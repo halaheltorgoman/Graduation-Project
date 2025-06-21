@@ -381,10 +381,10 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
               <FaStar className="rating_star" />
             </div>
           </div>
-          <p className="text-xl text-gray-300">
-            EGP {item.price?.toFixed(2)}{" "}
-            <span className="text-sm text-gray-400">Average Price</span>
-          </p>
+         <p className="text-xl text-[#9c47b1]">
+  EGP {item.price?.toFixed(2)}{" "}
+  <span className="text-sm text-gray-400">Average Price</span>
+</p>
         </div>
 
         <div>

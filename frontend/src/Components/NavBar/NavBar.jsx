@@ -198,6 +198,16 @@ export default function NavBar() {
     }
   };
 
+  const handleLogout = () => {
+  logout(); // This clears the user context
+  navigate('/signup', { replace: true }); // This navigates to the signup page
+  
+  // Also clear any search state if needed
+  setSearchTerm("");
+  setIsSearchActive(false);
+  setShowResults(false);
+};
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -275,15 +285,18 @@ export default function NavBar() {
                     <button className="navbar_ai-button">Try AI</button>
                   </NavLink>
 
-                  {user === null ? (
-                    <NavLink to="login">
-                      <button className="navbar_log-button">Log In</button>
-                    </NavLink>
-                  ) : (
-                    <button className="navbar_log-button" onClick={logout}>
-                      Log Out
-                    </button>
-                  )}
+                {user === null ? (
+  <NavLink to="login">
+    <button className="navbar_log-button">Log In</button>
+  </NavLink>
+) : (
+  <button 
+    className="navbar_log-button" 
+    onClick={handleLogout} // Use the new handler
+  >
+    Log Out
+  </button>
+)}
                 </div>
               </>
             ) : (

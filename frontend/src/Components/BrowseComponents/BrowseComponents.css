@@ -104,14 +104,15 @@
   text-align: center;
 }
 .component_price span {
-  color: rgb(161, 133, 174);
+  color: #9c47b1;
   font-size: 13px;
   padding: 0.5em;
 }
 .component_price {
   font-size: 13px;
-  color: white;
+  color: #9c47b1;
   text-align: center;
+  font-weight: 500;
 }
 
 /* Rating */

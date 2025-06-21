@@ -715,7 +715,7 @@ const FullBuildSummary = ({
             alt="share"
             className="fullbuild-summary-share-icon"
           />
-          Save & Share
+          Save & Share to Community
         </Button>
       </div>
 
