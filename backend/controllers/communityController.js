@@ -375,6 +375,7 @@ exports.removeSavedPost = async (req, res) => {
 //   }
 // };
 // controllers/communityController.js
+// Updated getSavedPosts function in communityController.js
 exports.getSavedPosts = async (req, res) => {
   try {
     const userId = req.userId;
@@ -397,23 +398,78 @@ exports.getSavedPosts = async (req, res) => {
               },
             },
           },
-          { path: "user", select: "username avatar" },
+          {
+            path: "user",
+            select: "username avatar",
+          },
           {
             path: "comments",
-            populate: { path: "user", select: "username" },
+            populate: {
+              path: "user",
+              select: "username avatar", // Include avatar for comments
+            },
           },
         ],
       })
       .exec();
 
+    // Transform saved posts to ensure consistent avatar structure
+    const transformedSavedPosts = user.savedPosts.map((post) => {
+      const postObj = post.toObject();
+
+      // Ensure user avatar is properly structured
+      if (postObj.user && postObj.user.avatar) {
+        // If avatar is stored as an object with url property
+        if (
+          typeof postObj.user.avatar === "object" &&
+          postObj.user.avatar.url
+        ) {
+          postObj.user.avatar = postObj.user.avatar.url;
+        }
+      }
+
+      // Also fix comment avatars if they exist
+      if (postObj.comments && postObj.comments.length > 0) {
+        postObj.comments = postObj.comments.map((comment) => {
+          if (comment.user && comment.user.avatar) {
+            if (
+              typeof comment.user.avatar === "object" &&
+              comment.user.avatar.url
+            ) {
+              comment.user.avatar = comment.user.avatar.url;
+            }
+          }
+          // Ensure we have the author structure that the frontend expects
+          comment.author = {
+            username: comment.user?.username || "Anonymous",
+            avatar: comment.user?.avatar || null,
+            _id: comment.user?._id,
+          };
+          return comment;
+        });
+      }
+
+      return postObj;
+    });
+
     console.log(
-      "Populated savedPosts with components:",
-      JSON.stringify(user.savedPosts?.[0]?.build?.components, null, 2)
+      "Transformed savedPosts with user data:",
+      JSON.stringify(transformedSavedPosts?.[0]?.user, null, 2)
     );
+
+    if (
+      transformedSavedPosts.length > 0 &&
+      transformedSavedPosts[0].comments?.length > 0
+    ) {
+      console.log(
+        "First comment user data:",
+        JSON.stringify(transformedSavedPosts[0].comments[0].author, null, 2)
+      );
+    }
 
     res.json({
       success: true,
-      savedPosts: user.savedPosts || [],
+      savedPosts: transformedSavedPosts || [],
     });
   } catch (error) {
     console.error("Error fetching saved posts:", error);

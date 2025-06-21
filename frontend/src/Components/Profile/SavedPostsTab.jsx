@@ -22,31 +22,65 @@ function SavedPostsTab() {
       setLoading(true);
       try {
         const savedPosts = await communityAPI.getSavedPosts();
+        console.log("Raw saved posts data:", savedPosts);
 
         setFolders([
           {
             name: "Saved Posts",
-            profileBuilds: (savedPosts || []).map((post) => ({
-              _id: post._id,
-              id: post._id,
-              title:
-                post.text?.substring(0, 30) +
-                  (post.text?.length > 30 ? "..." : "") || "Untitled Post",
-              content: post.text || "",
-              image_source: post.images?.[0]?.url
-                ? { url: post.images[0].url }
-                : null,
-              isPost: true,
-              createdAt: post.createdAt,
-              user: post.user || { username: "Unknown" },
-              author: post.user?.username || "Unknown",
-              build: post.build || null,
-              ratings: post.ratings || [],
-              comments: post.comments || [],
-              savesCount: post.savesCount || 0,
-              averageRating: post.averageRating || 0,
-              likesCount: post.likesCount || 0,
-            })),
+            profileBuilds: (savedPosts || []).map((post) => {
+              console.log("Processing post:", post._id, {
+                user: post.user,
+                comments: post.comments?.length || 0,
+              });
+
+              return {
+                _id: post._id,
+                id: post._id,
+                title:
+                  post.text?.substring(0, 30) +
+                    (post.text?.length > 30 ? "..." : "") || "Untitled Post",
+                content: post.text || "",
+                text: post.text || "", // Keep original text field
+                image_source: post.images?.[0]?.url
+                  ? { url: post.images[0].url }
+                  : null,
+                isPost: true,
+                createdAt: post.createdAt,
+                // Ensure user data is properly structured
+                user: {
+                  _id: post.user?._id,
+                  username: post.user?.username || "Unknown",
+                  avatar: post.user?.avatar || null,
+                },
+                author: post.user?.username || "Unknown",
+                build: post.build || null,
+                // Ensure components are properly structured if build exists
+                components: post.build?.components || null,
+                ratings: post.ratings || [],
+                // Ensure comments have proper author structure
+                comments: (post.comments || []).map((comment) => ({
+                  _id: comment._id,
+                  id: comment._id,
+                  text: comment.text,
+                  createdAt: comment.createdAt,
+                  // Ensure author field exists (this is what SavedPostCard expects)
+                  author: {
+                    _id: comment.user?._id || comment.author?._id,
+                    username:
+                      comment.user?.username ||
+                      comment.author?.username ||
+                      "Anonymous",
+                    avatar:
+                      comment.user?.avatar || comment.author?.avatar || null,
+                  },
+                  // Keep user field as well for compatibility
+                  user: comment.user || comment.author,
+                })),
+                savesCount: post.savesCount || 0,
+                averageRating: post.averageRating || 0,
+                likesCount: post.likesCount || 0,
+              };
+            }),
           },
         ]);
       } catch (error) {

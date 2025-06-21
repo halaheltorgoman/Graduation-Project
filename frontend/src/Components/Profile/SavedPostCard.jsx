@@ -70,24 +70,30 @@ function SavedPostCard({ build, onDeleteBuild }) {
     });
   };
 
-  const tabs = [
-    { id: "details", label: "Post Details" },
-    { id: "build", label: "Build Components" },
-    { id: "comments", label: "Comments" },
-  ];
-
   const renderPostDetails = () => {
     const author = build.user?.username || build.author || "Unknown";
+    const authorAvatar = build.user?.avatar || null;
     const imageUrl =
       build.image_source?.url || build.image_source || BuildDummy;
+
+    console.log("Rendering post details:", {
+      author,
+      authorAvatar,
+      userObject: build.user,
+    });
+
     return (
       <div className="post-details">
         <div className="post-header">
           <div className="author-info">
             <img
-              src={build.user?.avatar || BuildDummy}
+              src={authorAvatar || BuildDummy}
               alt={author}
               className="author-avatar"
+              onError={(e) => {
+                console.log("Avatar failed to load:", authorAvatar);
+                e.target.src = BuildDummy;
+              }}
             />
             <div>
               <h4>{author}</h4>
@@ -147,61 +153,134 @@ function SavedPostCard({ build, onDeleteBuild }) {
     );
   };
 
+  const renderComments = () => {
+    console.log("Rendering comments:", comments);
+
+    return (
+      <div className="comments-section">
+        <div className="comments-list">
+          {comments.length > 0 ? (
+            comments.map((comment) => {
+              const commentAuthor =
+                comment.author?.username ||
+                comment.user?.username ||
+                "Anonymous";
+              const commentAvatar =
+                comment.author?.avatar || comment.user?.avatar || null;
+
+              console.log("Rendering comment:", {
+                commentId: comment.id || comment._id,
+                author: commentAuthor,
+                avatar: commentAvatar,
+                comment: comment,
+              });
+
+              return (
+                <div key={comment.id || comment._id} className="comment">
+                  <div className="comment-header">
+                    <img
+                      src={commentAvatar || BuildDummy}
+                      alt={commentAuthor}
+                      className="comment-avatar"
+                      onError={(e) => {
+                        console.log(
+                          "Comment avatar failed to load:",
+                          commentAvatar
+                        );
+                        e.target.src = BuildDummy;
+                      }}
+                    />
+                    <div>
+                      <h5>{commentAuthor}</h5>
+                      <span className="comment-date">
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="comment-text">{comment.text}</p>
+                </div>
+              );
+            })
+          ) : (
+            <p className="no-comments">No comments yet</p>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Only show build tab if the post has a build
+  const tabs = build.build
+    ? [
+        { id: "details", label: "Post Details" },
+        { id: "build", label: "Build Components" },
+        { id: "comments", label: "Comments" },
+      ]
+    : [
+        { id: "details", label: "Post Details" },
+        { id: "comments", label: "Comments" },
+      ];
+
   const renderBuildComponents = () => (
     <div className="profile_buildDetails">
       <div className="profile_buildDetails_main">
-        {/* Title Section */}
-        <div className="profilefullbuild_title_container">
-          <TextArea
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter build title..."
-            autoSize={{ minRows: 1, maxRows: 2 }}
-            disabled={!isEditingTitle}
-            className={`profilefullbuild_title_field ${
-              isEditingTitle ? "editing" : "not-editing"
-            }`}
-          />
-          <span
-            className="profilefullbuild_title_edit_icon"
-            onClick={() => setIsEditingTitle(!isEditingTitle)}
-          >
-            {isEditingTitle ? <CheckOutlined /> : <EditOutlined />}
-          </span>
-        </div>
+        {/* Only show title, image, and description if build exists */}
+        {build.build && (
+          <>
+            {/* Title Section */}
+            <div className="profilefullbuild_title_container">
+              <TextArea
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter build title..."
+                autoSize={{ minRows: 1, maxRows: 2 }}
+                disabled={!isEditingTitle}
+                className={`profilefullbuild_title_field ${
+                  isEditingTitle ? "editing" : "not-editing"
+                }`}
+              />
+              <span
+                className="profilefullbuild_title_edit_icon"
+                onClick={() => setIsEditingTitle(!isEditingTitle)}
+              >
+                {isEditingTitle ? <CheckOutlined /> : <EditOutlined />}
+              </span>
+            </div>
 
-        {/* Build Image */}
-        <div className="profile_buildDetails-image">
-          <img
-            src={
-              build.build?.components?.case?.image_source ||
-              build.build?.image_source?.url ||
-              build.build?.image_source ||
-              BuildDummy
-            }
-            alt="Build"
-          />
-        </div>
+            {/* Build Image */}
+            <div className="profile_buildDetails-image">
+              <img
+                src={
+                  build.build.components?.case?.image_source ||
+                  build.build.image_source?.url ||
+                  build.build.image_source ||
+                  BuildDummy
+                }
+                alt="Build"
+              />
+            </div>
 
-        {/* Description Section */}
-        <div className="profilefullbuild_desc_container">
-          <TextArea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add build description..."
-            autoSize={{ minRows: 3, maxRows: 5 }}
-            disabled={!isEditingDesc}
-            className={`profilefullbuild_desc_field ${
-              isEditingDesc ? "editing" : "not-editing"
-            }`}
-          />
-          <span
-            className="profilefullbuild_desc_edit_icon"
-            onClick={() => setIsEditingDesc(!isEditingDesc)}
-          >
-            {isEditingDesc ? <CheckOutlined /> : <EditOutlined />}
-          </span>
-        </div>
+            {/* Description Section */}
+            <div className="profilefullbuild_desc_container">
+              <TextArea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add build description..."
+                autoSize={{ minRows: 3, maxRows: 5 }}
+                disabled={!isEditingDesc}
+                className={`profilefullbuild_desc_field ${
+                  isEditingDesc ? "editing" : "not-editing"
+                }`}
+              />
+              <span
+                className="profilefullbuild_desc_edit_icon"
+                onClick={() => setIsEditingDesc(!isEditingDesc)}
+              >
+                {isEditingDesc ? <CheckOutlined /> : <EditOutlined />}
+              </span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="profile_buildDetails_secondary">
@@ -238,58 +317,6 @@ function SavedPostCard({ build, onDeleteBuild }) {
             This post doesn't contain a PC build
           </div>
         )}
-      </div>
-    </div>
-  );
-
-  const renderComments = () => (
-    <div className="comments-section">
-      <div className="comments-list">
-        {comments.length > 0 ? (
-          comments.map((comment) => (
-            <div key={comment.id || comment._id} className="comment">
-              <div className="comment-header">
-                <img
-                  src={comment.author?.avatar || BuildDummy}
-                  alt={comment.author?.username}
-                  className="comment-avatar"
-                />
-                <div>
-                  <h5>{comment.author?.username || "Anonymous"}</h5>
-                  <span className="comment-date">
-                    {new Date(comment.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-              <p className="comment-text">{comment.text}</p>
-            </div>
-          ))
-        ) : (
-          <p className="no-comments">No comments yet</p>
-        )}
-      </div>
-      <div className="add-comment">
-        <textarea
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
-          rows={3}
-        />
-        <button
-          onClick={() => {
-            if (newComment.trim() === "") return;
-            const comment = {
-              id: Date.now(),
-              author: { username: "You" },
-              text: newComment,
-              createdAt: new Date().toISOString(),
-            };
-            setComments([...comments, comment]);
-            setNewComment("");
-          }}
-        >
-          Post Comment
-        </button>
       </div>
     </div>
   );
@@ -349,7 +376,7 @@ function SavedPostCard({ build, onDeleteBuild }) {
           </div>
           <div className="tab-content-container">
             {activeTab === "details" && renderPostDetails()}
-            {activeTab === "build" && renderBuildComponents()}
+            {activeTab === "build" && build.build && renderBuildComponents()}
             {activeTab === "comments" && renderComments()}
           </div>
           <div className="build-card_actions">
