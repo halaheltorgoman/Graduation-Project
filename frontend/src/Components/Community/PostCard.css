@@ -652,3 +652,50 @@
 .community_user_avatar.loading {
   opacity: 0.5;
 }
+
+
+
+
+/* Update the slider arrow styles to match PostCarousel */
+.slider_arrow {
+  position: absolute;
+  bottom: 20px;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 50%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 18px;
+  transition: all 0.3s ease;
+}
+
+.slider_arrow.left {
+  left: 20px;
+}
+
+.slider_arrow.right {
+  right: 20px;
+}
+
+.slider_arrow:hover {
+  background: rgba(222, 77, 255, 0.8) !important;
+}
+
+/* Keep the existing slider indicator styles */
+.slider_indicator {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.252);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 14px;
+}

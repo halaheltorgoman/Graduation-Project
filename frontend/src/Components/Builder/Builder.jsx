@@ -619,10 +619,10 @@ function Builder() {
                       <span>2</span>
                       <p>{fromGuide ? "Build Created" : "Review Build"}</p>
                     </div>
-                    <div className="progress-step">
+                    {/* <div className="progress-step">
                       <span>3</span>
                       <p>{fromGuide ? "Complete" : "Save Changes"}</p>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               )}

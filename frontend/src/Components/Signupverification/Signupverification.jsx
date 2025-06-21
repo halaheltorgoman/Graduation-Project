@@ -138,7 +138,7 @@ const Signupverification = () => {
 
       if (response.data.success) {
         showAlertMessage("Email verified successfully!");
-        setTimeout(() => navigate("/"), 1500);
+        setTimeout(() => navigate("/login"), 1500);
       } else {
         setError(response.data.message || "Verification failed");
       }
