@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import TransparentImage from "../TransparentImage/TransparentImage";
 import { SavedComponentsContext } from "../../Context/SavedComponentContext";
-
+import "./ItemCard.css"; // Import your CSS styles
 const specTemplates = {
   cpu: [
     { label: "Cores", key: "cores" },
@@ -24,6 +24,7 @@ const specTemplates = {
     { label: "Processor Speed", key: "processor_speed" },
     { label: "Socket", key: "socket" },
     { label: "Cache", key: "cache" },
+    { label: "Chipsets", key: "MB_chipsets_all" },
   ],
   gpu: [
     { label: "Manufacturer", key: "manfacturer" },
@@ -44,6 +45,8 @@ const specTemplates = {
     { label: "Motherboard Socket", key: "MB_socket" },
     { label: "Storage Interface", key: "storage_interface" },
     { label: "Compatible Processors", key: "compatible_processors" },
+    { label: "Chipset", key: "chipset" },
+    { label: "Motherboard Form", key: "MB_form" },
   ],
   case: [
     { label: "Brand", key: "brand" },
@@ -56,6 +59,7 @@ const specTemplates = {
     { label: "Recommended Usecases", key: "recommended_usecases" },
     { label: "Fan Placement", key: "fan_placement" },
     { label: "Weight (Kgs)", key: "case_weight_in_kg" },
+    { label: "Supported Motherboards", key: "supported_motherboards" },
   ],
   cooler: [
     { label: "Brand", key: "brand" },
@@ -64,6 +68,7 @@ const specTemplates = {
     { label: "Radiator Size", key: "radiator_size" },
     { label: "Fan Size", key: "fan_size" },
     { label: "Supported Lightning Type", key: "compatible_lighting_type" },
+    { label: "Supported Socket", key: "compatible_cpu_sockets" },
   ],
   cooling: [
     { label: "Brand", key: "brand" },
@@ -243,10 +248,10 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
   };
 
   const renderSpecItem = (label, value) => (
-    <li key={label} className="component_details_spec-item">
-      <span className="component_details_spec-label">{label} :</span>
+    <div key={label} className="component_details_spec-item">
+      <span className="component_details_spec-label">{label}</span>
       <span className="component_details_spec-value">{value?.toString()}</span>
-    </li>
+    </div>
   );
 
   // Simplified favorite toggle using context
@@ -381,34 +386,31 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
               <FaStar className="rating_star" />
             </div>
           </div>
-         <p className="text-xl text-[#9c47b1]">
-  EGP {item.price?.toFixed(2)}{" "}
-  <span className="text-sm text-gray-400">Average Price</span>
-</p>
+          <p className="text-xl text-[#9c47b1]">
+            EGP {item.price?.toFixed(2)}{" "}
+          </p>
         </div>
 
         <div>
           <div>
             <h3 className="text-lg font-semibold mb-3">Specifications</h3>
-            <ul className="space-y-2 list-disc pl-5">
-              {hasSpecs ? (
-                <ul className="component_details_specs-list">
-                  {specTemplate
-                    ? specTemplate
-                        .filter((spec) => allSpecs[spec.key])
-                        .map((spec) =>
-                          renderSpecItem(spec.label, allSpecs[spec.key])
-                        )
-                    : Object.entries(allSpecs).map(([key, value]) =>
-                        renderSpecItem(key.replace(/_/g, " "), value)
-                      )}
-                </ul>
-              ) : (
-                <p className="component_details-specs-message">
-                  No specifications available
-                </p>
-              )}
-            </ul>
+            {hasSpecs ? (
+              <div className="component_details_specs-list">
+                {specTemplate
+                  ? specTemplate
+                      .filter((spec) => allSpecs[spec.key])
+                      .map((spec) =>
+                        renderSpecItem(spec.label, allSpecs[spec.key])
+                      )
+                  : Object.entries(allSpecs).map(([key, value]) =>
+                      renderSpecItem(key.replace(/_/g, " "), value)
+                    )}
+              </div>
+            ) : (
+              <p className="component_details-specs-message">
+                No specifications available
+              </p>
+            )}
           </div>
 
           {item.website && (

@@ -201,7 +201,7 @@ const buildService = {
       switch (targetType.toLowerCase()) {
         case "cpu":
           selectFields +=
-            " manfacturer socket cores threads MB_chipsets product_link";
+            " manfacturer socket cores threads MB_chipsets product_link MB_chipsets_all";
           break;
         case "gpu":
           selectFields +=
@@ -209,15 +209,15 @@ const buildService = {
           break;
         case "motherboard":
           selectFields +=
-            " brand MB_socket supported_memory MB_form chipset pcie_slots dimensions storage_interfaces product_link";
+            " brand MB_socket supported_memory MB_form chipset pcie_slots dimensions storage_interfaces product_link MB_form chipset";
           break;
         case "case":
           selectFields +=
-            " brand case_type color supported_motherboards max_gpu_length psu_support dimensions cooler_height drive_bays product_link";
+            " brand case_type color supported_motherboards max_gpu_length psu_support dimensions cooler_height drive_bays product_link supported_motherboards";
           break;
         case "cooler":
           selectFields +=
-            " brand cooling_method compatible_cpu_sockets height product_link";
+            " brand cooling_method compatible_cpu_sockets height product_link compatible_cpu_sockets";
           break;
         case "memory":
           selectFields +=
