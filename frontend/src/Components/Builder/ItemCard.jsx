@@ -286,7 +286,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
 
   return (
     <div
-      className={`item-card-container p-6 mb-8 last:mb-0 rounded-3xl bg-black/60 flex gap-4 transition-all border- ${
+      className={`item-card-container p-6 mb-8 last:mb-0 rounded-3xl bg-black/60 flex gap-4 transition-all border-2 ${
         selected ? "border-white" : "border-transparent"
       }`}
       onClick={onSelect}
@@ -360,6 +360,12 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
                 <FaRegHeart className="text-white" size={20} />
               )}
             </button>
+            <h2 className="item-card-title text-2xl font-semibold mb-2">
+              {item.title}
+            </h2>
+            <p className="item-card-price text-xl text-[#9c47b1]">
+              EGP {item.price?.toFixed(2)}{" "}
+            </p>
             <div className="item-card-main-image-wrapper px-8 py-16 border-b">
               <img
                 className="item-card-main-image "
@@ -368,7 +374,10 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
               />
             </div>
             <div className="item-card-description mt-4">
-              <h3 className="item-card-description-title text-lg font-semibold mb-3">Description</h3>
+              <h3 className="item-card-description-title text-lg font-semibold mb-3">
+                Description
+              </h3>
+
               <ul className="item-card-description-text text-sm text-gray-400 list-disc">
                 {item.product_name}
               </ul>
@@ -380,20 +389,20 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       <div className="item-card-right flex-1 flex flex-col">
         <div className="item-card-header mb-3">
           <div className="item-card-title-wrapper flex items-center ">
-            <h2 className="item-card-title text-2xl font-semibold mb-2">{item.title}</h2>
-            <div className="item-card-rating flex gap-2 items-center">
-              <span className="item-card-rating-value text-sm text-gray-400">{item.rating}</span>
+            <div className=" flex gap-2 items-center">
+              <span className="item-card-rating-value text-sm text-gray-400">
+                {item.rating}
+              </span>
               <FaStar className="item-card-rating-star rating_star" />
             </div>
           </div>
-          <p className="item-card-price text-xl text-[#9c47b1]">
-            EGP {item.price?.toFixed(2)}{" "}
-          </p>
         </div>
 
         <div className="item-card-specs">
           <div className="item-card-specs-section">
-            <h3 className="item-card-specs-title text-lg font-semibold mb-3">Specifications</h3>
+            <h3 className="item-card-specs-title text-lg font-semibold mb-3">
+              Specifications
+            </h3>
             {hasSpecs ? (
               <div className="component_details_specs-list">
                 {specTemplate
@@ -411,6 +420,17 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
                 No specifications available
               </p>
             )}
+
+            <Button
+              className="item-card-next-button mt-3 rounded-[60px] px-14 bg-[#621C74]"
+              onClick={(e) => {
+                e.stopPropagation();
+                onNext();
+              }}
+              disabled={!selected}
+            >
+              Next
+            </Button>
           </div>
 
           {item.website && (
@@ -428,16 +448,6 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
             </p>
           )}
 
-          <Button
-            className="item-card-next-button mt-14 rounded-[60px] px-14 bg-[#621C74]"
-            onClick={(e) => {
-              e.stopPropagation();
-              onNext();
-            }}
-            disabled={!selected}
-          >
-            Next
-          </Button>
           {showError && (
             <div className="item-card-error-message mt-2 text-red-500 text-sm">
               Please select this component before proceeding.
@@ -445,7 +455,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
           )}
         </div>
 
-        <div className="item-card-share-section flex flex-col gap-4 w-fit items-start my-4">
+        {/* <div className="item-card-share-section flex flex-col gap-4 w-fit items-start my-4">
           <Button
             variant="link"
             className="item-card-share-button text-white"
@@ -454,7 +464,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
             <FaShare className="item-card-share-icon w-4 h-4" />
             Share
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

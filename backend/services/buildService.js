@@ -52,6 +52,7 @@ const FILTER_FIELD_MAP = {
   storage: {
     brand: "brand",
     size: "size",
+    storage_type: "storage_type",
   },
   psu: {
     brand: "brand",
@@ -96,7 +97,7 @@ const ALLOWED_FILTERS = {
     "minPrice",
     "maxPrice",
   ],
-  storage: ["brand", "size", "price", "minPrice", "maxPrice"],
+  storage: ["brand", "size", "price", "minPrice", "maxPrice", "storage_type"],
   psu: ["brand", "price", "minPrice", "maxPrice"],
 };
 
@@ -224,7 +225,8 @@ const buildService = {
             " brand DDR_generation memory_size modules product_link";
           break;
         case "storage":
-          selectFields += " brand size form_factor interface product_link";
+          selectFields +=
+            " brand size form_factor interface product_link storage_type";
           break;
         case "psu":
           selectFields += " brand wattage form_factor modular product_link";

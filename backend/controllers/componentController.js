@@ -211,6 +211,13 @@ exports.getComponentsByType = async (req, res) => {
             : [queryParams.size],
         };
       }
+      if (queryParams.storage_type) {
+        filter.storage_type = {
+          $in: Array.isArray(queryParams.storage_type)
+            ? queryParams.storage_type
+            : [queryParams.storage_type],
+        };
+      }
     }
 
     console.log("Final filter object:", JSON.stringify(filter, null, 2));

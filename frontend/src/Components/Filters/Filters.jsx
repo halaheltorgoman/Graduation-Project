@@ -138,6 +138,7 @@ const COMPONENT_FILTERS = {
       "16TB",
       "18TB",
     ],
+    Storage: ["HDD", "SSD"],
   },
 };
 
@@ -276,6 +277,9 @@ function Filters({
           break;
         case "Capacity":
           apiParams.size = values;
+          break;
+        case "Storage":
+          apiParams.storage_type = values;
           break;
       }
     });
