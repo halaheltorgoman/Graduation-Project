@@ -5,13 +5,13 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px; /* Increased space between each spec item */
+  gap: 0px; /* Increased space between each spec item */
 }
 
 .component_details_spec-item {
   display: flex;
   flex-direction: column;
-  padding: 16px 20px;
+  padding: 14px 10px;
 
   border-radius: 12px;
 
@@ -19,9 +19,9 @@
   min-height: auto;
 }
 
-.component_details_spec-item:hover {
+/* .component_details_spec-item:hover {
   background: rgba(255, 255, 255, 0.08);
-}
+} */
 
 .component_details_spec-label {
   font-weight: 600;
@@ -33,7 +33,7 @@
 }
 
 .component_details_spec-value {
-  color: #d1d5db;
+  color: #cb77e5 !important;
   font-size: 15px; /* Increased from 13px */
   line-height: 1.7; /* Increased for better readability */
   word-wrap: break-word;
@@ -41,26 +41,27 @@
   white-space: pre-wrap;
   max-width: 100%;
   overflow-wrap: break-word;
+  font-weight: 450 !important;
 }
 
 /* Handle comma-separated values with automatic line breaks */
-.component_details_spec-value.comma-separated {
+/* .component_details_spec-value.comma-separated {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 0;
-}
+} */
 
-.component_details_spec-value.comma-separated .spec-item {
+/* .component_details_spec-value.comma-separated .spec-item {
   display: inline-block;
   margin-right: 8px;
   position: relative;
-}
+} */
 
-.component_details_spec-value.comma-separated
+/* .component_details_spec-value.comma-separated
   .spec-item:not(:last-child)::after {
   content: ",";
   margin-left: 2px;
-}
+} */
 
 /* Alternative: Force line breaks after commas if no space follows */
 .component_details_spec-value.force-wrap {
@@ -130,4 +131,52 @@
   .share-options-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+
+
+.item-card-images {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 5px;
+}
+
+
+.item-card-main-image-container {
+  flex: 1;
+  /* position: relative; */
+  /* width: 70%;
+  height: 70%; */
+}
+
+
+.item-card-main-image {
+ height: 200px;
+ width: 100%;
+  object-fit:contain;
+  border-radius: 10px;
+}
+
+.item-card-container{
+  /* display: flex; */
+  gap: 10px;
+  padding: 14px;
+width: 900px;
+height:fit-content;
+}
+
+
+.item-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 180px;
+}
+
+.item-card-title {
+  font-size: 23px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
+  
 }
