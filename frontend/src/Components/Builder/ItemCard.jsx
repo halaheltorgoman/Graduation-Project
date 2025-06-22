@@ -328,8 +328,8 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
       )}
 
       <div className="item-card-left flex-1">
-        <div className="item-card-images flex gap-4">
-          <div className="item-card-thumbnails">
+        <div className="item-card-images ">
+          {/* <div className="item-card-thumbnails">
             {images.map((image, index) => (
               <div
                 key={index}
@@ -348,7 +348,7 @@ const ItemCard = ({ item, type, selected, onSelect, onNext, showError }) => {
                 />
               </div>
             ))}
-          </div>
+          </div> */}
           <div className="item-card-main-image-container flex-1 relative">
             <button
               className="item-card-favorite-button absolute top-2 right-2 p-2 hover:bg-purple-500/20 rounded-full transition-colors z-10"
