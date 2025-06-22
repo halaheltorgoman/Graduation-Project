@@ -169,23 +169,8 @@
   font-size: 14px;
 }
 
-/* Rating section */
-.guide_rating_section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
 .guide_rate_stars .ant-rate-star {
   color: #a84fcd !important;
-}
-
-.guide_rating_text {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
 }
 
 /* Right side - Components */

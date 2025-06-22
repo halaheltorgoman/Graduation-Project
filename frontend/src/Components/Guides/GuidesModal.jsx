@@ -19,7 +19,7 @@ const specTemplates = {
     { label: "Series", key: "series" },
     { label: "Graphics Co Processor", key: "Graphics_Co_Processor" },
     { label: "Expansion Slots", key: "expansion_slots" },
-    { label: "Video Output Interface", key: "video_output_interface" },
+    { label: "RAM size", key: "RAM_size" },
     { label: "Clock Speed", key: "clock_speed" },
     { label: "Resolution", key: "resolution" },
   ],
@@ -229,7 +229,7 @@ const GuidesModal = ({
                       <img
                         src={selectedComponent.images[currentImageIndex].url}
                         alt={
-                          selectedComponent.name ||
+                          selectedComponent.title ||
                           selectedComponent.product_name ||
                           "Component"
                         }
@@ -335,7 +335,7 @@ const GuidesModal = ({
             {selectedComponent ? (
               <>
                 <h3 className="component-name">
-                  {selectedComponent.name ||
+                  {selectedComponent.title ||
                     selectedComponent.product_name ||
                     "Component"}
                 </h3>

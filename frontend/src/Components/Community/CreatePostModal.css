@@ -424,3 +424,62 @@
   overflow-y: auto;
   padding-right: 4px; /* for scrollbar */
 }
+/* File Error Messages Styles */
+.file-errors {
+  margin: 12px 0;
+  padding: 0;
+}
+
+.file-error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #dc2626;
+  font-size: 14px;
+  animation: slideDown 0.3s ease-out;
+}
+
+.file-error-message:last-child {
+  margin-bottom: 0;
+}
+
+.error-icon {
+  color: #dc2626;
+  font-weight: bold;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Animation for error messages */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark theme support (if your app has dark mode) */
+@media (prefers-color-scheme: dark) {
+  .file-error-message {
+    background-color: #2d1b1b;
+    border-color: #7f1d1d;
+    color: #f87171;
+  }
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .file-error-message {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}

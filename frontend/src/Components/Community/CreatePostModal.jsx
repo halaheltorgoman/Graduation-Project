@@ -22,6 +22,7 @@ function CreatePostModal({
   const [savedBuilds, setSavedBuilds] = useState([]);
   const [fetchingBuilds, setFetchingBuilds] = useState(false);
   const [showBuildsList, setShowBuildsList] = useState(false);
+  const [fileErrors, setFileErrors] = useState([]); // New state for file errors
 
   useEffect(() => {
     if (visible) {
@@ -82,6 +83,7 @@ function CreatePostModal({
     setImagePreviews([]);
     setSelectedBuild(null);
     setShowBuildsList(false);
+    setFileErrors([]); // Clear file errors on reset
   };
 
   const toggleBuildsList = () => {
@@ -90,8 +92,14 @@ function CreatePostModal({
 
   const handleImageUpload = (e) => {
     const files = Array.from(e.target.files);
+    const newErrors = [];
+
+    // Clear previous errors
+    setFileErrors([]);
 
     if (files.length + imageFiles.length > 5) {
+      newErrors.push("You can upload a maximum of 5 images");
+      setFileErrors(newErrors);
       message.error("You can upload a maximum of 5 images");
       return;
     }
@@ -99,15 +107,32 @@ function CreatePostModal({
     const newImageFiles = [...imageFiles];
     const newImagePreviews = [...imagePreviews];
     let validFilesCount = 0;
+    let processedFiles = 0;
 
     files.forEach((file) => {
-      if (file.size > 5 * 1024 * 1024) {
-        message.error(`${file.name} is too large (max 5MB)`);
+      // Check file type first
+      if (!file.type.match(/^image\/(jpe?g|png|webp)$/i)) {
+        newErrors.push(
+          `"${file.name}" is not a supported image format. Only JPEG, PNG, and WebP files are allowed.`
+        );
+        processedFiles++;
+
+        if (processedFiles === files.length) {
+          setFileErrors(newErrors);
+        }
         return;
       }
 
-      if (!file.type.match(/^image\/(jpe?g|png|webp)$/i)) {
-        message.error(`${file.name} is not a supported image format`);
+      // Check file size
+      if (file.size > 5 * 1024 * 1024) {
+        newErrors.push(
+          `"${file.name}" is too large. Maximum file size is 5MB.`
+        );
+        processedFiles++;
+
+        if (processedFiles === files.length) {
+          setFileErrors(newErrors);
+        }
         return;
       }
 
@@ -116,14 +141,31 @@ function CreatePostModal({
         newImageFiles.push(file);
         newImagePreviews.push(reader.result);
         validFilesCount++;
+        processedFiles++;
 
-        if (validFilesCount === files.length) {
+        if (processedFiles === files.length) {
           setImageFiles(newImageFiles);
           setImagePreviews(newImagePreviews);
+          if (newErrors.length > 0) {
+            setFileErrors(newErrors);
+          }
         }
       };
+
+      reader.onerror = () => {
+        newErrors.push(`Failed to read "${file.name}"`);
+        processedFiles++;
+
+        if (processedFiles === files.length) {
+          setFileErrors(newErrors);
+        }
+      };
+
       reader.readAsDataURL(file);
     });
+
+    // Reset the input value to allow re-selecting the same files
+    e.target.value = "";
   };
 
   const removeImage = (index) => {
@@ -135,23 +177,47 @@ function CreatePostModal({
 
     setImageFiles(newImageFiles);
     setImagePreviews(newImagePreviews);
+
+    // Clear errors if no files remain
+    if (newImageFiles.length === 0) {
+      setFileErrors([]);
+    }
   };
 
   const handleSelectBuild = (build) => {
     setSelectedBuild(build);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!postText.trim() && !selectedBuild && imageFiles.length === 0) {
       message.error("Post must have text, images, or a build");
       return;
     }
 
-    onSubmit({
-      postText,
-      imageFiles,
-      selectedBuild,
-    });
+    // Clear any previous file errors before submission
+    setFileErrors([]);
+
+    try {
+      await onSubmit({
+        postText,
+        imageFiles,
+        selectedBuild,
+      });
+    } catch (error) {
+      // Handle server-side file validation errors
+      if (error.response?.data?.message) {
+        if (
+          error.response.data.message.includes("image") ||
+          error.response.data.message.includes("file")
+        ) {
+          setFileErrors([error.response.data.message]);
+        } else {
+          message.error(error.response.data.message);
+        }
+      } else {
+        message.error("Failed to create post");
+      }
+    }
   };
 
   if (!visible) return null;
@@ -181,6 +247,18 @@ function CreatePostModal({
                 <span className="indicator-icon">✓</span>
                 <span>Build "{selectedBuild.title}" is ready to share</span>
               </div>
+            </div>
+          )}
+
+          {/* File Error Messages */}
+          {fileErrors.length > 0 && (
+            <div className="file-errors">
+              {fileErrors.map((error, index) => (
+                <div key={index} className="file-error-message">
+                  <span className="error-icon">⚠</span>
+                  <span>{error}</span>
+                </div>
+              ))}
             </div>
           )}
 
