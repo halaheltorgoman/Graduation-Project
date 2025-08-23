@@ -1,4 +1,4 @@
-#PCsmith – Smart PC Builder & Community Platform
+# PCsmith – Smart PC Builder & Community Platform
 
 PCsmith is a modern web application that helps users **build, customize, and share PC builds** with ease.  
 Whether you’re a **gamer, content creator, developer, or office worker**, PCsmith guides you step-by-step to assemble a compatible system tailored to your needs.  
