@@ -22,7 +22,7 @@ Powered by the **MERN stack** with AI integration, PCsmith combines **real-time 
 
 ---
 
-##Tech Stack
+## Tech Stack
 
 - **Frontend**: React, TailwindCSS  
 - **Backend**: Node.js, Express.js  
@@ -32,7 +32,7 @@ Powered by the **MERN stack** with AI integration, PCsmith combines **real-time 
 
 ---
 
-##Prototype
+## Prototype
 
  https://www.behance.net/gallery/224352097/PC-Smith
 
